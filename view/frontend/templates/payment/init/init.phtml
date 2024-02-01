@@ -1,0 +1,35 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */
+?>
+
+<script>
+    window.adyenActiveEvents = [
+        'checkout:shipping:method-activate',
+        'checkout:payment:method-activate',
+        'checkout:coupon:activate',
+        'checkout:coupon:deactivate'
+    ];
+
+    (function (window) {
+        window.AdyenCheckoutLibrary = function () {
+            let loaded = window.hasOwnProperty('AdyenCheckout');
+
+            return new Promise(function (resolve) {
+                if (loaded) return resolve(window.AdyenCheckout);
+
+                const script = document.createElement('script');
+                script.src = '<?= $block->getViewFileUrl('Adyen_Payment::js/adyen.js') ?>';
+                script.type = 'text/javascript';
+                script.onload = function () {
+                    loaded = true;
+                    resolve(window.AdyenCheckout);
+                };
+
+                document.head.appendChild(script);
+            });
+        };
+    })(window);
+</script>
+
+<?php echo $block->getChildHtml('checkout.payment.method.model.common'); ?>

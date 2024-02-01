@@ -1,0 +1,84 @@
+<?php
+/** @var SavedCards $magewire */
+
+use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
+use Adyen\Hyva\Api\ProcessingMetadataInterface;
+use Adyen\Hyva\Magewire\Payment\Method\SavedCards;
+use Magewirephp\Magewire\Component;
+
+/** @var Component $magewire */
+$magewire = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_MAGEWIRE);
+/** @var StoredCreditCardInterface $storedCard */
+$storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_CARD);
+?>
+
+<div>
+    <?php if ($storedCard):?>
+        <div id="<?= $storedCard->getLayoutId() ?>_ActionContainer" wire:ignore></div>
+
+        <script>
+            window.dispatchEvent(new Event('cc-method-active'));
+
+            window.addEventListener('checkout:payment:method-activate', async () => {
+                let creditCardHandler = await init();
+                activateCc(creditCardHandler);
+            });
+
+            async function init() {
+                let wire = Magewire.find('<?= $storedCard->getLayoutId(); ?>');
+                let creditCardHandler = new componentHandler(
+                    wire,
+                    '<?= $storedCard->getLayoutId() ?>_ActionContainer'
+                );
+
+                return creditCardHandler;
+            }
+
+            async function activateCc(creditCardHandler) {
+                creditCardHandler.setPublicHash('<?= $storedCard->getPublicHash() ?>');
+
+                let paymentMethod = {
+                    type: "card",
+                    hideCVC: <?= $magewire->getConfiguration()->getValue('adyenCc/requireCvc') ? 'false' : 'true' ?>,
+                    brand: '<?= $storedCard->getType() ?>',
+                    storedPaymentMethodId: '<?= $storedCard->getGatewayToken() ?>',
+                    expiryMonth: '<?= $storedCard->getExpiryMonth() ?>',
+                    expiryYear: '<?= $storedCard->getExpiryYear() ?>',
+                    onChange: function(state, component) {
+                        if (!state.isValid) {
+                            hyvaCheckout.navigation.disableButtonPlaceOrder();
+                        } else {
+                            creditCardHandler.clearMessage();
+                            hyvaCheckout.navigation.enableButtonPlaceOrder();
+                        }
+                    },
+                }
+
+                let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+
+                let configuration = creditCardHandler.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+                let component = await creditCardHandler.buildComponent(
+                    <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse
+                );
+
+                creditCardHandler.mountComponent(component, paymentMethod.type, configuration);
+
+                hyvaCheckout.payment.activate('<?= $storedCard->getLayoutId() ?>',
+                    {
+                        async placeOrder() {
+                            let stateData = creditCardHandler.getActionComponent().data;
+                            let publicHash = creditCardHandler.getPublicHash();
+                            creditCardHandler.placeOrder(stateData, publicHash);
+                        },
+                        placeOrderViaJs() {
+                            return true
+
+                        }
+                    },
+                    document.getElementById("<?= $storedCard->getLayoutId() ?>_ActionContainer")
+                );
+            }
+        </script>
+    <?php endif; ?>
+</div>

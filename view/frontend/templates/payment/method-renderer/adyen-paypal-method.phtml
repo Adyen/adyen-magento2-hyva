@@ -1,0 +1,80 @@
+<?php
+
+/** @var Paypal $magewire */
+/** @var Template $block */
+
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\Paypal;
+
+?>
+
+<div>
+    <div id="PaypalActionContainer" wire:ignore></div>
+
+    <script>
+        class paypalComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                paypalConfiguration.showPayButton = true;
+
+                return paypalConfiguration
+            }
+        }
+
+        window.adyenActiveEvents.forEach(async (element) => {
+            window.dispatchEvent(new Event('wallet-method-active'));
+
+            window.addEventListener(element, async () => {
+                let paypalHandler = await init();
+                let wire = paypalHandler.getWire();
+                wire.processIsShippingRequired()
+                    .then(() => {
+                        if (wire.get('requiresShipping')) {
+                            paypalHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            activatePaypal(paypalHandler);
+                        }
+                    });
+            })
+        });
+
+        async function init() {
+            let wire = Magewire.find('checkout.payment.method.adyen_paypal');
+            let paypalHandler = new paypalComponentHandler(
+                wire,
+                'PaypalActionContainer'
+            );
+
+            return paypalHandler;
+        }
+
+        async function activatePaypal(paypalHandler) {
+            let paymentMethodResponse = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse;
+            let paypalMethodConfiguration = null;
+
+            for (let i = 0; i < paymentMethodResponse.paymentMethods.length; i++) {
+                if (paymentMethodResponse.paymentMethods[i].type == 'paypal') {
+                    paypalMethodConfiguration = paymentMethodResponse.paymentMethods[i];
+                    break;
+                }
+            }
+
+            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+
+            let configuration = paypalHandler.buildConfiguration(paypalMethodConfiguration, paymentMethodsExtraInfo);
+            let component = await paypalHandler.buildComponent(
+                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                function (result) {
+                paypalHandler.handleAdditionalDetails(result.data)
+            },
+            function (result) {},
+            function (state) {
+                paypalHandler.placeOrder(state.data);
+            }
+        );
+
+            paypalHandler.mountComponent(component, paypalMethodConfiguration.type, configuration);
+        }
+    </script>
+</div>

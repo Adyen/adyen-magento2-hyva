@@ -1,0 +1,76 @@
+<?php
+
+/** @var CreditCard $magewire */
+/** @var Template $block */
+
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
+
+?>
+
+<div>
+    <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
+
+    <script>
+        window.addEventListener('checkout:payment:method-activate', async () => {
+            let creditCardHandler = await init();
+            activateCc(creditCardHandler);
+        });
+
+        async function init() {
+            window.dispatchEvent(new Event('cc-method-active'));
+
+            let wire = Magewire.find('checkout.payment.method.adyen_cc');
+            let creditCardHandler = new componentHandler(
+                wire,
+                'CreditCardActionContainer'
+            );
+
+            return creditCardHandler;
+        }
+
+        async function activateCc(creditCardHandler) {
+            let paymentMethod = {
+                enableStoreDetails: '<?= $magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest())?>',
+                brands: <?= $magewire->getBrands() ?>,
+                hasHolderName: '<?= $magewire->getConfiguration()->getValue('adyen/hasHolderName') ?>',
+                holderNameRequired: '<?= $magewire->getConfiguration()->getValue('adyen/holderNameRequired') ?>',
+                paymentMethodsResponse: <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                onChange: function(state, component) {
+                    if (!state.isValid) {
+                        hyvaCheckout.navigation.disableButtonPlaceOrder();
+                    } else {
+                        creditCardHandler.clearMessage();
+                        hyvaCheckout.navigation.enableButtonPlaceOrder();
+                    }
+                },
+                name: "Credit Card",
+                type: "card",
+                code: '<?= $magewire->getMethodCode() ?>'
+            };
+
+            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+
+            let configuration = creditCardHandler.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+            let component = await creditCardHandler.buildComponent(
+                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse
+            );
+
+            creditCardHandler.mountComponent(component, paymentMethod.type, configuration);
+
+            hyvaCheckout.payment.activate('<?= $magewire->getMethodCode() ?>',
+                {
+                    async placeOrder() {
+                        let stateData = creditCardHandler.getActionComponent().data;
+                        creditCardHandler.placeOrder(stateData);
+                    },
+                    placeOrderViaJs() {
+                        return true
+                    }
+                },
+                document.getElementById('CreditCardActionContainer')
+            );
+        }
+    </script>
+</div>

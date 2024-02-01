@@ -1,0 +1,56 @@
+<?php
+
+/** @var \Adyen\Hyva\Block\SavedCards $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Escaper $escaper */
+
+use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
+use Adyen\Hyva\ViewModel\SavedCards as SavedCardsViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var SavedCardsViewModel $savedCardsViewModel */
+$savedCardsViewModel = $viewModels->require(SavedCardsViewModel::class);
+$paymentMethodsWire = $block->getHyvaPaymentMethodsMagewire();
+
+?>
+<?php if ($paymentMethodsWire): ?>
+    <?php /** @var StoredCreditCardInterface $storedCard */?>
+    <?php foreach ($savedCardsViewModel->getStoredCards() as $storedCard): ?>
+        <li id="payment-method-option-<?= /* @noEscape */ $storedCard->getLayoutId() ?>"
+            class="<?= $paymentMethodsWire->method === $storedCard->getLayoutId()  ? 'active' : 'inactive' ?>"
+            wire:key="<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+        >
+            <?php
+                /** @var Template $vaultMethod */
+                $vaultMethod = $block->getNewVaultBlock($storedCard);
+                $vaultMethodHtml = $vaultMethod != null ? $vaultMethod->toHtml() : null;
+            ?>
+
+            <div class="flex gap-x-4">
+                <div class="flex items-center">
+                    <input type="radio"
+                           class="flex-none disabled:opacity-25"
+                           id="payment-method-<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                           name="payment-method-option"
+                           value="<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                           wire:model="method"
+                    />
+                </div>
+                <label class="flex justify-between cursor-pointer w-full relative space-x-4"
+                       for="payment-method-<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                >
+                    <div class="text-gray-700 font-bold flex flex-col">
+                        <?= $escaper->escapeHtml($storedCard->getPublicLabel()) ?>
+                    </div>
+                </label>
+            </div>
+            <?php if (($paymentMethodsWire->method == $storedCard->getLayoutId()) &&  $vaultMethodHtml): ?>
+                <div id="<?= 'payment-method-view-' . /* @noEscape */ $storedCard->getLayoutId()  ?>" class="w-full pl-8 mt-4">
+                    <?= /* @noEscape */ $vaultMethodHtml ?>
+                </div>
+            <?php endif ?>
+        </li>
+    <?php endforeach; ?>
+<?php endif ?>

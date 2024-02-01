@@ -1,0 +1,83 @@
+<?php
+
+/** @var GooglePay $magewire */
+/** @var Template $block */
+
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
+
+?>
+
+<div>
+    <div id="ApplePayActionContainer" wire:ignore></div>
+
+    <script>
+        class applePayComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+                let applePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                applePayConfiguration.showPayButton = true;
+                applePayConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
+                applePayConfiguration.code = "adyen_applepay";
+
+                return applePayConfiguration
+            }
+        }
+
+        window.adyenActiveEvents.forEach(async (element) => {
+            window.addEventListener(element, async () => {
+                let applePayHandler = await init();
+                let wire = applePayHandler.getWire();
+                wire.processIsShippingRequired()
+                    .then(() => {
+                        if (wire.get('requiresShipping')) {
+                            applePayHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            activateApplePay(googlePayHandler);
+                        }
+                    });
+            })
+        });
+
+        async function init() {
+            window.dispatchEvent(new Event('wallet-method-active'));
+
+            let wire = Magewire.find('checkout.payment.method.adyen_applepay');
+            let applePayHandler = new applePayComponentHandler(
+                wire,
+                'GooglePayActionContainer'
+            );
+
+            return applePayHandler;
+        }
+
+        async function activateApplePay(applePayHandler) {
+            let paymentMethodResponse = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse;
+            let applePayMethodConfiguration = null;
+
+            for (let i = 0; i < paymentMethodResponse.paymentMethods.length; i++) {
+                if (paymentMethodResponse.paymentMethods[i].type == 'applepay') {
+                    applePayMethodConfiguration = paymentMethodResponse.paymentMethods[i];
+                    break;
+                }
+            }
+
+            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+
+            let configuration = applePayHandler.buildConfiguration(applePayMethodConfiguration, paymentMethodsExtraInfo);
+            let component = await applePayHandler.buildComponent(
+                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                function (result) {
+                applePayHandler.handleAdditionalDetails(result.data)
+            },
+            function (result) {},
+            function (state) {
+                applePayHandler.placeOrder(state.data);
+            }
+        );
+
+            applePayHandler.mountComponent(component, applePayMethodConfiguration.type, configuration);
+        }
+    </script>
+</div>

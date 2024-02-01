@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <block name="block-loader" template="Hyva_Theme::ui/loading-block.phtml"/>
+
+        <referenceBlock name="coupon-code">
+            <arguments>
+                <argument name="magewire" xsi:type="object">
+                    \Adyen\Hyva\Magewire\Checkout\CouponCode
+                </argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="checkout.payment.methods" template="Adyen_Hyva::checkout/payment/method-list.phtml">
+            <block name="checkout.payment.methods.saved_cards"
+                   as="adyen_vault_saved_cards"
+                   class="Adyen\Hyva\Block\SavedCards"
+                   template="Adyen_Hyva::checkout/payment/method-list/saved-cards.phtml">
+            </block>
+
+            <block name="checkout.payment.method.adyen_cc"
+                   as="adyen_cc"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-cc-method.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\CreditCard</argument>
+                </arguments>
+            </block>
+
+            <block name="checkout.payment.method.adyen_googlepay"
+                   as="adyen_googlepay"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-googlepay-method.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\GooglePay</argument>
+                </arguments>
+            </block>
+
+            <block name="checkout.payment.method.adyen_applepay"
+                   as="adyen_applepay"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-applepay-method.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\ApplePay</argument>
+                </arguments>
+            </block>
+
+            <block name="checkout.payment.method.adyen_paypal"
+                   as="adyen_paypal"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-paypal-method.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Paypal</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

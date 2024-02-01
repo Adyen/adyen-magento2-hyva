@@ -1,0 +1,82 @@
+<?php
+
+/** @var GooglePay $magewire */
+/** @var Template $block */
+
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
+
+?>
+
+<div>
+    <div id="GooglePayActionContainer" wire:ignore></div>
+
+    <script>
+        class googlePayComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+                let googlePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                googlePayConfiguration.showPayButton = true;
+
+                return googlePayConfiguration
+            }
+        }
+
+        window.adyenActiveEvents.forEach(async (element) => {
+            window.addEventListener(element, async () => {
+                let googlePayHandler = await init();
+                let wire = googlePayHandler.getWire();
+                wire.processIsShippingRequired()
+                    .then(() => {
+                        if (wire.get('requiresShipping')) {
+                            googlePayHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            activateGooglePay(googlePayHandler);
+                        }
+                    });
+            })
+        });
+
+        async function init() {
+            window.dispatchEvent(new Event('wallet-method-active'));
+
+            let wire = Magewire.find('checkout.payment.method.adyen_googlepay');
+            let googlePayHandler = new googlePayComponentHandler(
+                wire,
+                'GooglePayActionContainer'
+            );
+
+            return googlePayHandler;
+        }
+
+        async function activateGooglePay(googlePayHandler) {
+
+            let paymentMethod = {
+                configuration: {
+                    gatewayMerchantId: '<?= $magewire->getConfiguration()->getValue('adyen/merchantAccount') ?>'
+                },
+                name: "Google Pay",
+                type: "googlepay",
+                code: "adyen_googlepay"
+            };
+
+            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+
+
+            let configuration = googlePayHandler.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+            let component = await googlePayHandler.buildComponent(
+                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                function (result) {
+                    googlePayHandler.handleAdditionalDetails(result.data)
+                },
+                function (result) {},
+                function (state) {
+                    googlePayHandler.placeOrder(state.data);
+                }
+            );
+
+            googlePayHandler.mountComponent(component, paymentMethod.type, configuration);
+        }
+    </script>
+</div>

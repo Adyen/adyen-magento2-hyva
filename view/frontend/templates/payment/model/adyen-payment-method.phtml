@@ -1,0 +1,263 @@
+<?php
+
+use Magento\Framework\Escaper;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\Modal;
+use Adyen\Hyva\Block\PaymentMethod;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var Modal $modalViewModel */
+/** @var PaymentMethod $block */
+
+$modalViewModel = $viewModels->require(Modal::class);
+
+$environment     = $block->getConfiguration()->getValue('adyen/checkoutEnvironment');
+$shippingAddress = $block->getQuoteShippingAddress();
+$billingAddress  = $block->getQuoteBillingAddress();
+
+?>
+<div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
+    <?= $modalViewModel->createModal()
+                       ->withDialogRefName('adyenPopup')
+                       ->removeDialogClass('p-10')
+                       ->addDialogClass('p-4')
+                       ->withContent(<<<END_OF_CONTENT
+                        <div class="relative">
+                            {$block->getBlockHtml('block-loader')}
+                            <div id="adyen-popup"></div>
+                        </div>
+                        END_OF_CONTENT
+                       ) ?>
+</div>
+
+<script>
+    window.addEventListener('wallet-method-active', () => {
+        let button = document.getElementsByClassName('btn-primary')[0];
+        button.style.visibility = 'hidden';
+    });
+
+    window.addEventListener('cc-method-active', () => {
+        let button = document.getElementsByClassName('btn-primary')[0];
+
+        if (button.style.visibility == 'hidden') {
+            button.style.visibility = 'visible';
+        }
+    });
+</script>
+
+<script>
+    class componentHandler {
+        constructor(
+            wire,
+            elementLabel
+        ) {
+            this.wire = wire;
+            this.elementLabel = elementLabel;
+            this.messageContainer = elementLabel + "MessageContainer";
+        }
+
+        getWire() {
+            return this.wire;
+        }
+
+        getCheckoutComponent() {
+            return self.checkoutComponent;
+        }
+
+        getActionComponent() {
+            return self.actionComponent;
+        }
+
+        setPublicHash(publicHash)
+        {
+            this.publicHash = publicHash;
+        }
+
+        getPublicHash()
+        {
+            return this.publicHash;
+        }
+
+        buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
+            let showPayButton = false;
+            let formattedShippingAddress = <?= $shippingAddress ?>;
+            let formattedBillingAddress = <?= $billingAddress ?>;
+
+            let configuration = {
+                ...paymentMethod,
+                showPayButton: showPayButton,
+                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id,
+                data: {}
+            };
+
+            return configuration
+        }
+
+        async buildComponent(
+            paymentMethodsResponse,
+            handleOnAdditionalDetails= (result) => {
+                this.handleAdditionalDetails(result.data)
+            },
+            handleOnCancel = (result) => {},
+            handleOnSubmit = (result) => {}
+        ) {
+            if (!!paymentMethodsResponse) {
+                let AdyenCheckout = await AdyenCheckoutLibrary();
+
+                return await AdyenCheckout({
+                        clientKey: '<?= $block->getConfiguration()->getValue('adyen/clientKey') ?>',
+                        environment: '<?= $block->getConfiguration()->getValue('adyen/checkoutEnvironment') ?>',
+                        locale: '<?= $block->getConfiguration()->getValue('adyen/locale') ?>',
+                        paymentMethodsResponse: paymentMethodsResponse,
+                        onAdditionalDetails: handleOnAdditionalDetails,
+                        onCancel: handleOnCancel,
+                        onSubmit: handleOnSubmit
+                    }
+                );
+            } else {
+                return false
+            }
+        }
+
+        mountComponent(checkoutComponent, paymentMethodType, configuration, result = undefined) {
+            try {
+                self.checkoutComponent = checkoutComponent;
+
+                const paymentMethodActionComponent = checkoutComponent.create(
+                    paymentMethodType,
+                    configuration
+                )
+
+                if ('isAvailable' in paymentMethodActionComponent) {
+                    paymentMethodActionComponent.isAvailable().then(() => {
+                        paymentMethodActionComponent.mount('#' + this.elementLabel);
+                    }).catch(e => {
+                        if (!!result) {
+                            result.isAvailable(false);
+                        }
+                    });
+                } else {
+                    paymentMethodActionComponent.mount('#' + this.elementLabel);
+                }
+
+                self.actionComponent = paymentMethodActionComponent;
+            } catch (error) {
+                if ('<?= $environment ?>' == 'test') {
+                    console.log('Error mounting the payment method component:' + error);
+                }
+            }
+        }
+
+        placeOrder(data, publicHash = null) {
+            let self = this;
+            let wire = self.wire;
+
+            wire.placeOrder({stateData: data, publicHash: publicHash})
+                .then(() => {
+                    let paymentStatus = JSON.parse(wire.get('paymentStatus'));
+                    self.handleAdyenResult(paymentStatus);
+                }).catch(() => {
+                    console.log('Error occurred during order placement')
+                });
+        }
+
+        handleAdyenResult(responseJSON) {
+            let self = this;
+
+            if (responseJSON.isRefused) {
+                self.renderMessage("<?= __("The Payment is Refused") ?>");
+                hyvaCheckout.navigation.enableButtonPlaceOrder();
+                setTimeout(() => {
+                    self.clearMessage();
+                }, 2000);
+
+                return;
+            }
+
+            if (!!responseJSON.isFinal) {
+                // Status is final redirect to the success page
+                window.location.replace('<?= $block->getBaseUrl() ?>' + 'checkout/onepage/success');
+            } else {
+                // Handle action
+                self.handleAction(responseJSON.action);
+            }
+        }
+
+        handleAction(action) {
+            let self = this;
+
+            try {
+                if (action.type === 'threeDS2' || action.type === 'await') {
+                    self.getCheckoutComponent().createFromAction(action).mount('#adyen-popup');
+
+                    this.handleModal(true)
+                }
+
+                if (action.type === 'sdk') {
+                    let component = self.getCheckoutComponent().components.at(0);
+
+                    if (component) {
+                        component.handleAction(action);
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        handleModal(open) {
+            if (open) {
+                window.dispatchEvent(new CustomEvent('hyva-modal-show', {detail: {dialog: 'adyenPopup'}}))
+                document.removeEventListener('keydown', window.hyva.modal.eventListeners.keydown);
+                document.removeEventListener('click', window.hyva.modal.eventListeners.click);
+            } else {
+                window.dispatchEvent(new CustomEvent('adyen-modal-hide'))
+                document.addEventListener('keydown', window.hyva.modal.eventListeners.keydown);
+                document.addEventListener('click', window.hyva.modal.eventListeners.click);
+            }
+        }
+
+        handleAdditionalDetails(data) {
+            let self = this;
+            let wire = self.wire;
+
+            window.dispatchEvent(
+                new CustomEvent('adyen-loading', {detail: true})
+            )
+
+            wire.collectPaymentDetails(data)
+                .then(() => {
+                    let paymentDetails = JSON.parse(wire.get('paymentDetails'));
+                    this.handleModal(false);
+                    self.handleAdyenResult(paymentDetails);
+                    window.dispatchEvent(new CustomEvent('adyen-loading', {detail: false}))
+                }).catch(() => {
+                    console.log('Error occurred during order placement')
+                });
+        }
+
+        renderMessage(message) {
+            this.clearMessage();
+            let messageContainerElement = document.createElement('div');
+            let containerElement = document.getElementById(this.elementLabel);
+            messageContainerElement.id = this.messageContainer;
+            messageContainerElement.className = 'message error';
+            messageContainerElement.innerHTML = message;
+            containerElement.parentNode.insertBefore(messageContainerElement, containerElement);
+        }
+
+        clearMessage() {
+            let messageContainerElement = document.getElementById(this.messageContainer);
+            if (messageContainerElement) {
+                messageContainerElement.remove();
+            }
+        }
+    }
+</script>
+
+<?php
+    foreach ($block->getChildNames() as $childBlockName) {
+        echo $block->getLayout()->getBlock($childBlockName)->toHtml();
+    }
+?>

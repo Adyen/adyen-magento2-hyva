@@ -1,0 +1,83 @@
+<div>
+    <?php if ($magewire->showAdyenGiving()): ?>
+        <div id="DonationActionContainer" wire:ignore></div>
+        <script>
+            (async function () {
+                function handleOnDonate(state, component) {
+                    let wire = Magewire.find('onepage.success.adyen_payment');
+
+                    if (state.isValid) {
+                        let previousStateData;
+                        try {
+                            previousStateData = <?= $magewire->getStateData() ?>;
+                        } catch {
+                            previousStateData = {};
+                        }
+                        let payload = { ...previousStateData, ...state.data };
+                        payload.returnUrl = window.location.href;
+
+                        if ('<?= $magewire->userIsGuest() ?>' == 'guest') {
+                            const maskedQuoteId = "<?= $block->getMaskedQuoteId() ?>";
+                            wire.donateGuest(maskedQuoteId, payload)
+                                .then(() => {
+                                    handleSuccess(wire,component);
+                                }).catch(() => {
+                                    component.setStatus('error');
+                                });
+                        } else {
+                            const orderId = <?=$block->getOrder()->getId()?>;
+                            wire.donate(orderId, payload)
+                                .then(() => {
+                                    handleSuccess(wire,component);
+                                }).catch(() => {
+                                    component.setStatus('error');
+                                });
+                        }
+                    } else {
+                        component.setStatus('ready');
+                    }
+                }
+
+                function handleSuccess(wire, component)
+                {
+                    let donationStatus = JSON.parse(wire.get('donationStatus'));
+                    if (donationStatus) {
+                        component.setStatus("success");
+                    } else  {
+                        component.setStatus('error');
+                    }
+                }
+
+                function handleOnCancel(state, component) {
+                    let continueActionUrl = document.querySelector('div.checkout-success a.btn-primary').href;
+                    window.location = continueActionUrl;
+                }
+
+                const donationConfig = {
+                    amounts: {
+                        currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
+                        values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+                    },
+                    backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
+                    description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
+                    logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
+                    name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
+                    url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+                    showCancelButton: true,
+                    onDonate: handleOnDonate,
+                    onCancel: handleOnCancel
+                };
+                var checkoutComponent = await AdyenCheckout({
+                    locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+                    environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+                    clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+                });
+                try {
+                    const donation = checkoutComponent.create('donation', donationConfig).mount('#DonationActionContainer');
+                } catch (err) {
+                    console.log(err);
+                }
+            })();
+        </script>
+    <?php endif; ?>
+</div>
