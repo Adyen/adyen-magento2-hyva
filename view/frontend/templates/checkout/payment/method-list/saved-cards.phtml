@@ -18,9 +18,9 @@ $paymentMethodsWire = $block->getHyvaPaymentMethodsMagewire();
 <?php if ($paymentMethodsWire): ?>
     <?php /** @var StoredCreditCardInterface $storedCard */?>
     <?php foreach ($savedCardsViewModel->getStoredCards() as $storedCard): ?>
-        <li id="payment-method-option-<?= /* @noEscape */ $storedCard->getLayoutId() ?>"
+        <li id="payment-method-option-<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId()) ?>"
             class="<?= $paymentMethodsWire->method === $storedCard->getLayoutId()  ? 'active' : 'inactive' ?>"
-            wire:key="<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+            wire:key="<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>"
         >
             <?php
                 /** @var Template $vaultMethod */
@@ -32,14 +32,14 @@ $paymentMethodsWire = $block->getHyvaPaymentMethodsMagewire();
                 <div class="flex items-center">
                     <input type="radio"
                            class="flex-none disabled:opacity-25"
-                           id="payment-method-<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                           id="payment-method-<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>"
                            name="payment-method-option"
-                           value="<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                           value="<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>"
                            wire:model="method"
                     />
                 </div>
                 <label class="flex justify-between cursor-pointer w-full relative space-x-4"
-                       for="payment-method-<?= /* @noEscape */ $storedCard->getLayoutId()  ?>"
+                       for="payment-method-<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>"
                 >
                     <div class="text-gray-700 font-bold flex flex-col">
                         <?= $escaper->escapeHtml($storedCard->getPublicLabel()) ?>
@@ -47,7 +47,7 @@ $paymentMethodsWire = $block->getHyvaPaymentMethodsMagewire();
                 </label>
             </div>
             <?php if (($paymentMethodsWire->method == $storedCard->getLayoutId()) &&  $vaultMethodHtml): ?>
-                <div id="<?= 'payment-method-view-' . /* @noEscape */ $storedCard->getLayoutId()  ?>" class="w-full pl-8 mt-4">
+                <div id="<?= 'payment-method-view-' . $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>" class="w-full pl-8 mt-4">
                     <?= /* @noEscape */ $vaultMethodHtml ?>
                 </div>
             <?php endif ?>

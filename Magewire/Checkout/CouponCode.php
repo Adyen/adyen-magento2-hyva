@@ -43,7 +43,7 @@ class CouponCode extends Component
                     __('No Coupon')
                 );
             }
-            if (! empty($this->couponManagement->get($quoteEntity))) {
+            if (!empty($this->couponManagement->get($quoteEntity))) {
                 throw new LocalizedException(
                     __('A coupon is already applied to the cart. Please remove it to apply another')
                 );

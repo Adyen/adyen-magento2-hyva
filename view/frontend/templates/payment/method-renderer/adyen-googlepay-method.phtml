@@ -52,19 +52,19 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
 
         async function activateGooglePay(googlePayHandler) {
 
-            let paymentMethod = {
-                configuration: {
-                    gatewayMerchantId: '<?= $magewire->getConfiguration()->getValue('adyen/merchantAccount') ?>'
-                },
-                name: "Google Pay",
-                type: "googlepay",
-                code: "adyen_googlepay"
-            };
+            let paymentMethodResponse = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse;
+            let googlepayMethodConfiguration = null;
+
+            for (let i = 0; i < paymentMethodResponse.paymentMethods.length; i++) {
+                if (paymentMethodResponse.paymentMethods[i].type == 'googlepay') {
+                    googlepayMethodConfiguration = paymentMethodResponse.paymentMethods[i];
+                    break;
+                }
+            }
 
             let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+            let configuration = googlePayHandler.buildConfiguration(googlepayMethodConfiguration, paymentMethodsExtraInfo);
 
-
-            let configuration = googlePayHandler.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
             let component = await googlePayHandler.buildComponent(
                 <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
                 function (result) {
@@ -76,7 +76,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
                 }
             );
 
-            googlePayHandler.mountComponent(component, paymentMethod.type, configuration);
+            googlePayHandler.mountComponent(component, googlepayMethodConfiguration.type, configuration);
         }
     </script>
 </div>
