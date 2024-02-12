@@ -42,6 +42,11 @@ class Configuration
         return null;
     }
 
+    public function getJsonValue(string $path): string
+    {
+        return json_encode($this->getValue($path));
+    }
+
     /**
      * @return bool
      */

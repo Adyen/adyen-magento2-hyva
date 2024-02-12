@@ -21,6 +21,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public ?string $paymentResponse = null;
     public ?string $paymentStatus = null;
     public ?string $paymentDetails = null;
+    public ?string $installmentOptions = null;
     public bool $requiresShipping = true;
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
@@ -102,6 +103,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     public function placeOrder(array $data) {
         try {
+            $this->handleSessionVariables($data);
             $quoteId = $this->session->getQuoteId();
             $payment = $this->session->getQuote()->getPayment();
             $stateDataReceived = $this->collectValidatedStateData($data);
@@ -146,6 +148,37 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         return [];
     }
 
+    public function processQuoteParameters(array $allInstallments)
+    {
+        $quote = $this->session->getQuote();
+
+        $precision = 2; //@TODO: replace with configuration variable
+        $grandTotal = $quote->getGrandTotal();
+        $currencyCode = $quote->getQuoteCurrencyCode();
+        $installmentsData = [];
+
+        $installmentsData[] = [
+            'key' => __('Do not use installments'),
+            'value' => ''
+        ];
+
+        foreach ($allInstallments as $amount => $installmentOptions) {
+            foreach ($installmentOptions as $key => $installment) {
+                if ($grandTotal >= $amount) {
+                    $dividedAmount = round($grandTotal / $installment, $precision);
+                    $dividedString = $installment . " x " . $dividedAmount . " " . $currencyCode;
+                    $installmentsData[] = [
+                        'key' => $dividedString,
+                        'value' => $installment
+                    ];
+
+                }
+            }
+        }
+
+        $this->installmentOptions = json_encode($installmentsData);
+    }
+
     public function processIsShippingRequired()
     {
         if ($this->session->getQuote()->isVirtual()) {
@@ -175,5 +208,31 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         }
 
         return null;
+    }
+
+    /**
+     * @param array $data
+     */
+    private function handleSessionVariables(array $data)
+    {
+        $this->session->setStateData(null);
+        $this->session->setNumberOfInstallments(null);
+        $this->session->setCcType(null);
+        $this->processInstallmentsData($data);
+    }
+
+    /**
+     * @param array $data
+     */
+    private function processInstallmentsData(array $data)
+    {
+        if (isset($data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS])
+            && $data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS] != ""
+        ) {
+            $this->session->setNumberOfInstallments(
+                $data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]
+            );
+            $this->session->setCcType($data[ProcessingMetadataInterface::POST_KEY_CC_TYPE]);
+        }
     }
 }

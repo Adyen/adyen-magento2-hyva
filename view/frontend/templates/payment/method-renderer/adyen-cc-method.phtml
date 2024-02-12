@@ -10,8 +10,17 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
 <div>
     <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
+    <div id="InstallmentsContainer">
+        <select id="AdyenCcInstallments" class="select" style="visibility: hidden"></select>
+    </div>
 
     <script>
+        class creditCardComponentHandler extends componentHandler {
+            getAllInstallments() {
+                return <?= $magewire->getConfiguration()->getJsonValue('adyenCc/installments') ?>
+            }
+        }
+
         window.addEventListener('checkout:payment:method-activate', async () => {
             let creditCardHandler = await init();
             activateCc(creditCardHandler);
@@ -21,7 +30,8 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
             window.dispatchEvent(new Event('cc-method-active'));
 
             let wire = Magewire.find('checkout.payment.method.adyen_cc');
-            let creditCardHandler = new componentHandler(
+            let creditCardHandler = new creditCardComponentHandler(
+                '<?= $magewire->getMethodCode() ?>',
                 wire,
                 'CreditCardActionContainer'
             );
@@ -30,7 +40,9 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
         }
 
         async function activateCc(creditCardHandler) {
-            let installments = {
+            let allInstallments = creditCardHandler.getAllInstallments();
+
+            let creditCardConfiguration = {
                 enableStoreDetails: '<?= $magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest())?>',
                 brands: <?= $magewire->getBrands() ?>,
                 hasHolderName: '<?= $magewire->getConfiguration()->getValue('adyen/hasHolderName') ?>',
@@ -44,6 +56,39 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                         hyvaCheckout.navigation.enableButtonPlaceOrder();
                     }
                 },
+                onBrand: function(state) {
+                    creditCardHandler.clearInstallmentsOptions();
+
+                    let wire = creditCardHandler.getWire();
+                    let creditCardType = creditCardHandler.getCcCodeByAltCode(state.brand);
+
+                    if (creditCardType) {
+                        if (!creditCardHandler.getCreditCardType() ||
+                            creditCardHandler.getCreditCardType() &&
+                            creditCardHandler.getCreditCardType() != creditCardType)
+                        {
+                            if (creditCardType in allInstallments) {
+                                let cardInstallments = allInstallments[creditCardType];
+
+                                wire.processQuoteParameters(cardInstallments)
+                                    .then(() => {
+                                        let installmentOptions = JSON.parse(wire.get('installmentOptions'));
+
+                                        if (installmentOptions.length > 1) {
+                                            creditCardHandler.addInstallmentOptions(installmentOptions)
+                                        }
+                                    }).catch(() => {
+                                        console.log('Error occurred during installments processing')
+                                });
+                            }
+                        }
+
+                        creditCardHandler.setCreditCardType(creditCardType);
+                    } else {
+                        creditCardHandler.setCreditCardType('');
+                        creditCardHandler.clearInstallmentsOptions();
+                    }
+                },
                 name: "Credit Card",
                 type: "card",
                 code: '<?= $magewire->getMethodCode() ?>'
@@ -51,13 +96,13 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
             let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
 
-            let configuration = creditCardHandler.buildConfiguration(installments, paymentMethodsExtraInfo);
+            let configuration = creditCardHandler.buildConfiguration(creditCardConfiguration, paymentMethodsExtraInfo);
 
             let component = await creditCardHandler.buildComponent(
                 <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse
             );
 
-            creditCardHandler.mountComponent(component, installments.type, configuration);
+            creditCardHandler.mountComponent(component, creditCardConfiguration.type, configuration);
 
             hyvaCheckout.payment.activate('<?= $magewire->getMethodCode() ?>',
                 {

@@ -49,12 +49,19 @@ $billingAddress  = $block->getQuoteBillingAddress();
 <script>
     class componentHandler {
         constructor(
+            paymentMethodCode,
             wire,
             elementLabel
         ) {
+            this.paymentMethodCode = paymentMethodCode;
             this.wire = wire;
             this.elementLabel = elementLabel;
             this.messageContainer = elementLabel + "MessageContainer";
+        }
+
+        getPaymentMethodCode()
+        {
+            return this.paymentMethodCode;
         }
 
         getWire() {
@@ -77,6 +84,24 @@ $billingAddress  = $block->getQuoteBillingAddress();
         getPublicHash()
         {
             return this.publicHash;
+        }
+
+        setCreditCardType(creditCardType) {
+            this.creditCardType = creditCardType;
+        }
+
+        getCreditCardType() {
+            return this.creditCardType;
+        }
+
+        getCcCodeByAltCode(altCode) {
+            let ccTypes = <?= $block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt') ?>[this.getPaymentMethodCode()];
+
+            if (ccTypes.hasOwnProperty(altCode)) {
+                return ccTypes[altCode];
+            }
+
+            return '';
         }
 
         buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
@@ -153,7 +178,12 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let self = this;
             let wire = self.wire;
 
-            wire.placeOrder({stateData: data, publicHash: publicHash})
+            wire.placeOrder({
+                stateData: data,
+                ccType: this.getCreditCardType(),
+                numberOfInstallments: this.getSelectedInstallmentsOption(),
+                publicHash: publicHash
+            })
                 .then(() => {
                     let paymentStatus = JSON.parse(wire.get('paymentStatus'));
                     self.handleAdyenResult(paymentStatus);
@@ -251,6 +281,62 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let messageContainerElement = document.getElementById(this.messageContainer);
             if (messageContainerElement) {
                 messageContainerElement.remove();
+            }
+        }
+
+        getInstallmentsContainer() {
+            let element = document.getElementById('AdyenCcInstallments');
+
+            if (element !== null) {
+                return element;
+            }
+
+            return null;
+        }
+
+        getSelectedInstallmentsOption() {
+            let selectContainer = this.getInstallmentsContainer();
+
+            if (selectContainer) {
+                return selectContainer.value;
+            }
+
+            return null;
+        }
+
+        addInstallmentOptions(installmentOptions) {
+            let selectContainer = this.getInstallmentsContainer();
+
+            if (selectContainer) {
+                for (let i = 0; i < installmentOptions.length; i++) {
+                    let installment = installmentOptions[i];
+                    this.createInstallmentOption(installment);
+                }
+
+                selectContainer.style.visibility = 'visible';
+            }
+        }
+
+        createInstallmentOption(installment) {
+            let selectContainer = this.getInstallmentsContainer();
+
+            if (selectContainer) {
+                let selectOption = document.createElement('option');
+                selectOption.value = installment.value;
+                selectOption.innerHTML = installment.key;
+                selectContainer.appendChild(selectOption);
+            }
+        }
+
+        clearInstallmentsOptions() {
+            let selectContainer = this.getInstallmentsContainer();
+
+            if (selectContainer) {
+                selectContainer.style.visibility = 'hidden';
+
+                for (let i = 0; i < selectContainer.options.length; i++) {
+                    selectContainer.remove(i);
+                }
             }
         }
     }

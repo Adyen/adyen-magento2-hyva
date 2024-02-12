@@ -27,6 +27,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
             async function init() {
                 let wire = Magewire.find('<?= $storedCard->getLayoutId(); ?>');
                 let creditCardHandler = new componentHandler(
+                    '<?= $magewire->getMethodCode() ?>',
                     wire,
                     '<?= $storedCard->getLayoutId() ?>_ActionContainer'
                 );
