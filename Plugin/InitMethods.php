@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Plugin;
 
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
@@ -13,21 +15,12 @@ use Adyen\Hyva\Model\MethodList;
 
 class InitMethods
 {
-    private CartRepositoryInterface $cartRepository;
-    private MethodList $methodList;
-    private PaymentMethods $paymentMethods;
-    private SavedCardsManager $savedCardsManager;
-
     public function __construct(
-        CartRepositoryInterface $cartRepository,
-        MethodList $methodList,
-        PaymentMethods $paymentMethods,
-        SavedCardsManager $savedCardsManager
+        private CartRepositoryInterface $cartRepository,
+        private MethodList $methodList,
+        private PaymentMethods $paymentMethods,
+        private SavedCardsManager $savedCardsManager
     ) {
-        $this->cartRepository = $cartRepository;
-        $this->methodList = $methodList;
-        $this->paymentMethods = $paymentMethods;
-        $this->savedCardsManager = $savedCardsManager;
     }
 
     /**

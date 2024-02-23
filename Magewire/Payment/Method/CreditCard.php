@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Magewire\Payment\Method;
 
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 use Adyen\Hyva\Model\Configuration;
 use Adyen\Hyva\Model\CreditCard\BrandsManager;
+use Adyen\Hyva\Model\CreditCard\InstallmentsManager;
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
@@ -17,18 +20,17 @@ use Magento\Checkout\Model\Session;
 
 class CreditCard extends AdyenPaymentComponent
 {
-    private BrandsManager $brandsManager;
-
     public function __construct(
-        CheckoutStateDataValidator $checkoutStateDataValidator,
-        Configuration $configuration,
-        Session $session,
-        StateData $stateData,
-        PaymentMethods $paymentMethodsHelper,
-        PaymentInformationManagementInterface $paymentInformationManagement,
-        AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
-        AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
-        BrandsManager $brandsManager
+        protected CheckoutStateDataValidator $checkoutStateDataValidator,
+        protected Configuration $configuration,
+        protected Session $session,
+        protected StateData $stateData,
+        protected PaymentMethods $paymentMethodsHelper,
+        protected PaymentInformationManagementInterface $paymentInformationManagement,
+        protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
+        protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
+        private readonly BrandsManager $brandsManager,
+        private readonly InstallmentsManager $installmentsManager
     ) {
         parent::__construct(
             $checkoutStateDataValidator,
@@ -40,8 +42,6 @@ class CreditCard extends AdyenPaymentComponent
             $adyenOrderPaymentStatus,
             $adyenPaymentsDetails
         );
-
-        $this->brandsManager = $brandsManager;
     }
 
     /**
@@ -66,5 +66,13 @@ class CreditCard extends AdyenPaymentComponent
     public function getBrands(): string
     {
         return $this->brandsManager->getBrands();
+    }
+
+    /**
+     * @return string
+     */
+    public function getFormattedInstallments(): string
+    {
+        return $this->installmentsManager->getFormattedInstallments();
     }
 }

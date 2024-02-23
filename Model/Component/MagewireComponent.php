@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model\Component;
 
 use Adyen\Hyva\Api\Data\MagewireComponentInterface;

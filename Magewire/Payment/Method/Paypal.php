@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Magewire\Payment\Method;
 
 use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;

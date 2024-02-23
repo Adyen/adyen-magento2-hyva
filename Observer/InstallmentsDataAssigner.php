@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Observer;
 
 use Magento\Checkout\Model\Session;
@@ -9,12 +11,9 @@ use Magento\Quote\Model\Quote\Payment;
 
 class InstallmentsDataAssigner extends AbstractDataAssignObserver
 {
-    private Session $checkoutSession;
-
     public function __construct(
-        Session $checkoutSession
+        private Session $checkoutSession
     ) {
-        $this->checkoutSession = $checkoutSession;
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model;
 
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
@@ -7,15 +9,10 @@ use Adyen\Hyva\Model\CreditCard\SavedCardsManager;
 
 class MethodList
 {
-    private SavedCardsManager $savedCardsManager;
-    private array $availableMethods = [];
-
     public function __construct(
-        SavedCardsManager $savedCardsManager,
-        $availableMethods = []
+        private SavedCardsManager $savedCardsManager,
+        private $availableMethods = []
     ) {
-        $this->availableMethods = $availableMethods;
-        $this->savedCardsManager = $savedCardsManager;
     }
 
     /**

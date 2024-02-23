@@ -10,15 +10,9 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
 <div>
     <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
-    <div id="InstallmentsContainer">
-        <select id="AdyenCcInstallments" class="select" style="visibility: hidden"></select>
-    </div>
 
     <script>
         class creditCardComponentHandler extends componentHandler {
-            getAllInstallments() {
-                return <?= $magewire->getConfiguration()->getJsonValue('adyenCc/installments') ?>
-            }
         }
 
         window.addEventListener('checkout:payment:method-activate', async () => {
@@ -40,8 +34,6 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
         }
 
         async function activateCc(creditCardHandler) {
-            let allInstallments = creditCardHandler.getAllInstallments();
-
             let creditCardConfiguration = {
                 enableStoreDetails: '<?= $magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest())?>',
                 brands: <?= $magewire->getBrands() ?>,
@@ -56,38 +48,10 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                         hyvaCheckout.navigation.enableButtonPlaceOrder();
                     }
                 },
+                installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
+                showInstallmentAmounts: true,
                 onBrand: function(state) {
-                    creditCardHandler.clearInstallmentsOptions();
-
-                    let wire = creditCardHandler.getWire();
-                    let creditCardType = creditCardHandler.getCcCodeByAltCode(state.brand);
-
-                    if (creditCardType) {
-                        if (!creditCardHandler.getCreditCardType() ||
-                            creditCardHandler.getCreditCardType() &&
-                            creditCardHandler.getCreditCardType() != creditCardType)
-                        {
-                            if (creditCardType in allInstallments) {
-                                let cardInstallments = allInstallments[creditCardType];
-
-                                wire.processQuoteParameters(cardInstallments)
-                                    .then(() => {
-                                        let installmentOptions = JSON.parse(wire.get('installmentOptions'));
-
-                                        if (installmentOptions.length > 1) {
-                                            creditCardHandler.addInstallmentOptions(installmentOptions)
-                                        }
-                                    }).catch(() => {
-                                        console.log('Error occurred during installments processing')
-                                });
-                            }
-                        }
-
-                        creditCardHandler.setCreditCardType(creditCardType);
-                    } else {
-                        creditCardHandler.setCreditCardType('');
-                        creditCardHandler.clearInstallmentsOptions();
-                    }
+                    creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
                 },
                 name: "Credit Card",
                 type: "card",

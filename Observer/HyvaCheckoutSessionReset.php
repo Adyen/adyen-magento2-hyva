@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Observer;
 
 use Adyen\Hyva\Model\CheckoutSession\ResetHandlerPool;
@@ -9,15 +11,10 @@ use Magento\Framework\Event\ObserverInterface;
 
 class HyvaCheckoutSessionReset implements ObserverInterface
 {
-    private ResetHandlerPool $resetHandlerPool;
-    private SessionCheckoutConfig $sessionCheckoutConfig;
-
     public function __construct(
-        ResetHandlerPool $resetHandlerPool,
-        SessionCheckoutConfig $sessionCheckoutConfig
+        private ResetHandlerPool $resetHandlerPool,
+        private SessionCheckoutConfig $sessionCheckoutConfig
     ) {
-        $this->sessionCheckoutConfig = $sessionCheckoutConfig;
-        $this->resetHandlerPool = $resetHandlerPool;
     }
 
     public function execute(Observer $observer): void

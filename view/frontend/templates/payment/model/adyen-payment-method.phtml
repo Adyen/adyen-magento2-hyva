@@ -181,7 +181,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
             wire.placeOrder({
                 stateData: data,
                 ccType: this.getCreditCardType(),
-                numberOfInstallments: this.getSelectedInstallmentsOption(),
                 publicHash: publicHash
             })
                 .then(() => {
@@ -281,62 +280,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let messageContainerElement = document.getElementById(this.messageContainer);
             if (messageContainerElement) {
                 messageContainerElement.remove();
-            }
-        }
-
-        getInstallmentsContainer() {
-            let element = document.getElementById('AdyenCcInstallments');
-
-            if (element !== null) {
-                return element;
-            }
-
-            return null;
-        }
-
-        getSelectedInstallmentsOption() {
-            let selectContainer = this.getInstallmentsContainer();
-
-            if (selectContainer) {
-                return selectContainer.value;
-            }
-
-            return null;
-        }
-
-        addInstallmentOptions(installmentOptions) {
-            let selectContainer = this.getInstallmentsContainer();
-
-            if (selectContainer) {
-                for (let i = 0; i < installmentOptions.length; i++) {
-                    let installment = installmentOptions[i];
-                    this.createInstallmentOption(installment);
-                }
-
-                selectContainer.style.visibility = 'visible';
-            }
-        }
-
-        createInstallmentOption(installment) {
-            let selectContainer = this.getInstallmentsContainer();
-
-            if (selectContainer) {
-                let selectOption = document.createElement('option');
-                selectOption.value = installment.value;
-                selectOption.innerHTML = installment.key;
-                selectContainer.appendChild(selectOption);
-            }
-        }
-
-        clearInstallmentsOptions() {
-            let selectContainer = this.getInstallmentsContainer();
-
-            if (selectContainer) {
-                selectContainer.style.visibility = 'hidden';
-
-                for (let i = 0; i < selectContainer.options.length; i++) {
-                    selectContainer.remove(i);
-                }
             }
         }
     }

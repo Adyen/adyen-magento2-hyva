@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Observer;
 
 use Magento\Checkout\Model\Session;
@@ -11,12 +13,9 @@ use Magento\Vault\Api\PaymentTokenManagementInterface;
 
 class PaymentTokenAssigner extends AbstractDataAssignObserver
 {
-    private Session $checkoutSession;
-    private PaymentTokenManagementInterface $paymentTokenManagement;
-
     public function __construct(
-        Session $checkoutSession,
-        PaymentTokenManagementInterface $paymentTokenManagement
+        private Session $checkoutSession,
+        private PaymentTokenManagementInterface $paymentTokenManagement
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->paymentTokenManagement = $paymentTokenManagement;

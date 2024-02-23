@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Block;
 
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;

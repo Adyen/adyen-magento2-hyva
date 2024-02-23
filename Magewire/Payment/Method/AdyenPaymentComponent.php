@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Magewire\Payment\Method;
 
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
@@ -21,36 +23,19 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public ?string $paymentResponse = null;
     public ?string $paymentStatus = null;
     public ?string $paymentDetails = null;
-    public ?string $installmentOptions = null;
     public bool $requiresShipping = true;
 
-    protected CheckoutStateDataValidator $checkoutStateDataValidator;
-    protected Configuration $configuration;
-    protected Session $session;
-    protected StateData $stateData;
-    protected PaymentMethods $paymentMethods;
-    protected PaymentInformationManagementInterface $paymentInformationManagement;
-    protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus;
-    protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails;
 
     public function __construct(
-        CheckoutStateDataValidator $checkoutStateDataValidator,
-        Configuration $configuration,
-        Session $session,
-        StateData $stateData,
-        PaymentMethods $paymentMethods,
-        PaymentInformationManagementInterface $paymentInformationManagement,
-        AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
-        AdyenPaymentsDetailsInterface $adyenPaymentsDetails
+        protected CheckoutStateDataValidator $checkoutStateDataValidator,
+        protected Configuration $configuration,
+        protected Session $session,
+        protected StateData $stateData,
+        protected PaymentMethods $paymentMethods,
+        protected PaymentInformationManagementInterface $paymentInformationManagement,
+        protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
+        protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails
     ) {
-        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
-        $this->configuration = $configuration;
-        $this->session = $session;
-        $this->stateData = $stateData;
-        $this->paymentMethods = $paymentMethods;
-        $this->paymentInformationManagement = $paymentInformationManagement;
-        $this->adyenOrderPaymentStatus = $adyenOrderPaymentStatus;
-        $this->adyenPaymentsDetails = $adyenPaymentsDetails;
     }
 
     /**
@@ -113,7 +98,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                 $quoteId,
                 $payment
             );
-            $this->orderId = $orderId;
+            $this->orderId = strval($orderId);
             $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus($this->orderId);
             $this->session->setStateData($stateDataReceived);
         } catch (Exception $exception) {
@@ -146,37 +131,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         }
 
         return [];
-    }
-
-    public function processQuoteParameters(array $allInstallments)
-    {
-        $quote = $this->session->getQuote();
-
-        $precision = 2; //@TODO: replace with configuration variable
-        $grandTotal = $quote->getGrandTotal();
-        $currencyCode = $quote->getQuoteCurrencyCode();
-        $installmentsData = [];
-
-        $installmentsData[] = [
-            'key' => __('Do not use installments'),
-            'value' => ''
-        ];
-
-        foreach ($allInstallments as $amount => $installmentOptions) {
-            foreach ($installmentOptions as $key => $installment) {
-                if ($grandTotal >= $amount) {
-                    $dividedAmount = round($grandTotal / $installment, $precision);
-                    $dividedString = $installment . " x " . $dividedAmount . " " . $currencyCode;
-                    $installmentsData[] = [
-                        'key' => $dividedString,
-                        'value' => $installment
-                    ];
-
-                }
-            }
-        }
-
-        $this->installmentOptions = json_encode($installmentsData);
     }
 
     public function processIsShippingRequired()
@@ -226,11 +180,9 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     private function processInstallmentsData(array $data)
     {
-        if (isset($data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS])
-            && $data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS] != ""
-        ) {
+        if (isset($data[ProcessingMetadataInterface::POST_KEY_STATE_DATA][ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]['value'])) {
             $this->session->setNumberOfInstallments(
-                $data[ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]
+                $data[ProcessingMetadataInterface::POST_KEY_STATE_DATA][ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]['value']
             );
             $this->session->setCcType($data[ProcessingMetadataInterface::POST_KEY_CC_TYPE]);
         }
