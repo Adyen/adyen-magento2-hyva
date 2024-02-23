@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Magewire\Checkout;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
@@ -16,30 +18,15 @@ class Success extends Component
 {
     public bool $donationStatus = false;
 
-    private Session $session;
-    private AdyenDonationsInterface $adyenDonations;
-    private GuestAdyenDonationsInterface $guestAdyenDonations;
-    private OrderFactory $orderFactory;
-    private Config $helperConfig;
-    private StoreManagerInterface $storeManager;
-    private LoggerInterface $logger;
-
     public function __construct(
-        Session $session,
-        AdyenDonationsInterface $adyenDonations,
-        GuestAdyenDonationsInterface $guestAdyenDonations,
-        OrderFactory $orderFactory,
-        Config $helperConfig,
-        StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        private Session $session,
+        private AdyenDonationsInterface $adyenDonations,
+        private GuestAdyenDonationsInterface $guestAdyenDonations,
+        private OrderFactory $orderFactory,
+        private Config $helperConfig,
+        private StoreManagerInterface $storeManager,
+        private LoggerInterface $logger
     ) {
-        $this->session = $session;
-        $this->adyenDonations = $adyenDonations;
-        $this->guestAdyenDonations = $guestAdyenDonations;
-        $this->orderFactory = $orderFactory;
-        $this->helperConfig = $helperConfig;
-        $this->storeManager = $storeManager;
-        $this->logger = $logger;
     }
 
     /**

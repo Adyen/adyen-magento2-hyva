@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model;
 
 use Magento\Checkout\Model\CompositeConfigProvider;
@@ -40,6 +42,11 @@ class Configuration
         }
 
         return null;
+    }
+
+    public function getJsonValue(string $path): string
+    {
+        return json_encode($this->getValue($path));
     }
 
     /**

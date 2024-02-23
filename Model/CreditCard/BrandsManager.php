@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model\CreditCard;
 
 use Adyen\Payment\Api\AdyenPaymentMethodManagementInterface;
@@ -7,15 +9,10 @@ use Magento\Checkout\Model\Session;
 
 class BrandsManager
 {
-    private Session $session;
-    private AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement;
-
     public function __construct(
-        Session $session,
-        AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
+        private Session $session,
+        private AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
     ) {
-        $this->session = $session;
-        $this->adyenPaymentMethodManagement = $adyenPaymentMethodManagement;
     }
 
     /**
@@ -26,7 +23,7 @@ class BrandsManager
         try {
             $paymentMethodsResponse = json_decode(
                 $this->adyenPaymentMethodManagement->getPaymentMethods(
-                    $this->session->getQuoteId()
+                    strval($this->session->getQuoteId())
                 ),
                 true
             );

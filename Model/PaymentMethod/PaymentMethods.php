@@ -1,17 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model\PaymentMethod;
 
 use Adyen\Payment\Helper\PaymentMethods as AdyenPaymentMethods;
 
 class PaymentMethods
 {
-    private AdyenPaymentMethods $adyenPaymentMethods;
-
     public function __construct(
-        AdyenPaymentMethods $adyenPaymentMethods
+        private AdyenPaymentMethods $adyenPaymentMethods
     ) {
-        $this->adyenPaymentMethods = $adyenPaymentMethods;
     }
 
     /**

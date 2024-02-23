@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Magewire\Checkout;
 
 use Magento\Checkout\Model\Session as SessionCheckout;
@@ -13,15 +15,10 @@ class CouponCode extends Component
     public ?string $couponCode = null;
     public int $couponHits = 0;
 
-    protected CouponManagementInterface $couponManagement;
-    protected SessionCheckout $sessionCheckout;
-
     public function __construct(
-        CouponManagementInterface $couponManagement,
-        SessionCheckout $sessionCheckout
+        protected CouponManagementInterface $couponManagement,
+        protected SessionCheckout $sessionCheckout
     ) {
-        $this->couponManagement = $couponManagement;
-        $this->sessionCheckout = $sessionCheckout;
     }
 
     /**

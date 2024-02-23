@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Hyva\Model\CreditCard;
 
 use Adyen\Hyva\Api\Data\MagewireComponentInterface;
@@ -21,30 +23,15 @@ class SavedCardsManager
     private array $savedCards = [];
     private bool $savedCardsLoaded = false;
 
-    private PaymentTokenManagementInterface $paymentTokenManagement;
-    private Session $customerSession;
-    private CheckoutSession $checkoutSession;
-    private AdyenVaultHelper $adyenVaultHelper;
-    private StoreManagerInterface $storeManager;
-    private StoredCreditCardInterfaceFactory $storedCreditCardFactory;
-    private MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory;
-
     public function __construct(
-        PaymentTokenManagementInterface $paymentTokenManagement,
-        Session $customerSession,
-        CheckoutSession $checkoutSession,
-        AdyenVaultHelper $adyenVaultHelper,
-        StoreManagerInterface $storeManager,
-        StoredCreditCardInterfaceFactory $storedCreditCardFactory,
-        MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory
+        private PaymentTokenManagementInterface $paymentTokenManagement,
+        private Session $customerSession,
+        private CheckoutSession $checkoutSession,
+        private AdyenVaultHelper $adyenVaultHelper,
+        private StoreManagerInterface $storeManager,
+        private StoredCreditCardInterfaceFactory $storedCreditCardFactory,
+        private MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory
     ) {
-        $this->paymentTokenManagement = $paymentTokenManagement;
-        $this->customerSession = $customerSession;
-        $this->checkoutSession = $checkoutSession;
-        $this->adyenVaultHelper = $adyenVaultHelper;
-        $this->storeManager = $storeManager;
-        $this->storedCreditCardFactory = $storedCreditCardFactory;
-        $this->magewireComponentInterfaceFactory = $magewireComponentInterfaceFactory;
     }
 
     /**

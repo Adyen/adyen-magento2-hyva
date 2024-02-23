@@ -49,12 +49,19 @@ $billingAddress  = $block->getQuoteBillingAddress();
 <script>
     class componentHandler {
         constructor(
+            paymentMethodCode,
             wire,
             elementLabel
         ) {
+            this.paymentMethodCode = paymentMethodCode;
             this.wire = wire;
             this.elementLabel = elementLabel;
             this.messageContainer = elementLabel + "MessageContainer";
+        }
+
+        getPaymentMethodCode()
+        {
+            return this.paymentMethodCode;
         }
 
         getWire() {
@@ -77,6 +84,24 @@ $billingAddress  = $block->getQuoteBillingAddress();
         getPublicHash()
         {
             return this.publicHash;
+        }
+
+        setCreditCardType(creditCardType) {
+            this.creditCardType = creditCardType;
+        }
+
+        getCreditCardType() {
+            return this.creditCardType;
+        }
+
+        getCcCodeByAltCode(altCode) {
+            let ccTypes = <?= $block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt') ?>[this.getPaymentMethodCode()];
+
+            if (ccTypes.hasOwnProperty(altCode)) {
+                return ccTypes[altCode];
+            }
+
+            return '';
         }
 
         buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
@@ -153,7 +178,11 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let self = this;
             let wire = self.wire;
 
-            wire.placeOrder({stateData: data, publicHash: publicHash})
+            wire.placeOrder({
+                stateData: data,
+                ccType: this.getCreditCardType(),
+                publicHash: publicHash
+            })
                 .then(() => {
                     let paymentStatus = JSON.parse(wire.get('paymentStatus'));
                     self.handleAdyenResult(paymentStatus);
