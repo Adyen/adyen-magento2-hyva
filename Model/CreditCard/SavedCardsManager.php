@@ -32,6 +32,7 @@ class SavedCardsManager
         private StoreManagerInterface $storeManager,
         private StoredCreditCardInterfaceFactory $storedCreditCardFactory,
         private MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory,
+        private BrandsManager $brandsManager,
         private LoggerInterface $logger
     ) {
     }
@@ -94,7 +95,7 @@ class SavedCardsManager
             $vaultData = $this->paymentTokenManagement->getListByCustomerId($customerId);
             $counter = 1;
 
-            /** @var PaymentTokenInterface $vaultEntry */
+            /** @var PaymentTokenInterface $vaultToken */
             foreach ($vaultData as $vaultToken) {
                 if ($this->adyenVaultHelper->getPaymentMethodRecurringActive($vaultToken->getPaymentMethodCode(), $storeId)
                     && strpos((string)$vaultToken->getPaymentMethodCode(), 'adyen_') === 0
@@ -121,8 +122,7 @@ class SavedCardsManager
      */
     private function getStoredCardDataObject(PaymentTokenInterface $vaultToken, int $counter): ?StoredCreditCardInterface
     {
-        if ($vaultToken instanceof PaymentTokenInterface
-            && $vaultToken->getIsActive()
+        if ($vaultToken->getIsActive()
             && $vaultToken->getIsVisible()
             && $vaultToken->getCustomerId() == (int) $this->customerSession->getCustomerId()
         ) {
@@ -134,6 +134,10 @@ class SavedCardsManager
                 || !isset($vaultTokenDetails['tokenType'])
                 || $vaultTokenDetails['tokenType'] != AdyenVaultHelper::CARD_ON_FILE
             ) {
+                return null;
+            }
+
+            if(!in_array($vaultTokenDetails['type'], $this->brandsManager->getBrandsAsArray())) {
                 return null;
             }
 

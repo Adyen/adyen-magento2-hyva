@@ -16,9 +16,9 @@ class BrandsManager
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getBrands(): string
+    public function getBrandsAsArray(): array
     {
         try {
             if ($this->session->getQuote()->getId()) {
@@ -32,15 +32,25 @@ class BrandsManager
                 if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
                     foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
                         if ($paymentMethod['type'] == 'scheme') {
-                            return json_encode($paymentMethod['brands']);
+                            return $paymentMethod['brands'];
                         }
                     }
                 }
             }
         } catch (\Exception $exception) {
-            return json_encode([]);
+            return [];
         }
 
-        return json_encode([]);
+        return [];
+    }
+
+    /**
+     * @return string
+     */
+    public function getBrands(): string
+    {
+        $brands = $this->getBrandsAsArray();
+
+        return json_encode($brands);
     }
 }
