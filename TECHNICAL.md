@@ -1,14 +1,14 @@
-#Technical specifics of Adyen_Hyva module
+# Technical specifics of Adyen_Hyva module
 
 This documents tries to outline the technical specifics in the integration of the Adyen Payments with the Hyva checkout.
 
-##Magewire
+## Magewire
 
 Magewire is used in the implementation of this module.
 
 For basic understanding of the concept, please try https://docs.hyva.io/checkout/hyva-checkout/magewire/index.html#under-the-hood
 
-####Magewire Components
+#### Magewire Components
 
 This module defines the Magewire components under the `Adyen\Hyva\Magewire` namespace. 
 
@@ -16,7 +16,7 @@ More specifically, the components that are utilized in payment methods implement
 
 Here the `AdyenPaymentComponent` abstract class is defined in an attempt to solve common concerns accross different payment options.
 
-####PHTML and Magewire binding for a payment method
+#### PHTML and Magewire binding for a payment method
 
 Each payment method would have its own .phtml file associated with it. The mapping is done in 
 
@@ -45,7 +45,7 @@ and will bind the Magewire component to the .phthml. An example may look like:
 Please notice that implicitly the native Magento Template Block `Magento\Framework\View\Element\Template` is used. 
 It is possible to further specify a custom block class if needed.
 
-####Solving common JS problems
+#### Solving common JS problems
 
 Ideally, under the Hyva/Magewire stack, it should not be needed to write any particular java scripts. 
 However, this module comes with one common Java Script class, that is used for handling frontend related functionality accross different payment methods.
@@ -68,7 +68,7 @@ This .phtml file is made part of the layout by `layout/hyva_checkout_index_index
         
 Please note that the parent `init.phtml` file is responsible to load the original adyen.js library.
 
-####Payment method implementation
+#### Payment method implementation
 
 Usually, the flow of implementing a payment method, consists of the following steps:
 
@@ -81,7 +81,7 @@ Upon interaction with the component, some extra actions may be taken, like `onCh
 
 Please follow an example of the above mentioned steps in a method-renderer .phtml like `adyen-cc-method.phtml`.
 
-####Placing an order
+#### Placing an order
 
 The placement of the order happens in two general ways:
 - uses the original hyva checkout "Place Order" button, which is true for methods like "Credit Card" and "Vault/Stored Card"
@@ -142,7 +142,7 @@ Here we can notice that
     ```
   
   
-####Backend interaction
+#### Backend interaction
 
 Magewire is designed to be flexible enough so to simply ask the backend for some information, or, trigger some backend methods to execute and then collect information about the updated state.
 
@@ -169,7 +169,7 @@ In this example
     ```wire.get('installmentOptions')```
     
     
-##Dependency on the Hyva Checkout module
+## Dependency on the Hyva Checkout module
 
 The current version used of the HyvaCheckout (v1.1.0 (to verify!)) does NOT support out of the box a couple of behaviors.
 

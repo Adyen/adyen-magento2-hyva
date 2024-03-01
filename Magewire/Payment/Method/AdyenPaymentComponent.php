@@ -11,11 +11,11 @@ use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
-use Exception;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
 use Magewirephp\Magewire\Component;
+use Psr\Log\LoggerInterface;
 
 abstract class AdyenPaymentComponent extends Component implements EvaluationInterface
 {
@@ -34,7 +34,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         protected PaymentMethods $paymentMethods,
         protected PaymentInformationManagementInterface $paymentInformationManagement,
         protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
-        protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails
+        protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
+        protected LoggerInterface $logger
     ) {
     }
 
@@ -62,7 +63,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             if ($customerId) {
                 return false;
             }
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return true;
         }
 
@@ -77,16 +78,17 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         try {
             $this->processIsShippingRequired();
             $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $this->paymentResponse = '{}';
+            $this->logger->error('Could not mount the Adyen Payment Component: ' . $exception->getMessage());
         }
     }
 
     /**
      * @param array $data
-     * @throws Exception
      */
-    public function placeOrder(array $data) {
+    public function placeOrder(array $data): void
+    {
         try {
             $this->handleSessionVariables($data);
             $quoteId = $this->session->getQuoteId();
@@ -101,20 +103,39 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $this->orderId = strval($orderId);
             $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus($this->orderId);
             $this->session->setStateData($stateDataReceived);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $this->paymentStatus = json_encode(['isRefused' => true]);
+            $this->logger->error('Could not place the Adyen order: ' . $exception->getMessage());
         }
     }
 
     /**
      * @param array $data
      */
-    public function collectPaymentDetails(array $data)
+    public function collectPaymentDetails(array $data): void
     {
         try {
             $this->paymentDetails = $this->adyenPaymentsDetails->initiate(json_encode($data), $this->session->getLastRealOrder()->getId());
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $this->paymentDetails = json_encode(['isRefused' => true]);
+            $this->logger->error('Could not collect payment details: ' . $exception->getMessage());
+        }
+    }
+
+    public function processIsShippingRequired(): void
+    {
+        try {
+            if ($this->session->getQuote()->isVirtual()) {
+                $this->requiresShipping = false;
+            } else {
+                if ($this->getCurrentShippingMethod()) {
+                    $this->requiresShipping = false;
+                } else {
+                    $this->requiresShipping = true;
+                }
+            }
+        } catch (\Exception $exception) {
+            $this->logger->error('Could not detect if shipping is required: ' . $exception->getMessage());
         }
     }
 
@@ -131,19 +152,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         }
 
         return [];
-    }
-
-    public function processIsShippingRequired()
-    {
-        if ($this->session->getQuote()->isVirtual()) {
-            $this->requiresShipping = false;
-        } else {
-            if ($shippingMethod = $this->getCurrentShippingMethod()) {
-                $this->requiresShipping = false;
-            } else {
-                $this->requiresShipping = true;
-            }
-        }
     }
 
     /**

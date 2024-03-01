@@ -1,7 +1,33 @@
-#Adyen Payment - Integration with Hyva Checkout
+# Adyen Payment - Integration with Hyva Checkout
 
 This module supports Adyen payments via the Hyva Checkout implementation for Magento 2.
 
+### Dependencies
+
+This module depends on:
+- Adyen_Payment plugin
+- The Hyva default theme
+- Hyva_Checkout plugin
+
+### Installation
+
+The dependencies may be obtained like for example
+
+```
+    "adyen/module-payment": "9.2.0",
+    "hyva-themes/magento2-default-theme": "^1.3",
+    "hyva-themes/magento2-hyva-checkout": "^1.1",
+```
+
+### Basic setup
+
+The setup requires Adyen Payment configuration. This module does not introduce any custom configuration options, 
+so Adyen Payment configuration is done as it would be otherwise done for any other default case (e.g. Luma based checkout).
+
+Then, the setup requires that for a given store, the Hyva theme and the Hyva checkout are configured:
+
+ - Navigate to the Content > Design > Configuration admin section and activate the hyva/default theme for a given store view
+ - Navigate to the Stores > Configuration > Hyva Themes > Checkout > General and activate `Hyva Default` (or `Hyva One page`) for a given store view
 ### Supported methods
 
 The following payment methods are supported:
@@ -9,6 +35,8 @@ The following payment methods are supported:
  - Credit card    
  - Saved (Tokenized) credit card    
  - Google pay
+ - Apple Pay
+ - Paypal
     
 ### Magewire usage
 
@@ -16,16 +44,6 @@ Each payment method implementation depends on the work of a magewire component. 
 
 Reference classes are located under the `Adyen\Hyva\Magewire\Payment\Method` namespace.
 
-#### PSI compliance 
+### PSI compliance 
 When making an order, the state data is extracted from the request parameters, 
 and the state data is temporarily attached (but never persisted) to the Adyen's native State Data Object (`Adyen\Payment\Helper\StateData`).
-
-#### Development Assumptions
-
-This module is developed under a couple of assumptions:
-- this module does not add its own configuration
-- this module only reuses configuration that is coming from Adyen, it does not extend or alter in any way native Adyen configuration
-- it assumes dependency on the `Adyen_payment` module, with the following ideas 
-    - interfaces from the `Adyen_Payment` may be injected into classes of `Adyen_Hyva`
-    - it must be avoided (to the extent that it is possible), to plugin to any, or take preference of any, native classes from the native `Adyen_Payment` module
-

@@ -8,11 +8,13 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Model\Quote\Payment;
+use Psr\Log\LoggerInterface;
 
 class InstallmentsDataAssigner extends AbstractDataAssignObserver
 {
     public function __construct(
-        private Session $checkoutSession
+        private Session $checkoutSession,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -29,12 +31,16 @@ class InstallmentsDataAssigner extends AbstractDataAssignObserver
         }
 
         if ($this->checkoutSession->getNumberOfInstallments()) {
-            $paymentModel->setAdditionalInformation(
-                [
-                    'number_od_installments' => $this->checkoutSession->getNumberOfInstallments(),
-                    'cc_type' => $this->checkoutSession->getCcType()
-                ]
-            );
+            try {
+                $paymentModel->setAdditionalInformation(
+                    [
+                        'number_od_installments' => $this->checkoutSession->getNumberOfInstallments(),
+                        'cc_type' => $this->checkoutSession->getCcType()
+                    ]
+                );
+            } catch (\Exception $exception) {
+                $this->logger->error('Could not add additional installments information to the payment model: ' . $exception->getMessage());
+            }
         }
     }
 }

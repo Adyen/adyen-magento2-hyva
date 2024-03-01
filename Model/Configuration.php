@@ -5,18 +5,25 @@ declare(strict_types=1);
 namespace Adyen\Hyva\Model;
 
 use Magento\Checkout\Model\CompositeConfigProvider;
+use Psr\Log\LoggerInterface;
 
 class Configuration
 {
-    private \stdClass $paymentConfiguration;
+    private ?\stdClass $paymentConfiguration = null;
 
     public function __construct(
-        CompositeConfigProvider $configProvider
+        CompositeConfigProvider $configProvider,
+        LoggerInterface $logger
     ) {
-        if (isset($configProvider->getConfig()['payment']) &&
-            $paymentConfiguration = json_decode(json_encode($configProvider->getConfig()['payment']))
-        ) {
-            $this->paymentConfiguration = $paymentConfiguration;
+        try {
+            if (isset($configProvider->getConfig()['payment']) &&
+                $paymentConfiguration = json_decode(json_encode($configProvider->getConfig()['payment']))
+            ) {
+                $this->paymentConfiguration = $paymentConfiguration;
+            }
+        } catch (\Exception $exception) {
+            $this->paymentConfiguration = null;
+            $logger->error('Could not instantiate payment config: ' . $exception->getMessage());
         }
     }
 
@@ -26,19 +33,21 @@ class Configuration
      */
     public function getValue(string $path): mixed
     {
-        $result = $this->paymentConfiguration;
-        $pathParts = explode('/', $path);
+        if ($this->paymentConfiguration) {
+            $result = $this->paymentConfiguration;
+            $pathParts = explode('/', $path);
 
-        if (is_array($pathParts)) {
-            foreach ($pathParts as $part) {
-                if (property_exists($result, $part)) {
-                    $result = $result->$part;
-                } else {
-                    return null;
+            if (is_array($pathParts)) {
+                foreach ($pathParts as $part) {
+                    if (property_exists($result, $part)) {
+                        $result = $result->$part;
+                    } else {
+                        return null;
+                    }
                 }
-            }
 
-            return $result;
+                return $result;
+            }
         }
 
         return null;
@@ -58,6 +67,6 @@ class Configuration
             return false;
         }
 
-        return $this->getValue('adyenCc/isCardRecurringEnabled');
+        return (bool) $this->getValue('adyenCc/isCardRecurringEnabled');
     }
 }

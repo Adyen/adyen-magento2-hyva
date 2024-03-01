@@ -21,17 +21,19 @@ class BrandsManager
     public function getBrands(): string
     {
         try {
-            $paymentMethodsResponse = json_decode(
-                $this->adyenPaymentMethodManagement->getPaymentMethods(
-                    strval($this->session->getQuoteId())
-                ),
-                true
-            );
+            if ($this->session->getQuote()->getId()) {
+                $paymentMethodsResponse = json_decode(
+                    $this->adyenPaymentMethodManagement->getPaymentMethods(
+                        strval($this->session->getQuote()->getId())
+                    ),
+                    true
+                );
 
-            if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
-                foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
-                    if ($paymentMethod['type'] == 'scheme') {
-                        return json_encode($paymentMethod['brands']);
+                if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
+                    foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
+                        if ($paymentMethod['type'] == 'scheme') {
+                            return json_encode($paymentMethod['brands']);
+                        }
                     }
                 }
             }

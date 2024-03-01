@@ -17,6 +17,7 @@ use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
+use Psr\Log\LoggerInterface;
 
 class CreditCard extends AdyenPaymentComponent
 {
@@ -30,7 +31,8 @@ class CreditCard extends AdyenPaymentComponent
         protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
         protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
         private readonly BrandsManager $brandsManager,
-        private readonly InstallmentsManager $installmentsManager
+        private readonly InstallmentsManager $installmentsManager,
+        protected LoggerInterface $logger
     ) {
         parent::__construct(
             $checkoutStateDataValidator,
@@ -40,7 +42,8 @@ class CreditCard extends AdyenPaymentComponent
             $paymentMethodsHelper,
             $paymentInformationManagement,
             $adyenOrderPaymentStatus,
-            $adyenPaymentsDetails
+            $adyenPaymentsDetails,
+            $logger
         );
     }
 

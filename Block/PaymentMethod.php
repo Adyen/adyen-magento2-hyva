@@ -28,22 +28,22 @@ class PaymentMethod extends Template
         return $this->configuration;
     }
 
-    public function getQuoteShippingAddress()
+    public function getQuoteShippingAddress(): string
     {
         $quote = $this->getQuote();
 
-        if ($quote->getShippingAddress()) {
+        if ($quote && $quote->getShippingAddress()) {
             return json_encode($quote->getShippingAddress()->getData());
         }
 
         return json_encode([]);
     }
 
-    public function getQuoteBillingAddress()
+    public function getQuoteBillingAddress(): string
     {
         $quote = $this->getQuote();
 
-        if ($quote->getBillingAddress()) {
+        if ($quote && $quote->getBillingAddress()) {
             return json_encode($quote->getBillingAddress()->getData());
         }
 
@@ -51,13 +51,17 @@ class PaymentMethod extends Template
     }
 
     /**
-     * @return Quote
+     * @return Quote|null
      */
-    private function getQuote(): Quote
+    private function getQuote(): ?Quote
     {
-        /** @var Quote $quote */
-        $quote = $this->checkoutSession->getQuote();
+        try {
+            /** @var Quote $quote */
+            $quote = $this->checkoutSession->getQuote();
 
-        return $quote;
+            return $quote;
+        } catch (\Exception $exception) {
+            return null;
+        }
     }
 }

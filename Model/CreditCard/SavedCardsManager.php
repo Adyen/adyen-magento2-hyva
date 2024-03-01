@@ -17,6 +17,7 @@ use Magento\Vault\Api\PaymentTokenManagementInterface;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterfaceFactory;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
+use Psr\Log\LoggerInterface;
 
 class SavedCardsManager
 {
@@ -30,7 +31,8 @@ class SavedCardsManager
         private AdyenVaultHelper $adyenVaultHelper,
         private StoreManagerInterface $storeManager,
         private StoredCreditCardInterfaceFactory $storedCreditCardFactory,
-        private MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory
+        private MagewireComponentInterfaceFactory $magewireComponentInterfaceFactory,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -65,7 +67,6 @@ class SavedCardsManager
         if (str_starts_with($name, ProcessingMetadataInterface::VAULT_LAYOUT_PREFIX)
             && $storedCard = $this->getStoredCard($name)
         ) {
-            /** @var MagewireComponentInterface $magewireComponent */
             $magewireComponent = $this->magewireComponentInterfaceFactory->create();
             $magewireComponent->setName($name)
                 ->setMagewire(ObjectManager::getInstance()->create(SavedCards::class))
@@ -87,21 +88,25 @@ class SavedCardsManager
             return $this->savedCards;
         }
 
-        $storeId = (int) $this->storeManager->getStore()->getId();
-        $customerId = (int) $this->customerSession->getCustomerId();
-        $vaultData = $this->paymentTokenManagement->getListByCustomerId($customerId);
-        $counter = 1;
+        try {
+            $storeId = (int) $this->storeManager->getStore()->getId();
+            $customerId = (int) $this->customerSession->getCustomerId();
+            $vaultData = $this->paymentTokenManagement->getListByCustomerId($customerId);
+            $counter = 1;
 
-        /** @var PaymentTokenInterface $vaultEntry */
-        foreach ($vaultData as $vaultToken) {
-            if ($this->adyenVaultHelper->getPaymentMethodRecurringActive($vaultToken->getPaymentMethodCode(), $storeId)
-                && strpos((string)$vaultToken->getPaymentMethodCode(), 'adyen_') === 0
-            ) {
-                if ($storedCardDataObject = $this->getStoredCardDataObject($vaultToken, $counter)) {
-                    $this->savedCards[] = $storedCardDataObject;
-                    $counter++;
+            /** @var PaymentTokenInterface $vaultEntry */
+            foreach ($vaultData as $vaultToken) {
+                if ($this->adyenVaultHelper->getPaymentMethodRecurringActive($vaultToken->getPaymentMethodCode(), $storeId)
+                    && strpos((string)$vaultToken->getPaymentMethodCode(), 'adyen_') === 0
+                ) {
+                    if ($storedCardDataObject = $this->getStoredCardDataObject($vaultToken, $counter)) {
+                        $this->savedCards[] = $storedCardDataObject;
+                        $counter++;
+                    }
                 }
             }
+        } catch (\Exception $exception) {
+            $this->logger->error('Error collecting stored cards: ' . $exception->getMessage());
         }
 
         $this->savedCardsLoaded = true;
@@ -135,7 +140,6 @@ class SavedCardsManager
             $expirationDate = $vaultTokenDetails['expirationDate'];
             list($expirationMonth, $expirationYear) = explode('/', $expirationDate);
 
-            /** @var StoredCreditCardInterface $storedCreditCard */
             $storedCreditCard = $this->storedCreditCardFactory->create();
 
             $storedCreditCard->setGatewayToken($vaultToken->getGatewayToken())

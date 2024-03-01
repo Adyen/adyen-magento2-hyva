@@ -12,6 +12,7 @@ use Magento\Quote\Api\PaymentMethodManagementInterface as Subject;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 use Adyen\Hyva\Model\CreditCard\SavedCardsManager;
 use Adyen\Hyva\Model\MethodList;
+use Psr\Log\LoggerInterface;
 
 class InitMethods
 {
@@ -19,7 +20,8 @@ class InitMethods
         private CartRepositoryInterface $cartRepository,
         private MethodList $methodList,
         private PaymentMethods $paymentMethods,
-        private SavedCardsManager $savedCardsManager
+        private SavedCardsManager $savedCardsManager,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -70,13 +72,11 @@ class InitMethods
                     }
                 }
             }
-
-            return $list;
-        } catch (Exception $exception) {
-            throw new LocalizedException(__('Cannot find active quote'));
+        } catch (\Exception $exception) {
+            $this->logger->error('Error during filtering available methods: ' . $exception->getMessage());
         }
 
-        return [];
+        return $list;
     }
 
 
