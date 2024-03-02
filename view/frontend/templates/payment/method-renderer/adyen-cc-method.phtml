@@ -12,9 +12,6 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
     <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
 
     <script>
-        class creditCardComponentHandler extends componentHandler {
-        }
-
         window.addEventListener('checkout:payment:method-activate', async () => {
             let creditCardHandler = await init();
             activateCc(creditCardHandler);
@@ -24,7 +21,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
             window.dispatchEvent(new Event('cc-method-active'));
 
             let wire = Magewire.find('checkout.payment.method.adyen_cc');
-            let creditCardHandler = new creditCardComponentHandler(
+            let creditCardHandler = new componentHandler(
                 '<?= $magewire->getMethodCode() ?>',
                 wire,
                 'CreditCardActionContainer'

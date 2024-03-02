@@ -53,6 +53,11 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                             hyvaCheckout.navigation.enableButtonPlaceOrder();
                         }
                     },
+                    installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
+                    showInstallmentAmounts: true,
+                    onBrand: function(state) {
+                        creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode('<?= $storedCard->getType() ?>'));
+                    }
                 }
 
                 let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
