@@ -1,10 +1,16 @@
+<?php
+
+/** @var \Adyen\Hyva\Block\Checkout\Success $block */
+?>
+
+
 <div>
-    <?php if ($magewire->showAdyenGiving()): ?>
+    <?php if ($block->isHyvaThemeActive() && $magewire->showAdyenGiving()): ?>
         <div id="DonationActionContainer" wire:ignore></div>
         <script>
             (async function () {
                 function handleOnDonate(state, component) {
-                    let wire = Magewire.find('onepage.success.adyen_payment');
+                    let wire = Magewire.find('onepage.success.adyen_hyva_payment');
 
                     if (state.isValid) {
                         let previousStateData;
