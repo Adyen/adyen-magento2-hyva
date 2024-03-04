@@ -75,8 +75,13 @@ class SavedCards extends AdyenPaymentComponent
     public function placeOrder(array $data): void
     {
         $this->handleSessionVariables($data);
-        $quotePayment = $this->session->getQuote()->getPayment();
-        $quotePayment->setMethod(ProcessingMetadataInterface::METHOD_SAVED_CC);
+
+        try {
+            $quotePayment = $this->session->getQuote()->getPayment();
+            $quotePayment?->setMethod(ProcessingMetadataInterface::METHOD_SAVED_CC);
+        } catch (\Exception $e) {
+            $this->logger->error('Could not prepare quote payment for Stored Cards: ' . $e->getMessage());
+        }
 
         parent::placeOrder($data);
     }
