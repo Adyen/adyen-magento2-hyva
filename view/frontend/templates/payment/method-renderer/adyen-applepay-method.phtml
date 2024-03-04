@@ -1,6 +1,6 @@
 <?php
 
-/** @var GooglePay $magewire */
+/** @var ApplePay $magewire */
 /** @var Template $block */
 
 use Magento\Framework\View\Element\Template;
@@ -34,7 +34,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
                         if (wire.get('requiresShipping')) {
                             applePayHandler.renderMessage('Please select shipping method.');
                         } else {
-                            activateApplePay(googlePayHandler);
+                            activateApplePay(applePayHandler);
                         }
                     });
             })
@@ -47,7 +47,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
             let applePayHandler = new applePayComponentHandler(
                 '<?= $magewire->getMethodCode() ?>',
                 wire,
-                'GooglePayActionContainer'
+                'ApplePayActionContainer'
             );
 
             return applePayHandler;
@@ -70,13 +70,13 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
             let component = await applePayHandler.buildComponent(
                 <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
                 function (result) {
-                applePayHandler.handleAdditionalDetails(result.data)
-            },
-            function (result) {},
-            function (state) {
-                applePayHandler.placeOrder(state.data);
-            }
-        );
+                    applePayHandler.handleAdditionalDetails(result.data)
+                },
+                function (result) {},
+                function (state) {
+                    applePayHandler.placeOrder(state.data);
+                }
+            );
 
             applePayHandler.mountComponent(component, applePayMethodConfiguration.type, configuration);
         }
