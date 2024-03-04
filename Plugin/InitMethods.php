@@ -151,10 +151,9 @@ class InitMethods
      */
     private function handleApplePay(array $list): array
     {
-        // TODO: Verify detection of Safari browser
         $user_agent = $_SERVER['HTTP_USER_AGENT'];
 
-        if (preg_match('/safari/i', $user_agent)) {
+        if (!preg_match('/chrome/i', $user_agent) && preg_match('/safari/i', $user_agent)) {
             return $list;
         }
 
