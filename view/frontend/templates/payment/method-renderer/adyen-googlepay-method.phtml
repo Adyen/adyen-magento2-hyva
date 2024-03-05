@@ -26,29 +26,35 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
         window.adyenActiveEvents.forEach(async (element) => {
             window.addEventListener(element, async () => {
                 let googlePayHandler = await init();
-                let wire = googlePayHandler.getWire();
-                wire.processIsShippingRequired()
-                    .then(() => {
-                        if (wire.get('requiresShipping')) {
-                            googlePayHandler.renderMessage('Please select shipping method.');
-                        } else {
-                            activateGooglePay(googlePayHandler);
-                        }
-                    });
+
+                if (googlePayHandler) {
+                    let wire = googlePayHandler.getWire();
+                    wire.processIsShippingRequired()
+                        .then(() => {
+                            if (wire.get('requiresShipping')) {
+                                googlePayHandler.renderMessage('Please select shipping method.');
+                            } else {
+                                activateGooglePay(googlePayHandler);
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                            }
+                        });
+                }
             })
         });
 
         async function init() {
-            window.dispatchEvent(new Event('wallet-method-active'));
+            try {
+                let wire = Magewire.find('checkout.payment.method.adyen_googlepay');
+                let googlePayHandler = new googlePayComponentHandler(
+                    '<?= $magewire->getMethodCode() ?>',
+                    wire,
+                    'GooglePayActionContainer'
+                );
 
-            let wire = Magewire.find('checkout.payment.method.adyen_googlepay');
-            let googlePayHandler = new googlePayComponentHandler(
-                '<?= $magewire->getMethodCode() ?>',
-                wire,
-                'GooglePayActionContainer'
-            );
-
-            return googlePayHandler;
+                return googlePayHandler;
+            } catch (e) {
+                return null;
+            }
         }
 
         async function activateGooglePay(googlePayHandler) {

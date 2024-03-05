@@ -28,29 +28,35 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
         window.adyenActiveEvents.forEach(async (element) => {
             window.addEventListener(element, async () => {
                 let applePayHandler = await init();
-                let wire = applePayHandler.getWire();
-                wire.processIsShippingRequired()
-                    .then(() => {
-                        if (wire.get('requiresShipping')) {
-                            applePayHandler.renderMessage('Please select shipping method.');
-                        } else {
-                            activateApplePay(applePayHandler);
-                        }
-                    });
+
+                if (applePayHandler) {
+                    let wire = applePayHandler.getWire();
+                    wire.processIsShippingRequired()
+                        .then(() => {
+                            if (wire.get('requiresShipping')) {
+                                applePayHandler.renderMessage('Please select shipping method.');
+                            } else {
+                                activateApplePay(applePayHandler);
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                            }
+                        });
+                }
             })
         });
 
         async function init() {
-            window.dispatchEvent(new Event('wallet-method-active'));
+            try {
+                let wire = Magewire.find('checkout.payment.method.adyen_applepay');
+                let applePayHandler = new applePayComponentHandler(
+                    '<?= $magewire->getMethodCode() ?>',
+                    wire,
+                    'ApplePayActionContainer'
+                );
 
-            let wire = Magewire.find('checkout.payment.method.adyen_applepay');
-            let applePayHandler = new applePayComponentHandler(
-                '<?= $magewire->getMethodCode() ?>',
-                wire,
-                'ApplePayActionContainer'
-            );
-
-            return applePayHandler;
+                return applePayHandler;
+            } catch (e) {
+                return null;
+            }
         }
 
         async function activateApplePay(applePayHandler) {

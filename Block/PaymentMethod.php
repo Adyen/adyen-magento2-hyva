@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Adyen\Hyva\Block;
 
 use Adyen\Hyva\Model\Configuration;
+use Adyen\Hyva\Model\MethodList;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Template;
 use Magento\Quote\Model\Quote;
@@ -14,6 +15,7 @@ class PaymentMethod extends Template
     public function __construct(
         Template\Context $context,
         private Configuration $configuration,
+        private MethodList $methodList,
         private Session $checkoutSession,
         array $data = []
     ) {
@@ -26,6 +28,11 @@ class PaymentMethod extends Template
     public function getConfiguration(): Configuration
     {
         return $this->configuration;
+    }
+
+    public function getAvailableMethods(): array
+    {
+        return $this->methodList->collectAvailableMethods();
     }
 
     public function getQuoteShippingAddress(): string

@@ -21,18 +21,26 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
 
             window.addEventListener('checkout:payment:method-activate', async () => {
                 let creditCardHandler = await init();
-                activateCc(creditCardHandler);
+
+                if (creditCardHandler) {
+                    activateCc(creditCardHandler);
+                    window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                }
             });
 
             async function init() {
-                let wire = Magewire.find('<?= $storedCard->getLayoutId(); ?>');
-                let creditCardHandler = new componentHandler(
-                    '<?= $magewire->getMethodCode() ?>',
-                    wire,
-                    '<?= $storedCard->getLayoutId() ?>_ActionContainer'
-                );
+                try {
+                    let wire = Magewire.find('<?= $storedCard->getLayoutId(); ?>');
+                    let creditCardHandler = new componentHandler(
+                        '<?= $magewire->getMethodCode() ?>',
+                        wire,
+                        '<?= $storedCard->getLayoutId() ?>_ActionContainer'
+                    );
 
-                return creditCardHandler;
+                    return creditCardHandler;
+                } catch (e) {
+                    return null;
+                }
             }
 
             async function activateCc(creditCardHandler) {

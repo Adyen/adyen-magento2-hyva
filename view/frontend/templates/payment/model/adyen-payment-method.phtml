@@ -11,7 +11,7 @@ use Adyen\Hyva\Block\PaymentMethod;
 /** @var PaymentMethod $block */
 
 $modalViewModel = $viewModels->require(Modal::class);
-
+$availableMethods = json_encode(array_keys($block->getAvailableMethods()));
 $environment     = $block->getConfiguration()->getValue('adyen/checkoutEnvironment');
 $shippingAddress = $block->getQuoteShippingAddress();
 $billingAddress  = $block->getQuoteBillingAddress();
@@ -32,16 +32,54 @@ $billingAddress  = $block->getQuoteBillingAddress();
 </div>
 
 <script>
-    window.addEventListener('wallet-method-active', () => {
+    window.adyenActiveEvents = [
+        'checkout:shipping:method-activate',
+        'checkout:payment:method-activate',
+        'checkout:coupon:activate',
+        'checkout:coupon:deactivate'
+    ];
+
+    function showPrimaryButton() {
         let button = document.getElementsByClassName('btn-primary')[0];
-        button.style.visibility = 'hidden';
+
+        if (button && button.style.visibility == 'hidden') {
+            button.style.visibility = 'visible';
+        }
+    }
+
+    function hidePrimaryButton() {
+        let button = document.getElementsByClassName('btn-primary')[0];
+
+        if (button) {
+            button.style.visibility = 'hidden';
+        }
+    }
+
+    window.addEventListener('checkout:payment:method-activate', event => {
+        try {
+            const availableMethods = <?= $availableMethods ?>;
+            const activeMethodCode = event.detail.method;
+            window.adyenActiveMethodCode = activeMethodCode;
+
+            if (!availableMethods.includes(activeMethodCode)) {
+                showPrimaryButton();
+            }
+        } catch (e) {
+            if ('<?= $environment ?>' == 'test') {
+                console.error(e);
+            }
+        }
+    })
+
+    window.addEventListener('wallet-method-active', event => {
+        if (event.detail != undefined && window.adyenActiveMethodCode == event.detail.method) {
+            hidePrimaryButton()
+        }
     });
 
-    window.addEventListener('cc-method-active', () => {
-        let button = document.getElementsByClassName('btn-primary')[0];
-
-        if (button.style.visibility == 'hidden') {
-            button.style.visibility = 'visible';
+    window.addEventListener('cc-method-active', event => {
+        if (event.detail != undefined && window.adyenActiveMethodCode == event.detail.method) {
+            showPrimaryButton()
         }
     });
 </script>

@@ -25,7 +25,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public ?string $paymentDetails = null;
     public bool $requiresShipping = true;
 
-
     public function __construct(
         protected CheckoutStateDataValidator $checkoutStateDataValidator,
         protected Configuration $configuration,

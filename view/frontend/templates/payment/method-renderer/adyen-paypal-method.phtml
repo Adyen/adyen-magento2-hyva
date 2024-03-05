@@ -27,27 +27,35 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
 
             window.addEventListener(element, async () => {
                 let paypalHandler = await init();
-                let wire = paypalHandler.getWire();
-                wire.processIsShippingRequired()
-                    .then(() => {
-                        if (wire.get('requiresShipping')) {
-                            paypalHandler.renderMessage('Please select shipping method.');
-                        } else {
-                            activatePaypal(paypalHandler);
-                        }
-                    });
+
+                if (paypalHandler) {
+                    let wire = paypalHandler.getWire();
+                    wire.processIsShippingRequired()
+                        .then(() => {
+                            if (wire.get('requiresShipping')) {
+                                paypalHandler.renderMessage('Please select shipping method.');
+                            } else {
+                                activatePaypal(paypalHandler);
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                            }
+                        });
+                }
             })
         });
 
         async function init() {
-            let wire = Magewire.find('checkout.payment.method.adyen_paypal');
-            let paypalHandler = new paypalComponentHandler(
-                '<?= $magewire->getMethodCode() ?>',
-                wire,
-                'PaypalActionContainer'
-            );
+            try {
+                let wire = Magewire.find('checkout.payment.method.adyen_paypal');
+                let paypalHandler = new paypalComponentHandler(
+                    '<?= $magewire->getMethodCode() ?>',
+                    wire,
+                    'PaypalActionContainer'
+                );
 
-            return paypalHandler;
+                return paypalHandler;
+            } catch (e) {
+                return null;
+            }
         }
 
         async function activatePaypal(paypalHandler) {

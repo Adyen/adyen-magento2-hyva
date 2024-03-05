@@ -4,13 +4,6 @@
 ?>
 
 <script>
-    window.adyenActiveEvents = [
-        'checkout:shipping:method-activate',
-        'checkout:payment:method-activate',
-        'checkout:coupon:activate',
-        'checkout:coupon:deactivate'
-    ];
-
     (function (window) {
         window.AdyenCheckoutLibrary = function () {
             let loaded = window.hasOwnProperty('AdyenCheckout');

@@ -14,20 +14,26 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
     <script>
         window.addEventListener('checkout:payment:method-activate', async () => {
             let creditCardHandler = await init();
-            activateCc(creditCardHandler);
+
+            if (creditCardHandler) {
+                activateCc(creditCardHandler);
+                window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+            }
         });
 
         async function init() {
-            window.dispatchEvent(new Event('cc-method-active'));
+            try {
+                let wire = Magewire.find('checkout.payment.method.adyen_cc');
+                let creditCardHandler = new componentHandler(
+                    '<?= $magewire->getMethodCode() ?>',
+                    wire,
+                    'CreditCardActionContainer'
+                );
 
-            let wire = Magewire.find('checkout.payment.method.adyen_cc');
-            let creditCardHandler = new componentHandler(
-                '<?= $magewire->getMethodCode() ?>',
-                wire,
-                'CreditCardActionContainer'
-            );
-
-            return creditCardHandler;
+                return creditCardHandler;
+            } catch (e) {
+                return null;
+            }
         }
 
         async function activateCc(creditCardHandler) {
