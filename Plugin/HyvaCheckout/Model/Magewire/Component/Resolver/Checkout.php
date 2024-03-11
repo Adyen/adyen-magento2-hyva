@@ -4,23 +4,20 @@ namespace Adyen\Hyva\Plugin\HyvaCheckout\Model\Magewire\Component\Resolver;
 
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 
-use Adyen\Hyva\Model\CreditCard\SavedCardsManager;
+use Adyen\Hyva\Model\CreditCard\StoredCardsManager;
 use Hyva\Checkout\Model\Magewire\Component\Resolver\Checkout as Subject;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magewirephp\Magewire\Model\RequestInterface;
+use Psr\Log\LoggerInterface;
 
 class Checkout
 {
-    private LayoutInterface $layout;
-    private SavedCardsManager $savedCardsManager;
-
     public function __construct(
-        LayoutInterface $layout,
-        SavedCardsManager $savedCardsManager
+        private readonly LayoutInterface $layout,
+        private readonly StoredCardsManager $storedCardsManager,
+        private readonly LoggerInterface $logger
     ) {
-        $this->layout = $layout;
-        $this->savedCardsManager = $savedCardsManager;
     }
 
     /**
@@ -38,7 +35,7 @@ class Checkout
             if (str_contains($request->getFingerprint('name'), ProcessingMetadataInterface::VAULT_LAYOUT_PREFIX)
                 && $page->getLayout()->getBlock($request->getFingerprint('name')) == null
             ) {
-                if ($registeredMagewire = $this->savedCardsManager->getMagewireComponent($request->getFingerprint('name'))) {
+                if ($registeredMagewire = $this->storedCardsManager->getMagewireComponent($request->getFingerprint('name'))) {
                     $paymentBlock = $page->getLayout()->createBlock(
                         \Magento\Framework\View\Element\Template::class,
                         $registeredMagewire->getName(),
@@ -54,7 +51,7 @@ class Checkout
                 }
             }
         } catch (\Exception $exception) {
-            ;
+            $this->logger->error('Could not create block for vault stored cards and add it to layout: ' . $exception->getMessage());
         }
     }
 }

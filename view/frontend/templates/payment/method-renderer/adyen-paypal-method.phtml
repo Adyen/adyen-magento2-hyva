@@ -2,7 +2,9 @@
 
 /** @var Paypal $magewire */
 /** @var Template $block */
+/** @var Escaper $escaper */
 
+use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Adyen\Hyva\Magewire\Payment\Method\Paypal;
 
@@ -36,7 +38,7 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
                                 paypalHandler.renderMessage('Please select shipping method.');
                             } else {
                                 activatePaypal(paypalHandler);
-                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'}}));
                             }
                         });
                 }
@@ -47,7 +49,7 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
             try {
                 let wire = Magewire.find('checkout.payment.method.adyen_paypal');
                 let paypalHandler = new paypalComponentHandler(
-                    '<?= $magewire->getMethodCode() ?>',
+                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                     wire,
                     'PaypalActionContainer'
                 );
@@ -69,21 +71,25 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
                 }
             }
 
-            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+            if (paypalMethodConfiguration !== null) {
+                let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
 
-            let configuration = paypalHandler.buildConfiguration(paypalMethodConfiguration, paymentMethodsExtraInfo);
-            let component = await paypalHandler.buildComponent(
-                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
-                function (result) {
-                paypalHandler.handleAdditionalDetails(result.data)
-            },
-            function (result) {},
-            function (state) {
-                paypalHandler.placeOrder(state.data);
+                let configuration = paypalHandler.buildConfiguration(paypalMethodConfiguration, paymentMethodsExtraInfo);
+                let component = await paypalHandler.buildComponent(
+                    <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                    function (result) {
+                        paypalHandler.handleAdditionalDetails(result.data)
+                    },
+                    function (result) {},
+                    function (state) {
+                        paypalHandler.placeOrder(state.data);
+                    }
+                );
+
+                paypalHandler.mountComponent(component, paypalMethodConfiguration.type, configuration);
+            } else {
+                paypalHandler.renderMessage("<?= __("We are sorry, this method is temporarily unavailable") ?>");
             }
-        );
-
-            paypalHandler.mountComponent(component, paypalMethodConfiguration.type, configuration);
         }
     </script>
 </div>

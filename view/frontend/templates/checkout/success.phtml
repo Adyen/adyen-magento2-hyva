@@ -1,6 +1,13 @@
 <?php
 
-/** @var \Adyen\Hyva\Block\Checkout\Success $block */
+/** @var BlockSuccess $block */
+/** @var MagewireSuccess $magewire */
+/** @var Escaper $escaper */
+
+use Adyen\Hyva\Block\Checkout\Success as BlockSuccess;
+use \Adyen\Hyva\Magewire\Checkout\Success as MagewireSuccess;
+use Magento\Framework\Escaper;
+
 ?>
 
 
@@ -22,8 +29,8 @@
                         let payload = { ...previousStateData, ...state.data };
                         payload.returnUrl = window.location.href;
 
-                        if ('<?= $magewire->userIsGuest() ?>' == 'guest') {
-                            const maskedQuoteId = "<?= $block->getMaskedQuoteId() ?>";
+                        if ('<?= $escaper->escapeJs($magewire->userIsGuest()) ?>' == 'guest') {
+                            const maskedQuoteId = "<?= $escaper->escapeJs($block->getMaskedQuoteId()) ?>";
                             wire.donateGuest(maskedQuoteId, payload)
                                 .then(() => {
                                     handleSuccess(wire,component);
@@ -31,7 +38,7 @@
                                     component.setStatus('error');
                                 });
                         } else {
-                            const orderId = <?=$block->getOrder()->getId()?>;
+                            const orderId = <?= $escaper->escapeJs($block->getOrder()->getId()) ?>;
                             wire.donate(orderId, payload)
                                 .then(() => {
                                     handleSuccess(wire,component);
@@ -61,22 +68,22 @@
 
                 const donationConfig = {
                     amounts: {
-                        currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
-                        values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+                        currency: "<?= $escaper->escapeJs($block->getOrder()->getOrderCurrencyCode())?>",
+                        values: [<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['donationAmounts']);?>]
                     },
-                    backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
-                    description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
-                    logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
-                    name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
-                    url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+                    backgroundUrl: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['backgroundUrl']);?>",
+                    description: "<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['description']);?>",
+                    logoUrl: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['logoUrl']);?>",
+                    name: "<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['name']);?>",
+                    url: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['website']);?>",
                     showCancelButton: true,
                     onDonate: handleOnDonate,
                     onCancel: handleOnCancel
                 };
-                var checkoutComponent = await AdyenCheckout({
-                    locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
-                    environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
-                    clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+                let checkoutComponent = await AdyenCheckout({
+                    locale: '<?= $escaper->escapeJs($block->getLocale()); ?>',
+                    environment: '<?= $escaper->escapeJs($block->getEnvironment()); ?>',
+                    clientKey: '<?= $escaper->escapeJs($block->getClientKey()); ?>'
                 });
                 try {
                     const donation = checkoutComponent.create('donation', donationConfig).mount('#DonationActionContainer');

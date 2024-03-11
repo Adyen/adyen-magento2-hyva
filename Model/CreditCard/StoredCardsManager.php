@@ -6,7 +6,7 @@ namespace Adyen\Hyva\Model\CreditCard;
 
 use Adyen\Hyva\Api\Data\MagewireComponentInterface;
 use Adyen\Hyva\Api\Data\MagewireComponentInterfaceFactory;
-use Adyen\Hyva\Magewire\Payment\Method\SavedCards;
+use Adyen\Hyva\Magewire\Payment\Method\StoredCards;
 use Adyen\Payment\Helper\Vault as AdyenVaultHelper;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session;
@@ -19,10 +19,10 @@ use Adyen\Hyva\Api\Data\StoredCreditCardInterfaceFactory;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 use Psr\Log\LoggerInterface;
 
-class SavedCardsManager
+class StoredCardsManager
 {
-    private array $savedCards = [];
-    private bool $savedCardsLoaded = false;
+    private array $storedCards = [];
+    private bool $storedCardsLoaded = false;
 
     public function __construct(
         private PaymentTokenManagementInterface $paymentTokenManagement,
@@ -43,14 +43,14 @@ class SavedCardsManager
      */
     public function getStoredCard(string $layoutId): ?StoredCreditCardInterface
     {
-        if (!$this->savedCardsLoaded) {
+        if (!$this->storedCardsLoaded) {
             $this->getStoredCards();
         }
 
-        /** @var StoredCreditCardInterface $savedCard */
-        foreach ($this->savedCards as $savedCard) {
-            if ($savedCard->getLayoutId() == $layoutId) {
-                return $savedCard;
+        /** @var StoredCreditCardInterface $storedCard */
+        foreach ($this->storedCards as $storedCard) {
+            if ($storedCard->getLayoutId() == $layoutId) {
+                return $storedCard;
             }
         }
 
@@ -70,7 +70,7 @@ class SavedCardsManager
         ) {
             $magewireComponent = $this->magewireComponentInterfaceFactory->create();
             $magewireComponent->setName($name)
-                ->setMagewire(ObjectManager::getInstance()->create(SavedCards::class))
+                ->setMagewire(ObjectManager::getInstance()->create(StoredCards::class))
                 ->setTemplate('Adyen_Hyva::payment/method-renderer/adyen-cc-vault-method.phtml')
                 ->setStoredCard($storedCard);
 
@@ -85,9 +85,11 @@ class SavedCardsManager
      */
     public function getStoredCards(): array
     {
-        if ($this->savedCardsLoaded) {
-            return $this->savedCards;
+        if ($this->storedCardsLoaded) {
+            return $this->storedCards;
         }
+
+        $this->storedCardsLoaded = true;
 
         try {
             $storeId = (int) $this->storeManager->getStore()->getId();
@@ -98,10 +100,10 @@ class SavedCardsManager
             /** @var PaymentTokenInterface $vaultToken */
             foreach ($vaultData as $vaultToken) {
                 if ($this->adyenVaultHelper->getPaymentMethodRecurringActive($vaultToken->getPaymentMethodCode(), $storeId)
-                    && strpos((string)$vaultToken->getPaymentMethodCode(), 'adyen_') === 0
+                    && str_starts_with((string) $vaultToken->getPaymentMethodCode(), ProcessingMetadataInterface::METHOD_ADYEN_PREFIX)
                 ) {
                     if ($storedCardDataObject = $this->getStoredCardDataObject($vaultToken, $counter)) {
-                        $this->savedCards[] = $storedCardDataObject;
+                        $this->storedCards[] = $storedCardDataObject;
                         $counter++;
                     }
                 }
@@ -110,9 +112,7 @@ class SavedCardsManager
             $this->logger->error('Error collecting stored cards: ' . $exception->getMessage());
         }
 
-        $this->savedCardsLoaded = true;
-
-        return $this->savedCards;
+        return $this->storedCards;
     }
 
     /**

@@ -4,6 +4,7 @@
 
     <preference for="Adyen\Hyva\Api\Data\MagewireComponentInterface" type="Adyen\Hyva\Model\Component\MagewireComponent" />
     <preference for="Adyen\Hyva\Api\Data\StoredCreditCardInterface" type="Adyen\Hyva\Model\Data\StoredCreditCard" />
+    <preference for="Adyen\Hyva\Model\PaymentMethod\Filter\FilterInterface" type="Adyen\Hyva\Model\PaymentMethod\Filter" />
 
     <type name="Adyen\Hyva\Model\MethodList">
         <arguments>
@@ -21,6 +22,17 @@
         <arguments>
             <argument name="resetHandlers" xsi:type="array">
                 <item name="quote_status" xsi:type="object">Adyen\Hyva\Model\CheckoutSession\ResetHandler\QuoteStatus</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Adyen\Hyva\Model\PaymentMethod\Filter\Composite">
+        <arguments>
+            <argument name="filters" xsi:type="array">
+                <item name="adyen_based" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\AdyenBased</item>
+                <item name="adyen_configured" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\AdyenConfigured</item>
+                <item name="apple_pay" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\ApplePay</item>
+                <item name="stored_cards" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\StoredCards</item>
             </argument>
         </arguments>
     </type>

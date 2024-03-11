@@ -1,25 +1,24 @@
 <?php
 
-/** @var \Adyen\Hyva\Block\SavedCards $block */
+/** @var \Adyen\Hyva\Block\StoredCards $block */
 /** @var ViewModelRegistry $viewModels */
 /** @var Escaper $escaper */
 
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
-use Adyen\Hyva\ViewModel\SavedCards as SavedCardsViewModel;
+use Adyen\Hyva\ViewModel\StoredCards as StoreddCardsViewModel;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
-/** @var SavedCardsViewModel $savedCardsViewModel */
-$savedCardsViewModel = $viewModels->require(SavedCardsViewModel::class);
+/** @var StoreddCardsViewModel $storedCardsViewModel */
+$storedCardsViewModel = $viewModels->require(StoreddCardsViewModel::class);
 $paymentMethodsWire = $block->getHyvaPaymentMethodsMagewire();
 
 ?>
 <?php if ($paymentMethodsWire): ?>
     <?php /** @var StoredCreditCardInterface $storedCard */?>
-    <?php foreach ($savedCardsViewModel->getStoredCards() as $storedCard): ?>
+    <?php foreach ($storedCardsViewModel->getStoredCards() as $storedCard): ?>
         <li id="payment-method-option-<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId()) ?>"
-            class="<?= $paymentMethodsWire->method === $storedCard->getLayoutId()  ? 'active' : 'inactive' ?>"
             wire:key="<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId())  ?>"
         >
             <?php

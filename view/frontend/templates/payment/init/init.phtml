@@ -1,6 +1,11 @@
 <?php
 
-/** @var \Magento\Framework\View\Element\Template $block */
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
 ?>
 
 <script>
@@ -12,7 +17,7 @@
                 if (loaded) return resolve(window.AdyenCheckout);
 
                 const script = document.createElement('script');
-                script.src = '<?= $block->getViewFileUrl('Adyen_Payment::js/adyen.js') ?>';
+                script.src = '<?= $escaper->escapeJs($block->getViewFileUrl('Adyen_Payment::js/adyen.js')) ?>';
                 script.type = 'text/javascript';
                 script.onload = function () {
                     loaded = true;

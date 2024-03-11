@@ -6,13 +6,20 @@ namespace Adyen\Hyva\Block;
 
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
-use Adyen\Hyva\Magewire\Payment\Method\SavedCards as SavedCardsWire;
-use Magento\Framework\App\ObjectManager;
+use Adyen\Hyva\Magewire\Payment\Method\StoredCardsFactory as StoredCardsWireFactory;
 use Magento\Framework\View\Element\Template;
 use Magewirephp\Magewire\Component;
 
-class SavedCards extends Template
+class StoredCards extends Template
 {
+    public function __construct(
+        private readonly StoredCardsWireFactory $storedCardsWireFactory,
+        Template\Context $context,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+    }
+
     /**
      * @return Component|null
      */
@@ -55,6 +62,6 @@ class SavedCards extends Template
      */
     private function getNewMagewireInstance(): Component
     {
-        return ObjectManager::getInstance()->create(SavedCardsWire::class);
+        return $this->storedCardsWireFactory->create();
     }
 }

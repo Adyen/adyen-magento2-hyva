@@ -33,7 +33,7 @@ Then, the setup requires that for a given store, the Hyva theme and the Hyva che
 The following payment methods are supported:
    
  - Credit card    
- - Saved (Tokenized) credit card    
+ - Stored (Tokenized) credit card    
  - Google pay
  - Apple Pay
  - Paypal

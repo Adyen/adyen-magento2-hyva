@@ -2,7 +2,9 @@
 
 /** @var GooglePay $magewire */
 /** @var Template $block */
+/** @var Escaper $escaper */
 
+use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
 
@@ -35,7 +37,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
                                 googlePayHandler.renderMessage('Please select shipping method.');
                             } else {
                                 activateGooglePay(googlePayHandler);
-                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'}}));
                             }
                         });
                 }
@@ -46,7 +48,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
             try {
                 let wire = Magewire.find('checkout.payment.method.adyen_googlepay');
                 let googlePayHandler = new googlePayComponentHandler(
-                    '<?= $magewire->getMethodCode() ?>',
+                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                     wire,
                     'GooglePayActionContainer'
                 );
@@ -69,21 +71,25 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
                 }
             }
 
-            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
-            let configuration = googlePayHandler.buildConfiguration(googlepayMethodConfiguration, paymentMethodsExtraInfo);
+            if (googlepayMethodConfiguration !== null) {
+                let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+                let configuration = googlePayHandler.buildConfiguration(googlepayMethodConfiguration, paymentMethodsExtraInfo);
 
-            let component = await googlePayHandler.buildComponent(
-                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
-                function (result) {
-                    googlePayHandler.handleAdditionalDetails(result.data)
-                },
-                function (result) {},
-                function (state) {
-                    googlePayHandler.placeOrder(state.data);
-                }
-            );
+                let component = await googlePayHandler.buildComponent(
+                    <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                    function (result) {
+                        googlePayHandler.handleAdditionalDetails(result.data)
+                    },
+                    function (result) {},
+                    function (state) {
+                        googlePayHandler.placeOrder(state.data);
+                    }
+                );
 
-            googlePayHandler.mountComponent(component, googlepayMethodConfiguration.type, configuration);
+                googlePayHandler.mountComponent(component, googlepayMethodConfiguration.type, configuration);
+            } else {
+                googlePayHandler.renderMessage("<?= __("We are sorry, this method is temporarily unavailable") ?>");
+            }
         }
     </script>
 </div>

@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace Adyen\Hyva\Model\PaymentMethod;
 
 use Adyen\Payment\Helper\PaymentMethods as AdyenPaymentMethods;
+use Magento\Framework\Serialize\Serializer\Json;
+use Psr\Log\LoggerInterface;
 
 class PaymentMethods
 {
+    private ?string $data = null;
+
     public function __construct(
-        private AdyenPaymentMethods $adyenPaymentMethods
+        private readonly AdyenPaymentMethods $adyenPaymentMethods,
+        private readonly Json $jsonSerializer,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -19,12 +25,19 @@ class PaymentMethods
      */
     public function getData(int $quoteId): string
      {
-         $paymentMethods = json_decode($this->adyenPaymentMethods->getPaymentMethods($quoteId), true);
+         if ($this->data === null) {
+             try {
+                 $paymentMethods = $this->jsonSerializer->unserialize(
+                     $this->adyenPaymentMethods->getPaymentMethods($quoteId)
+                 );
+                 unset($paymentMethods['paymentMethodsResponse']['storedPaymentMethods']);
 
-         if (isset($paymentMethods['paymentMethodsResponse']['storedPaymentMethods'])) {
-             unset($paymentMethods['paymentMethodsResponse']['storedPaymentMethods']);
+                 $this->data = $this->jsonSerializer->serialize($paymentMethods);
+             } catch (\Exception $exception) {
+                 $this->logger->error('Could not fetch adyen payment methods: ' . $exception->getMessage());
+             }
          }
 
-         return json_encode($paymentMethods);
+         return $this->data ?? '';
      }
 }

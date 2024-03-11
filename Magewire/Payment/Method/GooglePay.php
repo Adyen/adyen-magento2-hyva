@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Magewire\Payment\Method;
 
-use Exception;
+use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
-use Hyva\Checkout\Model\Magewire\Component\EvaluationResultInterface;
-use Adyen\Hyva\Api\ProcessingMetadataInterface;
 
 class GooglePay extends AdyenPaymentComponent implements EvaluationInterface
 {
+    const METHOD_GOOGLE_PAY = 'adyen_googlepay';
+
     /**
      * @inheritDoc
      */
     function getMethodCode(): string
     {
-        return ProcessingMetadataInterface::METHOD_GOOGLE_PAY;
+        return self::METHOD_GOOGLE_PAY;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function evaluateCompletion(EvaluationResultFactory $resultFactory): EvaluationResultInterface
+    public function evaluateCompletion(EvaluationResultFactory $resultFactory): EvaluationResult
     {
         return $resultFactory->createBlocking();
     }

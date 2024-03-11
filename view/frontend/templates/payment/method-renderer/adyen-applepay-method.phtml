@@ -2,7 +2,9 @@
 
 /** @var ApplePay $magewire */
 /** @var Template $block */
+/** @var Escaper $escaper */
 
+use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
 
@@ -37,7 +39,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
                                 applePayHandler.renderMessage('Please select shipping method.');
                             } else {
                                 activateApplePay(applePayHandler);
-                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'}}));
                             }
                         });
                 }
@@ -48,7 +50,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
             try {
                 let wire = Magewire.find('checkout.payment.method.adyen_applepay');
                 let applePayHandler = new applePayComponentHandler(
-                    '<?= $magewire->getMethodCode() ?>',
+                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                     wire,
                     'ApplePayActionContainer'
                 );
@@ -70,21 +72,25 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
                 }
             }
 
-            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
+            if (applePayMethodConfiguration !== null) {
+                let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
 
-            let configuration = applePayHandler.buildConfiguration(applePayMethodConfiguration, paymentMethodsExtraInfo);
-            let component = await applePayHandler.buildComponent(
-                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
-                function (result) {
-                    applePayHandler.handleAdditionalDetails(result.data)
-                },
-                function (result) {},
-                function (state) {
-                    applePayHandler.placeOrder(state.data);
-                }
-            );
+                let configuration = applePayHandler.buildConfiguration(applePayMethodConfiguration, paymentMethodsExtraInfo);
+                let component = await applePayHandler.buildComponent(
+                    <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
+                    function (result) {
+                        applePayHandler.handleAdditionalDetails(result.data)
+                    },
+                    function (result) {},
+                    function (state) {
+                        applePayHandler.placeOrder(state.data);
+                    }
+                );
 
-            applePayHandler.mountComponent(component, applePayMethodConfiguration.type, configuration);
+                applePayHandler.mountComponent(component, applePayMethodConfiguration.type, configuration);
+            } else {
+                applePayHandler.renderMessage("<?= __("We are sorry, this method is temporarily unavailable") ?>");
+            }
         }
     </script>
 </div>

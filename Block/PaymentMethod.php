@@ -6,7 +6,9 @@ namespace Adyen\Hyva\Block;
 
 use Adyen\Hyva\Model\Configuration;
 use Adyen\Hyva\Model\MethodList;
+use Exception;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Framework\View\Element\Template;
 use Magento\Quote\Model\Quote;
 
@@ -17,6 +19,7 @@ class PaymentMethod extends Template
         private Configuration $configuration,
         private MethodList $methodList,
         private Session $checkoutSession,
+        private JsonSerializer $jsonSerializer,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -37,24 +40,33 @@ class PaymentMethod extends Template
 
     public function getQuoteShippingAddress(): string
     {
-        $quote = $this->getQuote();
+        try {
+            $quote = $this->getQuote();
 
-        if ($quote && $quote->getShippingAddress()) {
-            return json_encode($quote->getShippingAddress()->getData());
+            if ($quote && $quote->getShippingAddress()) {
+                return json_encode($quote->getShippingAddress()->getData());
+            }
+        } catch (\InvalidArgumentException $exception) {
+            return $this->defaultResponse();
         }
 
-        return json_encode([]);
+        return $this->defaultResponse();
     }
 
     public function getQuoteBillingAddress(): string
     {
-        $quote = $this->getQuote();
+        try {
+            $quote = $this->getQuote();
 
-        if ($quote && $quote->getBillingAddress()) {
-            return json_encode($quote->getBillingAddress()->getData());
+            if ($quote && $quote->getBillingAddress()) {
+                return $this->jsonSerializer->serialize($quote->getBillingAddress()->getData());
+            }
+        } catch (\InvalidArgumentException $exception) {
+            return $this->defaultResponse();
         }
 
-        return json_encode([]);
+
+        return $this->defaultResponse();
     }
 
     /**
@@ -67,8 +79,16 @@ class PaymentMethod extends Template
             $quote = $this->checkoutSession->getQuote();
 
             return $quote;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return null;
         }
+    }
+
+    /**
+     * @return string
+     */
+    private function defaultResponse(): string
+    {
+        return $this->jsonSerializer->serialize([]);
     }
 }

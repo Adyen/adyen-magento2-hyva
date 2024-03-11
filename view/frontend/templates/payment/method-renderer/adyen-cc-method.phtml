@@ -2,7 +2,9 @@
 
 /** @var CreditCard $magewire */
 /** @var Template $block */
+/** @var Escaper $escaper */
 
+use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
@@ -16,7 +18,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
             let creditCardHandler = await init();
 
             if (creditCardHandler) {
-                activateCc(creditCardHandler);
+                await activateCc(creditCardHandler);
                 window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
             }
         });
@@ -25,7 +27,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
             try {
                 let wire = Magewire.find('checkout.payment.method.adyen_cc');
                 let creditCardHandler = new componentHandler(
-                    '<?= $magewire->getMethodCode() ?>',
+                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                     wire,
                     'CreditCardActionContainer'
                 );
@@ -38,10 +40,10 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
         async function activateCc(creditCardHandler) {
             let creditCardConfiguration = {
-                enableStoreDetails: '<?= $magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest())?>',
+                enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
                 brands: <?= $magewire->getBrands() ?>,
-                hasHolderName: '<?= $magewire->getConfiguration()->getValue('adyen/hasHolderName') ?>',
-                holderNameRequired: '<?= $magewire->getConfiguration()->getValue('adyen/holderNameRequired') ?>',
+                hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
+                holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
                 paymentMethodsResponse: <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
                 onChange: function(state, component) {
                     if (!state.isValid) {
@@ -51,14 +53,14 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                         hyvaCheckout.navigation.enableButtonPlaceOrder();
                     }
                 },
-                installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
+                installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,
                 showInstallmentAmounts: true,
                 onBrand: function(state) {
                     creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
                 },
                 name: "Credit Card",
                 type: "card",
-                code: '<?= $magewire->getMethodCode() ?>'
+                code: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'
             };
 
             let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
@@ -71,7 +73,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
             creditCardHandler.mountComponent(component, creditCardConfiguration.type, configuration);
 
-            hyvaCheckout.payment.activate('<?= $magewire->getMethodCode() ?>',
+            hyvaCheckout.payment.activate('<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                 {
                     async placeOrder() {
                         let stateData = creditCardHandler.getActionComponent().data;

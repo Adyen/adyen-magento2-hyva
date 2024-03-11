@@ -6,15 +6,15 @@ namespace Adyen\Hyva\Model\Component;
 
 use Adyen\Hyva\Api\Data\MagewireComponentInterface;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
-use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\DataObject;
 use Magewirephp\Magewire\Component;
 
-class MagewireComponent extends AbstractModel implements MagewireComponentInterface
+class MagewireComponent extends DataObject implements MagewireComponentInterface
 {
     /**
      * @inheritDoc
      */
-    public function setName(string $name): MagewireComponentInterface
+    public function setName(string $name): self
     {
         return $this->setData(self::NAME, $name);
     }
@@ -22,7 +22,7 @@ class MagewireComponent extends AbstractModel implements MagewireComponentInterf
     /**
      * @inheritDoc
      */
-    public function setMagewire(Component $component): MagewireComponentInterface
+    public function setMagewire(Component $component): self
     {
         return $this->setData(self::MAGEWIRE, $component);
     }
@@ -30,7 +30,7 @@ class MagewireComponent extends AbstractModel implements MagewireComponentInterf
     /**
      * @inheritDoc
      */
-    public function setStoredCard(StoredCreditCardInterface $storedCard): MagewireComponentInterface
+    public function setStoredCard(StoredCreditCardInterface $storedCard): self
     {
         return $this->setData(self::STORED_CARD, $storedCard);
     }
@@ -38,7 +38,7 @@ class MagewireComponent extends AbstractModel implements MagewireComponentInterf
     /**
      * @inheritDoc
      */
-    public function setTemplate(string $template): MagewireComponentInterface
+    public function setTemplate(string $template): self
     {
         return $this->setData(self::TEMPLATE, $template);
     }

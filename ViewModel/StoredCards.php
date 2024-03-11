@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\ViewModel;
 
-use Adyen\Hyva\Model\CreditCard\SavedCardsManager;
+use Adyen\Hyva\Model\CreditCard\StoredCardsManager;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
-class SavedCards implements ArgumentInterface
+class StoredCards implements ArgumentInterface
 {
     public function __construct(
-        private SavedCardsManager $savedCardsManager
+        private StoredCardsManager $storedCardsManager
     ) {
     }
 
     public function getStoredCards()
     {
-        return $this->savedCardsManager->getStoredCards();
+        return $this->storedCardsManager->getStoredCards();
     }
 }

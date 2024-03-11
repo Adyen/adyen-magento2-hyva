@@ -1,9 +1,11 @@
 <?php
-/** @var SavedCards $magewire */
+/** @var StoredCards $magewire */
+/** @var Escaper $escaper */
 
+use Magento\Framework\Escaper;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
-use Adyen\Hyva\Magewire\Payment\Method\SavedCards;
+use Adyen\Hyva\Magewire\Payment\Method\StoredCards;
 use Magewirephp\Magewire\Component;
 
 /** @var Component $magewire */
@@ -14,7 +16,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
 
 <div>
     <?php if ($storedCard):?>
-        <div id="<?= $storedCard->getLayoutId() ?>_ActionContainer" wire:ignore></div>
+        <div id="<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId()) ?>_ActionContainer" wire:ignore></div>
 
         <script>
             window.dispatchEvent(new Event('cc-method-active'));
@@ -23,18 +25,18 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                 let creditCardHandler = await init();
 
                 if (creditCardHandler) {
-                    activateCc(creditCardHandler);
-                    window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
+                    await activateCc(creditCardHandler);
+                    window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'}}));
                 }
             });
 
             async function init() {
                 try {
-                    let wire = Magewire.find('<?= $storedCard->getLayoutId(); ?>');
+                    let wire = Magewire.find('<?= $escaper->escapeJs($storedCard->getLayoutId()); ?>');
                     let creditCardHandler = new componentHandler(
-                        '<?= $magewire->getMethodCode() ?>',
+                        '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
                         wire,
-                        '<?= $storedCard->getLayoutId() ?>_ActionContainer'
+                        '<?= $escaper->escapeJs($storedCard->getLayoutId()) ?>_ActionContainer'
                     );
 
                     return creditCardHandler;
@@ -44,15 +46,15 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
             }
 
             async function activateCc(creditCardHandler) {
-                creditCardHandler.setPublicHash('<?= $storedCard->getPublicHash() ?>');
+                creditCardHandler.setPublicHash('<?= $escaper->escapeJs($storedCard->getPublicHash()) ?>');
 
-                let installments = {
+                let creditCardConfiguration = {
                     type: "card",
-                    hideCVC: <?= $magewire->getConfiguration()->getValue('adyenCc/requireCvc') ? 'false' : 'true' ?>,
-                    brand: '<?= $storedCard->getType() ?>',
-                    storedPaymentMethodId: '<?= $storedCard->getGatewayToken() ?>',
-                    expiryMonth: '<?= $storedCard->getExpiryMonth() ?>',
-                    expiryYear: '<?= $storedCard->getExpiryYear() ?>',
+                    hideCVC: <?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyenCc/requireCvc')) ? 'false' : 'true' ?>,
+                    brand: '<?= $escaper->escapeJs($storedCard->getType()) ?>',
+                    storedPaymentMethodId: '<?= $escaper->escapeJs($storedCard->getGatewayToken()) ?>',
+                    expiryMonth: '<?= $escaper->escapeJs($storedCard->getExpiryMonth()) ?>',
+                    expiryYear: '<?= $escaper->escapeJs($storedCard->getExpiryYear()) ?>',
                     onChange: function(state, component) {
                         if (!state.isValid) {
                             hyvaCheckout.navigation.disableButtonPlaceOrder();
@@ -64,21 +66,21 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                     installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
                     showInstallmentAmounts: true,
                     onBrand: function(state) {
-                        creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode('<?= $storedCard->getType() ?>'));
+                        creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode('<?= $escaper->escapeJs($storedCard->getType()) ?>'));
                     }
                 }
 
                 let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
 
-                let configuration = creditCardHandler.buildConfiguration(installments, paymentMethodsExtraInfo);
+                let configuration = creditCardHandler.buildConfiguration(creditCardConfiguration, paymentMethodsExtraInfo);
 
                 let component = await creditCardHandler.buildComponent(
                     <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse
                 );
 
-                creditCardHandler.mountComponent(component, installments.type, configuration);
+                creditCardHandler.mountComponent(component, creditCardConfiguration.type, configuration);
 
-                hyvaCheckout.payment.activate('<?= $storedCard->getLayoutId() ?>',
+                hyvaCheckout.payment.activate('<?= $escaper->escapeJs($storedCard->getLayoutId()) ?>',
                     {
                         async placeOrder() {
                             let stateData = creditCardHandler.getActionComponent().data;
@@ -90,7 +92,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
 
                         }
                     },
-                    document.getElementById("<?= $storedCard->getLayoutId() ?>_ActionContainer")
+                    document.getElementById("<?= $escaper->escapeJs($storedCard->getLayoutId()) ?>_ActionContainer")
                 );
             }
         </script>

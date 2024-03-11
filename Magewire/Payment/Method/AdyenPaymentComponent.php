@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Adyen\Hyva\Magewire\Payment\Method;
 
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
+use Adyen\Hyva\Model\Component\Payment\Context;
 use Adyen\Hyva\Model\Configuration;
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
@@ -25,17 +26,28 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public ?string $paymentDetails = null;
     public bool $requiresShipping = true;
 
+    protected CheckoutStateDataValidator $checkoutStateDataValidator;
+    protected Configuration $configuration;
+    protected Session $session;
+    protected StateData $stateData;
+    protected PaymentMethods $paymentMethods;
+    protected PaymentInformationManagementInterface $paymentInformationManagement;
+    protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus;
+    protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails;
+    protected LoggerInterface $logger;
+
     public function __construct(
-        protected CheckoutStateDataValidator $checkoutStateDataValidator,
-        protected Configuration $configuration,
-        protected Session $session,
-        protected StateData $stateData,
-        protected PaymentMethods $paymentMethods,
-        protected PaymentInformationManagementInterface $paymentInformationManagement,
-        protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
-        protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
-        protected LoggerInterface $logger
+        private readonly Context $context
     ) {
+        $this->checkoutStateDataValidator = $context->getCheckoutStateDataValidator();
+        $this->configuration = $context->getConfiguration();
+        $this->session = $context->getSession();
+        $this->stateData = $context->getStateData();
+        $this->paymentMethods = $context->getPaymentMethods();
+        $this->paymentInformationManagement = $context->getPaymentInformationManagement();
+        $this->adyenOrderPaymentStatus = $context->getAdyenOrderPaymentStatus();
+        $this->adyenPaymentsDetails = $context->getAdyenPaymentsDetails();
+        $this->logger = $context->getLogger();
     }
 
     /**
@@ -57,13 +69,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public function userIsGuest(): bool
     {
         try {
-            $customerId = $this->session->getQuote()->getCustomerId();
-
-            if ($customerId) {
-                return false;
-            }
-        } catch (\Exception $exception) {
-            return true;
+            return 0 === (int) $this->session->getQuote()->getCustomerId();
+        } catch (\Exception) {
         }
 
         return true;
@@ -124,15 +131,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public function processIsShippingRequired(): void
     {
         try {
-            if ($this->session->getQuote()->isVirtual()) {
-                $this->requiresShipping = false;
-            } else {
-                if ($this->getCurrentShippingMethod()) {
-                    $this->requiresShipping = false;
-                } else {
-                    $this->requiresShipping = true;
-                }
-            }
+            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
         } catch (\Exception $exception) {
             $this->logger->error('Could not detect if shipping is required: ' . $exception->getMessage());
         }
@@ -174,7 +173,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     /**
      * @param array $data
      */
-    private function handleSessionVariables(array $data)
+    private function handleSessionVariables(array $data): void
     {
         $this->session->setStateData(null);
         $this->session->setNumberOfInstallments(null);
@@ -185,7 +184,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     /**
      * @param array $data
      */
-    private function processInstallmentsData(array $data)
+    private function processInstallmentsData(array $data): void
     {
         if (isset($data[ProcessingMetadataInterface::POST_KEY_STATE_DATA][ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]['value'])) {
             $this->session->setNumberOfInstallments(

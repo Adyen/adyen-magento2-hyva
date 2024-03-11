@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CouponManagementInterface;
 use Magewirephp\Magewire\Component;
+use Psr\Log\LoggerInterface;
 
 class CouponCode extends Component
 {
@@ -16,18 +17,20 @@ class CouponCode extends Component
     public int $couponHits = 0;
 
     public function __construct(
-        protected CouponManagementInterface $couponManagement,
-        protected SessionCheckout $sessionCheckout
+        private CouponManagementInterface $couponManagement,
+        private SessionCheckout $sessionCheckout,
+        private LoggerInterface $logger,
     ) {
     }
 
-    /**
-     * @throws NoSuchEntityException
-     */
     public function boot(): void
     {
-        $couponCode = $this->couponManagement->get($this->sessionCheckout->getQuoteId());
-        $this->couponCode = $couponCode ?? null;
+        try {
+            $this->couponCode = $this->couponManagement->get($this->sessionCheckout->getQuoteId());
+        } catch (NoSuchEntityException $exception) {
+            $this->couponCode = null;
+            $this->logger->error('Could not find a coupon code or the quote: ' . $exception->getMessage());
+        }
     }
 
     public function applyCouponCode()
@@ -35,7 +38,7 @@ class CouponCode extends Component
         try {
             $quoteEntity = $this->sessionCheckout->getQuoteId();
 
-            if (empty($this->couponCode)) {
+            if ($this->couponCode === null) {
                 throw new LocalizedException(
                     __('No Coupon')
                 );
@@ -65,7 +68,7 @@ class CouponCode extends Component
     public function revokeCouponCode()
     {
         try {
-            if (empty($this->couponCode)) {
+            if ($this->couponCode === null) {
                 throw new LocalizedException(__('No Coupon'));
             }
 

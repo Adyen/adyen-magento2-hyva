@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Model\Data;
 
-use Magento\Framework\Model\AbstractModel;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
+use Magento\Framework\DataObject;
 
-class StoredCreditCard extends AbstractModel implements StoredCreditCardInterface
+class StoredCreditCard extends DataObject implements StoredCreditCardInterface
 {
     /**
      * @inheritDoc
      */
-    public function setGatewayToken(string $token): StoredCreditCardInterface
+    public function setGatewayToken(string $token): self
     {
         return $this->setData(self::GATEWAY_TOKEN, $token);
     }
@@ -20,7 +20,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setPublicHash(string $publicHash): StoredCreditCardInterface
+    public function setPublicHash(string $publicHash): self
     {
         return $this->setData(self::PUBLIC_HASH, $publicHash);
     }
@@ -28,7 +28,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setType(string $type): StoredCreditCardInterface
+    public function setType(string $type): self
     {
         return $this->setData(self::TYPE, $type);
     }
@@ -36,7 +36,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setMaskedCc(string $maskedCc): StoredCreditCardInterface
+    public function setMaskedCc(string $maskedCc): self
     {
         return $this->setData(self::MASKED_CC, $maskedCc);
     }
@@ -44,7 +44,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setExpiryMonth(string $expiryMonth): StoredCreditCardInterface
+    public function setExpiryMonth(string $expiryMonth): self
     {
         return $this->setData(self::EXPIRY_MONTH, $expiryMonth);
     }
@@ -52,7 +52,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setExpiryYear(string $expiryYear): StoredCreditCardInterface
+    public function setExpiryYear(string $expiryYear): self
     {
         return $this->setData(self::EXPIRY_YEAR, $expiryYear);
     }
@@ -60,7 +60,7 @@ class StoredCreditCard extends AbstractModel implements StoredCreditCardInterfac
     /**
      * @inheritDoc
      */
-    public function setLayoutId(string $layoutId): StoredCreditCardInterface
+    public function setLayoutId(string $layoutId): self
     {
         return $this->setData(self::LAYOUT_ID, $layoutId);
     }

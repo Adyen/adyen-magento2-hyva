@@ -65,7 +65,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 showPrimaryButton();
             }
         } catch (e) {
-            if ('<?= $environment ?>' == 'test') {
+            if ('<?= $escaper->escapeJs($environment) ?>' == 'test') {
                 console.error(e);
             }
         }
@@ -169,9 +169,9 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 let AdyenCheckout = await AdyenCheckoutLibrary();
 
                 return await AdyenCheckout({
-                        clientKey: '<?= $block->getConfiguration()->getValue('adyen/clientKey') ?>',
-                        environment: '<?= $block->getConfiguration()->getValue('adyen/checkoutEnvironment') ?>',
-                        locale: '<?= $block->getConfiguration()->getValue('adyen/locale') ?>',
+                        clientKey: '<?= $escaper->escapeJs($block->getConfiguration()->getValue('adyen/clientKey')) ?>',
+                        environment: '<?= $escaper->escapeJs($block->getConfiguration()->getValue('adyen/checkoutEnvironment')) ?>',
+                        locale: '<?= $escaper->escapeJs($block->getConfiguration()->getValue('adyen/locale')) ?>',
                         paymentMethodsResponse: paymentMethodsResponse,
                         onAdditionalDetails: handleOnAdditionalDetails,
                         onCancel: handleOnCancel,
@@ -206,7 +206,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
                 self.actionComponent = paymentMethodActionComponent;
             } catch (error) {
-                if ('<?= $environment ?>' == 'test') {
+                if ('<?= $escaper->escapeJs($environment) ?>' == 'test') {
                     console.log('Error mounting the payment method component:' + error);
                 }
             }
@@ -237,14 +237,13 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 hyvaCheckout.navigation.enableButtonPlaceOrder();
                 setTimeout(() => {
                     self.clearMessage();
-                }, 2000);
+                }, 4000);
 
                 return;
             }
 
             if (!!responseJSON.isFinal) {
-                // Status is final redirect to the success page
-                window.location.replace('<?= $block->getBaseUrl() ?>' + 'checkout/onepage/success');
+                window.location.replace('<?= /* @noEscape */ $block->getBaseUrl() ?>' + 'checkout/onepage/success');
             } else {
                 // Handle action
                 self.handleAction(responseJSON.action);

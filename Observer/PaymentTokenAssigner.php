@@ -29,20 +29,19 @@ class PaymentTokenAssigner extends AbstractDataAssignObserver
     public function execute(Observer $observer): void
     {
         try {
-            /** @var Payment $paymentModel */
-            $paymentModel = $this->readPaymentModelArgument($observer);
+            $paymentInfo = $this->readPaymentModelArgument($observer);
+        } catch (\LogicException $exception) {
+            return;
+        }
 
-            if (!$paymentModel instanceof Payment) {
-                return;
-            }
-
-            $quote = $paymentModel->getQuote();
-            $tokenPublicHash = $this->checkoutSession->getSavedCardPublicHash();
+        try {
+            $tokenPublicHash = $this->checkoutSession->getStoredCardPublicHash();
 
             if (!$tokenPublicHash) {
                 return;
             }
 
+            $quote = $paymentInfo->getQuote();
             $customerId = (int) $quote->getCustomer()->getId();
             $paymentToken = $this->paymentTokenManagement->getByPublicHash($tokenPublicHash, $customerId);
 
@@ -50,7 +49,7 @@ class PaymentTokenAssigner extends AbstractDataAssignObserver
                 return;
             }
 
-            $this->updateAdditionalInformation($paymentModel, $customerId, $tokenPublicHash);
+            $this->updateAdditionalInformation($paymentInfo, $customerId, $tokenPublicHash);
         } catch (Exception $e) {
             $this->logger->error('Could not add payment additional information: ' . $e->getMessage());
         }

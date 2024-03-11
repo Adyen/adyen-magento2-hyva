@@ -24,10 +24,9 @@ class InstallmentsDataAssigner extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
-        /** @var Payment $paymentModel */
-        $paymentModel = $this->readPaymentModelArgument($observer);
-
-        if (!$paymentModel instanceof Payment) {
+        try {
+            $paymentInfo = $this->readPaymentModelArgument($observer);
+        } catch (\LogicException $exception) {
             return;
         }
 
@@ -37,7 +36,7 @@ class InstallmentsDataAssigner extends AbstractDataAssignObserver
 
         try {
             $this->updateAdditionalInformation(
-                $paymentModel,
+                $paymentInfo,
                 (int) $this->checkoutSession->getNumberOfInstallments(),
                 (string) $this->checkoutSession->getCcType()
             );
@@ -58,7 +57,7 @@ class InstallmentsDataAssigner extends AbstractDataAssignObserver
         $additionalInformation = $paymentModel->getAdditionalInformation();
 
         if (is_array($additionalInformation)) {
-            $additionalInformation['number_od_installments'] = $numberOfInstallments;
+            $additionalInformation['number_of_installments'] = $numberOfInstallments;
             $additionalInformation['cc_type'] = $ccType;
 
             $paymentModel->setAdditionalInformation($additionalInformation);

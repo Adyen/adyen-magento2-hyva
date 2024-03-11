@@ -30,13 +30,12 @@ $methods = $viewModel->getList();
         </script>
 
         <ol id="payment-method-list" class="space-y-4">
-            <?= $block->getChildHtml('adyen_vault_saved_cards');?>
+            <?= $block->getChildHtml('adyen_vault_stored_cards');?>
             <?php foreach ($methods as $method): ?>
                 <?php $methodCodeAttr = $method->getCode() ?>
                 <?php $methodMetaData = $viewModel->getMethodMetaData($block, $method) ?>
 
                 <li id="payment-method-option-<?= $escaper->escapeHtmlAttr($methodCodeAttr) ?>"
-                    class="<?= $magewire->method === $method->getCode() ? 'active' : 'inactive' ?>"
                     wire:key="<?= $escaper->escapeHtmlAttr($methodCodeAttr) ?>"
                 >
                     <div class="flex gap-x-4">

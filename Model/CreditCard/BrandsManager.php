@@ -6,12 +6,18 @@ namespace Adyen\Hyva\Model\CreditCard;
 
 use Adyen\Payment\Api\AdyenPaymentMethodManagementInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Serialize\Serializer\Json;
+use Psr\Log\LoggerInterface;
 
 class BrandsManager
 {
+    private ?array $brandsData = null;
+
     public function __construct(
-        private Session $session,
-        private AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
+        private readonly Session $session,
+        private readonly AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement,
+        private readonly Json $jsonSerializer,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -20,28 +26,30 @@ class BrandsManager
      */
     public function getBrandsAsArray(): array
     {
-        try {
-            if ($this->session->getQuote()->getId()) {
-                $paymentMethodsResponse = json_decode(
-                    $this->adyenPaymentMethodManagement->getPaymentMethods(
-                        strval($this->session->getQuote()->getId())
-                    ),
-                    true
-                );
+        if ($this->brandsData === null) {
+            try {
+                if ($this->session->getQuote()->getId()) {
+                    $paymentMethodsResponse = json_decode(
+                        $this->adyenPaymentMethodManagement->getPaymentMethods(
+                            strval($this->session->getQuote()->getId())
+                        ),
+                        true
+                    );
 
-                if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
-                    foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
-                        if ($paymentMethod['type'] == 'scheme') {
-                            return $paymentMethod['brands'];
+                    if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
+                        foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
+                            if ($paymentMethod['type'] == 'scheme') {
+                                $this->brandsData = $paymentMethod['brands'];
+                            }
                         }
                     }
                 }
+            } catch (\Exception $exception) {
+                $this->logger->error('Could not fetch brands data: ' . $exception->getMessage());
             }
-        } catch (\Exception $exception) {
-            return [];
         }
 
-        return [];
+        return $this->brandsData ?? [];
     }
 
     /**
@@ -51,6 +59,6 @@ class BrandsManager
     {
         $brands = $this->getBrandsAsArray();
 
-        return json_encode($brands);
+        return $this->jsonSerializer->serialize($brands);
     }
 }

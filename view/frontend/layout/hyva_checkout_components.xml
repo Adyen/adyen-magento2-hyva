@@ -5,17 +5,15 @@
 
         <referenceBlock name="coupon-code">
             <arguments>
-                <argument name="magewire" xsi:type="object">
-                    \Adyen\Hyva\Magewire\Checkout\CouponCode
-                </argument>
+                <argument name="magewire" xsi:type="object">\Adyen\Hyva\Magewire\Checkout\CouponCode</argument>
             </arguments>
         </referenceBlock>
 
         <referenceBlock name="checkout.payment.methods" template="Adyen_Hyva::checkout/payment/method-list.phtml">
-            <block name="checkout.payment.methods.saved_cards"
-                   as="adyen_vault_saved_cards"
-                   class="Adyen\Hyva\Block\SavedCards"
-                   template="Adyen_Hyva::checkout/payment/method-list/saved-cards.phtml">
+            <block name="checkout.payment.methods.stored_cards"
+                   as="adyen_vault_stored_cards"
+                   class="Adyen\Hyva\Block\StoredCards"
+                   template="Adyen_Hyva::checkout/payment/method-list/stored-cards.phtml">
             </block>
 
             <block name="checkout.payment.method.adyen_cc"
