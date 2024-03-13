@@ -32,26 +32,23 @@ $billingAddress  = $block->getQuoteBillingAddress();
 </div>
 
 <script>
-    window.adyenActiveEvents = [
-        'checkout:shipping:method-activate',
-        'checkout:payment:method-activate',
-        'checkout:coupon:activate',
-        'checkout:coupon:deactivate'
-    ];
-
     function showPrimaryButton() {
-        let button = document.getElementsByClassName('btn-primary')[0];
+        let elements = document.getElementsByClassName('btn-primary');
 
-        if (button && button.style.visibility == 'hidden') {
-            button.style.visibility = 'visible';
+        for( let i = 0; i < elements.length; i++) {
+            let element = elements[i];
+
+            if (element.style.visibility == 'hidden') {
+                element.style.visibility = 'visible';
+            }
         }
     }
 
     function hidePrimaryButton() {
-        let button = document.getElementsByClassName('btn-primary')[0];
+        let elements = document.getElementsByClassName('btn-primary');
 
-        if (button) {
-            button.style.visibility = 'hidden';
+        for(let i = 0; i < elements.length; i++) {
+            elements[i].style.visibility = 'hidden';
         }
     }
 
@@ -70,18 +67,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
             }
         }
     })
-
-    window.addEventListener('wallet-method-active', event => {
-        if (event.detail != undefined && window.adyenActiveMethodCode == event.detail.method) {
-            hidePrimaryButton()
-        }
-    });
-
-    window.addEventListener('cc-method-active', event => {
-        if (event.detail != undefined && window.adyenActiveMethodCode == event.detail.method) {
-            showPrimaryButton()
-        }
-    });
 </script>
 
 <script>
@@ -107,11 +92,11 @@ $billingAddress  = $block->getQuoteBillingAddress();
         }
 
         getCheckoutComponent() {
-            return self.checkoutComponent;
+            return this.checkoutComponent;
         }
 
         getActionComponent() {
-            return self.actionComponent;
+            return this.actionComponent;
         }
 
         setPublicHash(publicHash)
@@ -140,6 +125,112 @@ $billingAddress  = $block->getQuoteBillingAddress();
             }
 
             return '';
+        }
+
+        async activateCcMethod(methodCode, creditCardConfiguration, paymentMethods) {
+            let self = this;
+
+            let configuration = self.buildConfiguration(
+                creditCardConfiguration,
+                paymentMethods.paymentMethodsExtraDetails
+            );
+
+            let component = await self.buildComponent(
+                paymentMethods.paymentMethodsResponse
+            );
+
+            self.mountComponent(component, creditCardConfiguration.type, configuration);
+
+            hyvaCheckout.payment.activate(methodCode,
+                {
+                    async placeOrder() {
+                        let stateData = self.getActionComponent().data;
+                        self.placeOrder(stateData);
+                    },
+                    placeOrderViaJs() {
+                        return true
+                    }
+                },
+                document.getElementById('CreditCardActionContainer')
+            );
+        }
+
+        async activateVaultMethod(cardLayoutId, creditCardConfiguration, paymentMethods) {
+            let self = this;
+
+            let configuration = self.buildConfiguration(
+                creditCardConfiguration,
+                paymentMethods.paymentMethodsExtraDetails
+            );
+
+            let component = await self.buildComponent(
+                paymentMethods.paymentMethodsResponse
+            );
+
+            self.mountComponent(component, creditCardConfiguration.type, configuration);
+
+            hyvaCheckout.payment.activate(cardLayoutId,
+                {
+                    async placeOrder() {
+                        let stateData = self.getActionComponent().data;
+                        let publicHash = self.getPublicHash();
+                        self.placeOrder(stateData, publicHash);
+                    },
+                    placeOrderViaJs() {
+                        return true
+                    }
+                },
+                document.getElementById(cardLayoutId + "_ActionContainer")
+            );
+        }
+
+        async activateWalletMethod(methodCode, paymentMethods) {
+            let self = this;
+
+            let walletMethodConfiguration = self.collectWalletMethodConfiguration(
+                paymentMethods,
+                methodCode.split("_").pop()
+            );
+
+            if (walletMethodConfiguration !== null) {
+                let configuration = self.buildConfiguration(
+                    walletMethodConfiguration,
+                    paymentMethods.paymentMethodsExtraDetails
+                );
+                let component = await self.buildComponent(
+                    paymentMethods.paymentMethodsResponse,
+                    function (result) {
+                        self.handleAdditionalDetails(result.data)
+                    },
+                    function (result) {},
+                    function (state) {
+                        self.placeOrder(state.data);
+                    }
+                );
+
+                self.mountComponent(component, walletMethodConfiguration.type, configuration);
+            } else {
+                self.renderMethodUnavailableMessage();
+            }
+        }
+
+        collectWalletMethodConfiguration(paymentMethods, walletCode) {
+            let methodConfiguration = null;
+
+            if (paymentMethods.hasOwnProperty('paymentMethodsResponse')
+                && paymentMethods.paymentMethodsResponse.hasOwnProperty('paymentMethods'))
+            {
+                let methods = paymentMethods.paymentMethodsResponse.paymentMethods;
+
+                for (let i = 0; i < methods.length; i++) {
+                    if (methods[i].type == walletCode) {
+                        methodConfiguration = methods[i];
+                        break;
+                    }
+                }
+            }
+
+            return methodConfiguration;
         }
 
         buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
@@ -184,6 +275,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
         }
 
         mountComponent(checkoutComponent, paymentMethodType, configuration, result = undefined) {
+            let self = this;
             try {
                 self.checkoutComponent = checkoutComponent;
 
@@ -206,6 +298,8 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
                 self.actionComponent = paymentMethodActionComponent;
             } catch (error) {
+                self.renderMethodUnavailableMessage();
+
                 if ('<?= $escaper->escapeJs($environment) ?>' == 'test') {
                     console.log('Error mounting the payment method component:' + error);
                 }
@@ -301,6 +395,10 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 }).catch(() => {
                     console.log('Error occurred during order placement')
                 });
+        }
+
+        renderMethodUnavailableMessage() {
+            self.renderMessage('We are sorry, this method is temporarily unavailable');
         }
 
         renderMessage(message) {

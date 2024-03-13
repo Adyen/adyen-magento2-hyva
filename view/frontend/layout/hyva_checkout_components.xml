@@ -3,12 +3,6 @@
     <body>
         <block name="block-loader" template="Hyva_Theme::ui/loading-block.phtml"/>
 
-        <referenceBlock name="coupon-code">
-            <arguments>
-                <argument name="magewire" xsi:type="object">\Adyen\Hyva\Magewire\Checkout\CouponCode</argument>
-            </arguments>
-        </referenceBlock>
-
         <referenceBlock name="checkout.payment.methods" template="Adyen_Hyva::checkout/payment/method-list.phtml">
             <block name="checkout.payment.methods.stored_cards"
                    as="adyen_vault_stored_cards"

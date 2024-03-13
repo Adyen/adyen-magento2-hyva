@@ -12,7 +12,9 @@ use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;
+use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
 use Magewirephp\Magewire\Component;
@@ -20,11 +22,11 @@ use Psr\Log\LoggerInterface;
 
 abstract class AdyenPaymentComponent extends Component implements EvaluationInterface
 {
-    public ?string $orderId = null;
+    public bool $requiresShipping = true;
     public ?string $paymentResponse = null;
     public ?string $paymentStatus = null;
     public ?string $paymentDetails = null;
-    public bool $requiresShipping = true;
+
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
     protected Configuration $configuration;
@@ -50,44 +52,23 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         $this->logger = $context->getLogger();
     }
 
+    protected $listeners = [
+        'shipping_method_selected' => 'refreshProperties',
+        'coupon_code_applied' => 'refreshProperties',
+        'coupon_code_revoked' => 'refreshProperties',
+    ];
+
     /**
      * @return string
      */
     abstract function getMethodCode(): string;
 
     /**
-     * @return Configuration
-     */
-    public function getConfiguration(): Configuration
-    {
-        return $this->configuration;
-    }
-
-    /**
-     * @return bool
-     */
-    public function userIsGuest(): bool
-    {
-        try {
-            return 0 === (int) $this->session->getQuote()->getCustomerId();
-        } catch (\Exception) {
-        }
-
-        return true;
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function mount(): void
     {
-        try {
-            $this->processIsShippingRequired();
-            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
-        } catch (\Exception $exception) {
-            $this->paymentResponse = '{}';
-            $this->logger->error('Could not mount the Adyen Payment Component: ' . $exception->getMessage());
-        }
+        $this->refreshProperties();
     }
 
     /**
@@ -106,12 +87,64 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                 $quoteId,
                 $payment
             );
-            $this->orderId = strval($orderId);
-            $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus($this->orderId);
+            $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus(strval($orderId));
             $this->session->setStateData($stateDataReceived);
         } catch (\Exception $exception) {
             $this->paymentStatus = json_encode(['isRefused' => true]);
             $this->logger->error('Could not place the Adyen order: ' . $exception->getMessage());
+        }
+    }
+
+    /**
+     * @return Configuration
+     */
+    public function getConfiguration(): Configuration
+    {
+        return $this->configuration;
+    }
+
+    public function evaluateCompletion(EvaluationResultFactory $resultFactory): EvaluationResult
+    {
+        return $resultFactory->createSuccess();
+    }
+
+    /**
+     * @return bool
+     */
+    public function userIsGuest(): bool
+    {
+        try {
+            return 0 === (int) $this->session->getQuote()->getCustomerId();
+        } catch (\Exception) {
+        }
+
+        return true;
+    }
+
+    /**
+     * @return void
+     */
+    public function refreshProperties(): void
+    {
+        try {
+            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
+        } catch (\Exception $e) {
+            $this->logger->error('Could not detect if shipping is required: ' . $e->getMessage());
+        }
+
+        try {
+            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
+        } catch (\Exception $e) {
+            $this->paymentResponse = '{}';
+            $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
+        }
+
+        try {
+            $this->dispatchBrowserEvent('adyen:payment_component:refresh',
+                ['method' => $this->session->getQuote()->getPayment()->getMethod()]
+            );
+        } catch (\Exception $e) {
+            $this->logger->error('Could not dispatch the browser event adyen:payment_component:refresh: ' . $e->getMessage());
         }
     }
 
@@ -125,15 +158,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         } catch (\Exception $exception) {
             $this->paymentDetails = json_encode(['isRefused' => true]);
             $this->logger->error('Could not collect payment details: ' . $exception->getMessage());
-        }
-    }
-
-    public function processIsShippingRequired(): void
-    {
-        try {
-            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
-        } catch (\Exception $exception) {
-            $this->logger->error('Could not detect if shipping is required: ' . $exception->getMessage());
         }
     }
 

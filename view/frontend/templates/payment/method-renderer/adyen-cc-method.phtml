@@ -14,77 +14,64 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
     <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
 
     <script>
-        window.addEventListener('checkout:payment:method-activate', async () => {
-            let creditCardHandler = await init();
-
-            if (creditCardHandler) {
-                await activateCc(creditCardHandler);
-                window.dispatchEvent(new CustomEvent('cc-method-active', {detail: {method: '<?= $magewire->getMethodCode() ?>'}}));
-            }
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
+            await init(event.detail.method);
         });
 
-        async function init() {
+        window.addEventListener('adyen:payment_component:refresh', async (event) => {
+            await init(event.detail.method);
+        });
+
+        async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.adyen_cc');
+                let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let creditCardHandler = new componentHandler(
-                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
+                    methodCode,
                     wire,
                     'CreditCardActionContainer'
                 );
 
-                return creditCardHandler;
+                if (methodCode !== 'adyen_cc') {
+                    creditCardHandler.renderMethodUnavailableMessage();
+                    return;
+                }
+
+                if (wire.get('requiresShipping')) {
+                    creditCardHandler.renderMessage('Please select shipping method.');
+                } else {
+                    let rawResponse = wire.get('paymentResponse');
+                    let paymentMethods = JSON.parse(rawResponse);
+
+                    let configuration = {
+                        enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
+                        brands: <?= $magewire->getBrands() ?>,
+                        hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
+                        holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
+                        installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,
+                        showInstallmentAmounts: true,
+                        paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
+                        onChange: function(state, component) {
+                            if (!state.isValid) {
+                                hyvaCheckout.navigation.disableButtonPlaceOrder();
+                            } else {
+                                creditCardHandler.clearMessage();
+                                hyvaCheckout.navigation.enableButtonPlaceOrder();
+                            }
+                        },
+                        onBrand: function(state) {
+                            creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
+                        },
+                        name: "Credit Card",
+                        type: "card",
+                        code: methodCode
+                    };
+
+                    await creditCardHandler.activateCcMethod(methodCode, configuration, paymentMethods);
+                    showPrimaryButton();
+                }
             } catch (e) {
                 return null;
             }
-        }
-
-        async function activateCc(creditCardHandler) {
-            let creditCardConfiguration = {
-                enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
-                brands: <?= $magewire->getBrands() ?>,
-                hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
-                holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
-                paymentMethodsResponse: <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
-                onChange: function(state, component) {
-                    if (!state.isValid) {
-                        hyvaCheckout.navigation.disableButtonPlaceOrder();
-                    } else {
-                        creditCardHandler.clearMessage();
-                        hyvaCheckout.navigation.enableButtonPlaceOrder();
-                    }
-                },
-                installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,
-                showInstallmentAmounts: true,
-                onBrand: function(state) {
-                    creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
-                },
-                name: "Credit Card",
-                type: "card",
-                code: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'
-            };
-
-            let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
-
-            let configuration = creditCardHandler.buildConfiguration(creditCardConfiguration, paymentMethodsExtraInfo);
-
-            let component = await creditCardHandler.buildComponent(
-                <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse
-            );
-
-            creditCardHandler.mountComponent(component, creditCardConfiguration.type, configuration);
-
-            hyvaCheckout.payment.activate('<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
-                {
-                    async placeOrder() {
-                        let stateData = creditCardHandler.getActionComponent().data;
-                        creditCardHandler.placeOrder(stateData);
-                    },
-                    placeOrderViaJs() {
-                        return true
-                    }
-                },
-                document.getElementById('CreditCardActionContainer')
-            );
         }
     </script>
 </div>

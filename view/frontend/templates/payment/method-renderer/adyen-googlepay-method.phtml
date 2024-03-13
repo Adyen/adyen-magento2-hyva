@@ -25,70 +25,37 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
             }
         }
 
-        window.adyenActiveEvents.forEach(async (element) => {
-            window.addEventListener(element, async () => {
-                let googlePayHandler = await init();
-
-                if (googlePayHandler) {
-                    let wire = googlePayHandler.getWire();
-                    wire.processIsShippingRequired()
-                        .then(() => {
-                            if (wire.get('requiresShipping')) {
-                                googlePayHandler.renderMessage('Please select shipping method.');
-                            } else {
-                                activateGooglePay(googlePayHandler);
-                                window.dispatchEvent(new CustomEvent('wallet-method-active', {detail: {method: '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>'}}));
-                            }
-                        });
-                }
-            })
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
+            await init(event.detail.method);
         });
 
-        async function init() {
+        window.addEventListener('adyen:payment_component:refresh', async (event) => {
+            await init(event.detail.method);
+        });
+
+        async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.adyen_googlepay');
+                let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let googlePayHandler = new googlePayComponentHandler(
-                    '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>',
+                    methodCode,
                     wire,
                     'GooglePayActionContainer'
                 );
 
-                return googlePayHandler;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        async function activateGooglePay(googlePayHandler) {
-
-            let paymentMethodResponse = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse;
-            let googlepayMethodConfiguration = null;
-
-            for (let i = 0; i < paymentMethodResponse.paymentMethods.length; i++) {
-                if (paymentMethodResponse.paymentMethods[i].type == 'googlepay') {
-                    googlepayMethodConfiguration = paymentMethodResponse.paymentMethods[i];
-                    break;
+                if (methodCode !== 'adyen_googlepay') {
+                    googlePayHandler.renderMethodUnavailableMessage();
+                    return;
                 }
-            }
 
-            if (googlepayMethodConfiguration !== null) {
-                let paymentMethodsExtraInfo = <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsExtraDetails;
-                let configuration = googlePayHandler.buildConfiguration(googlepayMethodConfiguration, paymentMethodsExtraInfo);
-
-                let component = await googlePayHandler.buildComponent(
-                    <?= /* @noEscape */ $magewire->getPaymentResponse() ?>.paymentMethodsResponse,
-                    function (result) {
-                        googlePayHandler.handleAdditionalDetails(result.data)
-                    },
-                    function (result) {},
-                    function (state) {
-                        googlePayHandler.placeOrder(state.data);
-                    }
-                );
-
-                googlePayHandler.mountComponent(component, googlepayMethodConfiguration.type, configuration);
-            } else {
-                googlePayHandler.renderMessage("<?= __("We are sorry, this method is temporarily unavailable") ?>");
+                if (wire.get('requiresShipping')) {
+                    googlePayHandler.renderMessage('Please select shipping method.');
+                } else {
+                    let rawResponse = wire.get('paymentResponse');
+                    let paymentMethods = JSON.parse(rawResponse);
+                    await googlePayHandler.activateWalletMethod(methodCode, paymentMethods);
+                    hidePrimaryButton();
+                }
+            } catch (e) {
             }
         }
     </script>
