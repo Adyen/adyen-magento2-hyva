@@ -22,15 +22,12 @@ class Checkout
 
     /**
      * @param Subject $subject
-     * @param callable $proceed
      * @param Page $page
      * @param RequestInterface $request
      * @return void
      */
-    public function aroundProcessComponentRequest(Subject $subject, callable $proceed, Page $page, RequestInterface $request)
+    public function afterProcessComponentRequest(Subject $subject, mixed $result, Page $page, RequestInterface $request): void
     {
-        $proceed($page, $request);
-
         try {
             if (str_contains($request->getFingerprint('name'), ProcessingMetadataInterface::VAULT_LAYOUT_PREFIX)
                 && $page->getLayout()->getBlock($request->getFingerprint('name')) == null
