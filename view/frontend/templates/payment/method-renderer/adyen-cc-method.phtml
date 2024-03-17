@@ -24,6 +24,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
         async function init(methodCode) {
             try {
+                clearContainer('CreditCardActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let creditCardHandler = new componentHandler(
                     methodCode,
@@ -36,6 +37,14 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                     return;
                 }
 
+                let rawCardBrands = wire.get('cardBrands');
+                let cardBrands = JSON.parse(rawCardBrands);
+
+                if (cardBrands.length === 0) {
+                    creditCardHandler.renderMessage('No available card brands for your country.');
+                    return;
+                }
+
                 if (wire.get('requiresShipping')) {
                     creditCardHandler.renderMessage('Please select shipping method.');
                 } else {
@@ -44,7 +53,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
                     let configuration = {
                         enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
-                        brands: <?= $magewire->getBrands() ?>,
+                        brands: cardBrands,
                         hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
                         holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
                         installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,

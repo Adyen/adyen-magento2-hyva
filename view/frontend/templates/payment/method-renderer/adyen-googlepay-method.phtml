@@ -35,6 +35,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
 
         async function init(methodCode) {
             try {
+                clearContainer('GooglePayActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let googlePayHandler = new googlePayComponentHandler(
                     methodCode,
@@ -47,14 +48,20 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
                     return;
                 }
 
+                if (!wire.get('canRenderForCountry')) {
+                    googlePayHandler.renderMessage('This method is unavailable for your country.');
+                    return;
+                }
+
                 if (wire.get('requiresShipping')) {
                     googlePayHandler.renderMessage('Please select shipping method.');
-                } else {
-                    let rawResponse = wire.get('paymentResponse');
-                    let paymentMethods = JSON.parse(rawResponse);
-                    await googlePayHandler.activateWalletMethod(methodCode, paymentMethods);
-                    hidePrimaryButton();
+                    return;
                 }
+
+                let rawResponse = wire.get('paymentResponse');
+                let paymentMethods = JSON.parse(rawResponse);
+                await googlePayHandler.activateWalletMethod(methodCode, paymentMethods);
+                hidePrimaryButton();
             } catch (e) {
             }
         }

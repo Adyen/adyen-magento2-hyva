@@ -30,7 +30,6 @@
         <arguments>
             <argument name="filters" xsi:type="array">
                 <item name="adyen_based" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\AdyenBased</item>
-                <item name="adyen_configured" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\AdyenConfigured</item>
                 <item name="apple_pay" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\ApplePay</item>
                 <item name="stored_cards" xsi:type="object">Adyen\Hyva\Model\PaymentMethod\Filter\StoredCards</item>
             </argument>

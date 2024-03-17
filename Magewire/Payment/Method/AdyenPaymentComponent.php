@@ -22,6 +22,7 @@ use Psr\Log\LoggerInterface;
 
 abstract class AdyenPaymentComponent extends Component implements EvaluationInterface
 {
+    public bool $canRenderForCountry = false;
     public bool $requiresShipping = true;
     public ?string $paymentResponse = null;
     public ?string $paymentStatus = null;
@@ -56,6 +57,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         'shipping_method_selected' => 'refreshProperties',
         'coupon_code_applied' => 'refreshProperties',
         'coupon_code_revoked' => 'refreshProperties',
+        'shipping_address_saved' => 'refreshProperties',
+        'billing_address_saved' => 'refreshProperties',
     ];
 
     /**
@@ -126,18 +129,9 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     public function refreshProperties(): void
     {
-        try {
-            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
-        } catch (\Exception $e) {
-            $this->logger->error('Could not detect if shipping is required: ' . $e->getMessage());
-        }
-
-        try {
-            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
-        } catch (\Exception $e) {
-            $this->paymentResponse = '{}';
-            $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
-        }
+        $this->processCanRenderForCountry();
+        $this->processRequiresShipping();
+        $this->processPaymentResponse();
 
         try {
             $this->dispatchBrowserEvent('adyen:payment_component:refresh',
@@ -215,6 +209,52 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                 $data[ProcessingMetadataInterface::POST_KEY_STATE_DATA][ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]['value']
             );
             $this->session->setCcType($data[ProcessingMetadataInterface::POST_KEY_CC_TYPE]);
+        }
+    }
+
+    private function processCanRenderForCountry(): void
+    {
+        try {
+            $this->canRenderForCountry = false;
+            $currentMethod = $this->session->getQuote()->getPayment()->getMethod();
+
+            if ($currentMethod) {
+                $parts = explode("_", $currentMethod);
+                $currentMethodLabel = array_pop($parts);
+                $dataAsArray = $this->paymentMethods->getDataAsArray((int) $this->session->getQuoteId());
+
+                if (isset($dataAsArray['paymentMethodsResponse']['paymentMethods'])) {
+                    foreach ($dataAsArray['paymentMethodsResponse']['paymentMethods'] as $method) {
+                        if (isset($method['type'])) {
+                            if ($method['type'] == $currentMethodLabel) {
+                                $this->canRenderForCountry = true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $this->canRenderForCountry = false;
+            $this->logger->error('Could not process can show for country: ' . $e->getMessage());
+        }
+    }
+
+    private function processRequiresShipping():void
+    {
+        try {
+            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
+        } catch (\Exception $e) {
+            $this->logger->error('Could not detect if shipping is required: ' . $e->getMessage());
+        }
+    }
+
+    private function processPaymentResponse(): void
+    {
+        try {
+            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
+        } catch (\Exception $e) {
+            $this->paymentResponse = '{}';
+            $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
         }
     }
 }
