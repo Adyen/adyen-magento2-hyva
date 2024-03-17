@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 
 class PaymentMethods
 {
+    private ?array $dataAsArray = null;
     private ?string $data = null;
 
     public function __construct(
@@ -19,6 +20,24 @@ class PaymentMethods
     ) {
     }
 
+    public function getDataAsArray(int $quoteId): array
+    {
+        if ($this->dataAsArray === null) {
+            try {
+                $paymentMethods = $this->jsonSerializer->unserialize(
+                    $this->adyenPaymentMethods->getPaymentMethods($quoteId)
+                );
+                unset($paymentMethods['paymentMethodsResponse']['storedPaymentMethods']);
+
+                $this->dataAsArray = $paymentMethods;
+            } catch (\Exception $exception) {
+                $this->logger->error('Could not fetch adyen payment methods: ' . $exception->getMessage());
+            }
+        }
+
+        return $this->dataAsArray ?? [];
+    }
+
     /**
      * @param int $quoteId
      * @return string
@@ -26,16 +45,7 @@ class PaymentMethods
     public function getData(int $quoteId): string
      {
          if ($this->data === null) {
-             try {
-                 $paymentMethods = $this->jsonSerializer->unserialize(
-                     $this->adyenPaymentMethods->getPaymentMethods($quoteId)
-                 );
-                 unset($paymentMethods['paymentMethodsResponse']['storedPaymentMethods']);
-
-                 $this->data = $this->jsonSerializer->serialize($paymentMethods);
-             } catch (\Exception $exception) {
-                 $this->logger->error('Could not fetch adyen payment methods: ' . $exception->getMessage());
-             }
+             $this->data = $this->jsonSerializer->serialize($this->getDataAsArray($quoteId));
          }
 
          return $this->data ?? '';

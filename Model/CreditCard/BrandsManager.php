@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Model\CreditCard;
 
-use Adyen\Payment\Api\AdyenPaymentMethodManagementInterface;
+use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;
@@ -15,7 +15,7 @@ class BrandsManager
 
     public function __construct(
         private readonly Session $session,
-        private readonly AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement,
+        private readonly PaymentMethods $paymentMethods,
         private readonly Json $jsonSerializer,
         private readonly LoggerInterface $logger
     ) {
@@ -29,12 +29,7 @@ class BrandsManager
         if ($this->brandsData === null) {
             try {
                 if ($this->session->getQuote()->getId()) {
-                    $paymentMethodsResponse = json_decode(
-                        $this->adyenPaymentMethodManagement->getPaymentMethods(
-                            strval($this->session->getQuote()->getId())
-                        ),
-                        true
-                    );
+                    $paymentMethodsResponse = $this->paymentMethods->getDataAsArray((int) $this->session->getQuote()->getId());
 
                     if (isset($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'])) {
                         foreach ($paymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] as $paymentMethod) {
