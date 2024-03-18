@@ -3,6 +3,7 @@
 namespace Adyen\Hyva\Model\Component\Payment;
 
 use Adyen\Hyva\Model\Configuration;
+use Adyen\Hyva\Model\Customer\CustomerGroupHandler;
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
@@ -24,6 +25,7 @@ class Context implements ContextInterface
         private readonly PaymentInformationManagementInterface $paymentInformationManagement,
         private readonly AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
         private readonly AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
+        private readonly CustomerGroupHandler $customerGroupHandler,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -90,6 +92,11 @@ class Context implements ContextInterface
     public function getAdyenPaymentsDetails(): AdyenPaymentsDetailsInterface
     {
         return $this->adyenPaymentsDetails;
+    }
+
+    public function getCustomerGroupHandler(): CustomerGroupHandler
+    {
+        return $this->customerGroupHandler;
     }
 
     /**

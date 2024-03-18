@@ -29,7 +29,7 @@ use Magento\Framework\Escaper;
                         let payload = { ...previousStateData, ...state.data };
                         payload.returnUrl = window.location.href;
 
-                        if ('<?= $escaper->escapeJs($magewire->userIsGuest()) ?>' == 'guest') {
+                        if ('<?= (bool) $magewire->userIsGuest() ?>') {
                             const maskedQuoteId = "<?= $escaper->escapeJs($block->getMaskedQuoteId()) ?>";
                             wire.donateGuest(maskedQuoteId, payload)
                                 .then(() => {

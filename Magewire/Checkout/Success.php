@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Magewire\Checkout;
 
+use Adyen\Hyva\Model\Customer\CustomerGroupHandler;
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Api\GuestAdyenDonationsInterface;
 use Adyen\Payment\Helper\Config;
@@ -25,6 +26,7 @@ class Success extends Component
         private OrderFactory $orderFactory,
         private Config $helperConfig,
         private StoreManagerInterface $storeManager,
+        private CustomerGroupHandler $customerGroupHandler,
         private LoggerInterface $logger
     ) {
     }
@@ -32,19 +34,9 @@ class Success extends Component
     /**
      * @return bool
      */
-    public function userIsGuest(): string
+    public function userIsGuest(): bool
     {
-        try {
-            $customerId = $this->session->getQuote()->getCustomerId();
-
-            if ($customerId) {
-                return "customer";
-            }
-        } catch (Exception $exception) {
-            return "guest";
-        }
-
-        return "guest";
+        return $this->customerGroupHandler->userIsGuest();
     }
 
     public function showAdyenGiving(): bool

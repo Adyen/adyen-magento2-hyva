@@ -7,6 +7,7 @@ namespace Adyen\Hyva\Magewire\Payment\Method;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 use Adyen\Hyva\Model\Component\Payment\Context;
 use Adyen\Hyva\Model\Configuration;
+use Adyen\Hyva\Model\Customer\CustomerGroupHandler;
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
@@ -36,6 +37,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     protected PaymentInformationManagementInterface $paymentInformationManagement;
     protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus;
     protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails;
+    protected CustomerGroupHandler $customerGroupHandler;
     protected LoggerInterface $logger;
 
     public function __construct(
@@ -49,6 +51,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         $this->paymentInformationManagement = $context->getPaymentInformationManagement();
         $this->adyenOrderPaymentStatus = $context->getAdyenOrderPaymentStatus();
         $this->adyenPaymentsDetails = $context->getAdyenPaymentsDetails();
+        $this->customerGroupHandler = $context->getCustomerGroupHandler();
         $this->logger = $context->getLogger();
     }
 
@@ -113,12 +116,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     public function userIsGuest(): bool
     {
-        try {
-            return 0 === (int) $this->session->getQuote()->getCustomerId();
-        } catch (\Exception) {
-        }
-
-        return true;
+        return $this->customerGroupHandler->userIsGuest();
     }
 
     /**
