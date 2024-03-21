@@ -14,6 +14,8 @@ class CreditCard extends AdyenPaymentComponent
 {
     const METHOD_CC = 'adyen_cc';
 
+    public ?string $cardBrands = null;
+
     public function __construct(
         private readonly Context $context,
         private readonly BrandsManager $brandsManager,
@@ -39,12 +41,10 @@ class CreditCard extends AdyenPaymentComponent
         return $resultFactory->createSuccess();
     }
 
-    /**
-     * @return string
-     */
-    public function getBrands(): string
+    public function refreshProperties(): void
     {
-        return $this->brandsManager->getBrands();
+        $this->cardBrands = $this->brandsManager->getBrands();
+        parent::refreshProperties();
     }
 
     /**

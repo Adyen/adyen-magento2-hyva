@@ -41,10 +41,9 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                 } else {
                     let rawResponse = wire.get('paymentResponse');
                     let paymentMethods = JSON.parse(rawResponse);
-
                     let configuration = {
                         enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
-                        brands: <?= $magewire->getBrands() ?>,
+                        brands: JSON.parse(wire.get('cardBrands')),
                         hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
                         holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
                         installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,
