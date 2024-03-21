@@ -59,6 +59,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         'shipping_method_selected' => 'refreshProperties',
         'coupon_code_applied' => 'refreshProperties',
         'coupon_code_revoked' => 'refreshProperties',
+        'shipping_address_saved' => 'refreshProperties',
+        'billing_address_saved' => 'refreshProperties',
     ];
 
     /**
@@ -124,26 +126,9 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     public function refreshProperties(): void
     {
-        try {
-            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
-        } catch (\Exception $e) {
-            $this->logger->error('Could not detect if shipping is required: ' . $e->getMessage());
-        }
-
-        try {
-            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
-        } catch (\Exception $e) {
-            $this->paymentResponse = '{}';
-            $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
-        }
-
-        try {
-            $this->dispatchBrowserEvent('adyen:payment_component:refresh',
-                ['method' => $this->session->getQuote()->getPayment()->getMethod()]
-            );
-        } catch (\Exception $e) {
-            $this->logger->error('Could not dispatch the browser event adyen:payment_component:refresh: ' . $e->getMessage());
-        }
+        $this->processRequiresShipping();
+        $this->processPaymentResponse();
+        $this->dispatchCustomEvent();
     }
 
     /**
@@ -213,6 +198,39 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                 $data[ProcessingMetadataInterface::POST_KEY_STATE_DATA][ProcessingMetadataInterface::POST_KEY_NUMBER_OF_INSTALLMENTS]['value']
             );
             $this->session->setCcType($data[ProcessingMetadataInterface::POST_KEY_CC_TYPE]);
+        }
+    }
+
+    private function processRequiresShipping(): void
+    {
+        try {
+            $this->requiresShipping = !$this->session->getQuote()->isVirtual() && !$this->getCurrentShippingMethod();
+        } catch (\Exception $e) {
+            $this->logger->error('Could not detect if shipping is required: ' . $e->getMessage());
+        }
+    }
+
+    private function processPaymentResponse(): void
+    {
+        try {
+            $this->paymentResponse = $this->paymentMethods->getData((int) $this->session->getQuoteId());
+        } catch (\Exception $e) {
+            $this->paymentResponse = '{}';
+            $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Dispatches a custom event that frontend parts of payment methods depend on to refresh the component
+     */
+    private function dispatchCustomEvent(): void
+    {
+        try {
+            $this->dispatchBrowserEvent('adyen:payment_component:refresh',
+                ['method' => $this->session->getQuote()->getPayment()->getMethod()]
+            );
+        } catch (\Exception $e) {
+            $this->logger->error('Could not dispatch the browser event adyen:payment_component:refresh: ' . $e->getMessage());
         }
     }
 }
