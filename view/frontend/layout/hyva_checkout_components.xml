@@ -4,6 +4,9 @@
         <block name="block-loader" template="Hyva_Theme::ui/loading-block.phtml"/>
 
         <referenceBlock name="checkout.payment.methods" template="Adyen_Hyva::checkout/payment/method-list.phtml">
+            <arguments>
+                <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\MethodList</argument>
+            </arguments>
             <block name="checkout.payment.methods.stored_cards"
                    as="adyen_vault_stored_cards"
                    class="Adyen\Hyva\Block\StoredCards"
