@@ -37,6 +37,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
 
         async function init(methodCode) {
             try {
+                clearContainer('ApplePayActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let applePayHandler = new applePayComponentHandler(
                     methodCode,

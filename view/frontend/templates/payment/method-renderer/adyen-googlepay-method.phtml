@@ -35,6 +35,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
 
         async function init(methodCode) {
             try {
+                clearContainer('GooglePayActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let googlePayHandler = new googlePayComponentHandler(
                     methodCode,

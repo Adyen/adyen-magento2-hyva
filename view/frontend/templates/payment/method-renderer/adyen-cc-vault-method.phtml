@@ -29,6 +29,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
 
             async function init(cardLayoutId) {
                 try {
+                    clearContainer(cardLayoutId + '_ActionContainer');
                     let magewireMethodCode = '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>';
                     let wire = Magewire.find(cardLayoutId);
 

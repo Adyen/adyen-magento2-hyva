@@ -34,6 +34,7 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
 
         async function init(methodCode) {
             try {
+                clearContainer('PaypalActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 let paypalHandler = new paypalComponentHandler(
                     methodCode,

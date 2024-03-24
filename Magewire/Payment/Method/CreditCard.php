@@ -13,7 +13,6 @@ use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
 class CreditCard extends AdyenPaymentComponent
 {
     const METHOD_CC = 'adyen_cc';
-
     public ?string $cardBrands = null;
 
     public function __construct(
