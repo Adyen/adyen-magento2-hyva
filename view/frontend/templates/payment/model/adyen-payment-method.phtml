@@ -33,7 +33,9 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
 <script>
     function clearContainer(id) {
-        document.getElementById(id).innerHTML = '';
+        if (document.getElementById(id)) {
+            document.getElementById(id).innerHTML = '';
+        }
     }
 
     function showPrimaryButton() {

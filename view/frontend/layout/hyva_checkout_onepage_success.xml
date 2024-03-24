@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/adyen.css"/>
+        <link src="Adyen_Payment::js/adyen.js"/>
+    </head>
+    <body>
+        <referenceBlock name="onepage.success.adyen_payment">
+            <arguments>
+                <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Checkout\Success</argument>
+            </arguments>
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Adyen_Hyva::checkout/success.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>
