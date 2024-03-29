@@ -172,7 +172,55 @@ In this example
     ```public ?string $paymentDetails = null;```
 - using the `then` portion of the promise, we address the backend one more time to read the value of the public property
     ```wire.get('paymentDetails')```
-    
+
+## Dependency on the Adyen Payment module
+
+### PHP
+
+If some functionality is needed from Adyen_Payment, we do it in the standard PHP way:
+
+- In a given `Adyen_Hyva` class, use `use` statement to refer to a given `Adyen_Payment` interface or class
+- Inject the referring interface/class via constructor
+- Use the object
+
+We do have multiple matches of `use Adyen\Payment\{Some_Adyen_CLass}`, but not in too many different files.
+
+So, probably, it is best to analyse the dependencies case by case, when needed to answer a specific question.
+
+#### Making an order
+
+As far as for the critical part of creating an order, in `Adyen_Hyva` we do depend on Magento itself
+```
+$orderId = $this->paymentInformationManagement>savePaymentInformationAndPlaceOrder($quoteId,$payment);
+```
+Of course, later, "deep" in the stack, `Adyen_Payment` classes would kick in to factory a request and execute it against Adyen's endpoints.
+
+In other words, based on the levels of abstraction usually used in Magento in general, again, probably, it is best to analyse the dependencies case by case, when needed to answer a specific question.
+
+### Java Script
+
+On frontend we depend on Adyen Payment module by expecting to have the main `adyen.js` file available. We attempt to load this file with
+
+```
+view/frontend/templates/payment/init/init.phtml
+```
+
+Later, when we attempt to build the component, we have some critical code like
+
+```
+    let AdyenCheckout = await AdyenCheckoutLibrary();
+
+    return await AdyenCheckout({
+            clientKey: 'key',
+            environment: 'environment',
+            locale: 'locale',
+            paymentMethodsResponse: paymentMethodsResponse,
+            onAdditionalDetails: handleOnAdditionalDetails,
+            onCancel: handleOnCancel,
+            onSubmit: handleOnSubmit
+        }
+    );
+```
     
 ## Dependency on the Hyva Checkout module
 
