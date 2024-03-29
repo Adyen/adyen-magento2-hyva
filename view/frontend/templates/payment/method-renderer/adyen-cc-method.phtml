@@ -61,7 +61,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
                         onBrand: function(state) {
                             creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
                         },
-                        name: "Credit Card",
+                        name: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyenCc/title')) ?>',
                         type: "card",
                         code: methodCode
                     };
