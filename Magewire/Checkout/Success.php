@@ -65,14 +65,6 @@ class Success extends Component
     }
 
     /**
-     * @return string
-     */
-    public function getStateData(): string
-    {
-        return json_encode($this->session->getStateData()) ?? '{}';
-    }
-
-    /**
      * @param int $orderId
      * @param array $payload
      */

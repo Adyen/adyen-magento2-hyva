@@ -97,7 +97,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                 $payment
             );
             $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus(strval($orderId));
-            $this->session->setStateData($stateDataReceived);
         } catch (\Exception $exception) {
             $this->paymentStatus = json_encode(['isRefused' => true]);
             $this->logger->error('Could not place the Adyen order: ' . $exception->getMessage());
@@ -186,7 +185,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
      */
     private function handleSessionVariables(array $data): void
     {
-        $this->session->setStateData(null);
         $this->session->setNumberOfInstallments(null);
         $this->session->setCcType(null);
         $this->processInstallmentsData($data);

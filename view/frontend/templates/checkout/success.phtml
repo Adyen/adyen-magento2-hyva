@@ -17,13 +17,7 @@ use Magento\Framework\Escaper;
                     let wire = Magewire.find('onepage.success.adyen_payment');
 
                     if (state.isValid) {
-                        let previousStateData;
-                        try {
-                            previousStateData = <?= $magewire->getStateData() ?>;
-                        } catch {
-                            previousStateData = {};
-                        }
-                        let payload = { ...previousStateData, ...state.data };
+                        let payload = state.data;
                         payload.returnUrl = window.location.href;
 
                         if ('<?= (bool) $magewire->userIsGuest() ?>') {
