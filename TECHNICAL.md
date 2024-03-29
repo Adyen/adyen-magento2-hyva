@@ -2,9 +2,15 @@
 
 This documents tries to outline the technical specifics in the integration of the Adyen Payments with the Hyva checkout.
 
-## Magewire
+## Rendering payment components in Checkout
 
-Magewire is used in the implementation of this module.
+
+### Magewire
+
+Magewire is integral part of the Hyva Checkout and it is used in the implementation of this module. 
+
+The idea is that it attempts to reduce any frontend (Java Script based) complexity (e.g. data posting and fetching), 
+thus shifting the focus of the coding towards the PHP part of the application.
 
 For basic understanding of the concept, please try https://docs.hyva.io/checkout/hyva-checkout/magewire/index.html#under-the-hood
 
@@ -149,24 +155,23 @@ Magewire is designed to be flexible enough so to simply ask the backend for some
 One way to do it, as for example might look like
 
 ```
-wire.processQuoteParameters(cardInstallments)
+wire.collectPaymentDetails(data)
     .then(() => {
-        let installmentOptions = JSON.parse(wire.get('installmentOptions'));
-
-        if (installmentOptions.length > 1) {
-            creditCardHandler.addInstallmentOptions(installmentOptions)
-        }
+        let paymentDetails = JSON.parse(wire.get('paymentDetails'));
+        this.handleModal(false);
+        self.handleAdyenResult(paymentDetails);
+        window.dispatchEvent(new CustomEvent('adyen-loading', {detail: false}))
     }).catch(() => {
-        console.log('Error occurred during installments processing')
-});
+        console.log('Error occurred during order placement')
+    });
 ```
 
 In this example
-- we do make a call to a backend compoment method called `processQuoteParameters` (see `AdyenPaymentComponent` for details), sending the array of data
+- we do make a call to a backend compoment method, in this example called `collectPaymentDetails`, sending the array of data
 - the backend php method does its own processing, while setting some information to its public property
-    ```public ?string $installmentOptions = null;```
+    ```public ?string $paymentDetails = null;```
 - using the `then` portion of the promise, we address the backend one more time to read the value of the public property
-    ```wire.get('installmentOptions')```
+    ```wire.get('paymentDetails')```
     
     
 ## Dependency on the Hyva Checkout module
