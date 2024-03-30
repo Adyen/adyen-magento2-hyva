@@ -76,14 +76,6 @@ $methods = $viewModel->getList();
                             <div id="<?= 'payment-method-view-' . $escaper->escapeHtmlAttr($methodCodeAttr) ?>" class="w-full pl-8 mt-4">
                                 <?= /* @noEscape */ $html ?>
                             </div>
-                            <script>
-                                window.dispatchEvent(
-                                    new CustomEvent(
-                                        'adyen:payment_component:refresh',
-                                        { detail: { method: '<?= $escaper->escapeJs($magewire->method) ?>'}}
-                                    )
-                                )
-                            </script>
                         <?php endif ?>
                     <?php endif ?>
                 </li>

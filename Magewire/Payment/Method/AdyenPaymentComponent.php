@@ -59,12 +59,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         'shipping_method_selected' => 'refreshProperties',
         'coupon_code_applied' => 'refreshProperties',
         'coupon_code_revoked' => 'refreshProperties',
-        'shipping_address_saved' => 'refreshProperties',
-        'billing_address_saved' => 'refreshProperties',
-        'shipping_address_submitted' => 'refreshProperties',
-        'billing_address_submitted' => 'refreshProperties',
-        'shipping_address_activated' => 'refreshProperties',
-        'billing_address_activated' => 'refreshProperties',
     ];
 
     /**
