@@ -56,9 +56,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     }
 
     protected $listeners = [
-        'shipping_method_selected' => 'refreshProperties',
-        'coupon_code_applied' => 'refreshProperties',
-        'coupon_code_revoked' => 'refreshProperties',
     ];
 
     /**
@@ -125,7 +122,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     {
         $this->processRequiresShipping();
         $this->processPaymentResponse();
-        $this->dispatchCustomEvent();
     }
 
     /**
@@ -213,20 +209,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         } catch (\Exception $e) {
             $this->paymentResponse = '{}';
             $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Dispatches a custom event that frontend parts of payment methods depend on to refresh the component
-     */
-    private function dispatchCustomEvent(): void
-    {
-        try {
-            $this->dispatchBrowserEvent('adyen:payment_component:refresh',
-                ['method' => $this->session->getQuote()->getPayment()->getMethod()]
-            );
-        } catch (\Exception $e) {
-            $this->logger->error('Could not dispatch the browser event adyen:payment_component:refresh: ' . $e->getMessage());
         }
     }
 }

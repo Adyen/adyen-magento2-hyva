@@ -32,9 +32,11 @@ $billingAddress  = $block->getQuoteBillingAddress();
 </div>
 
 <script>
-    function clearContainer(id) {
-        if (document.getElementById(id)) {
-            document.getElementById(id).innerHTML = '';
+    function unmountAdyenComponent() {
+        let AdyenPaymentHandler = window.AdyenPaymentHandler;
+
+        if (AdyenPaymentHandler && AdyenPaymentHandler.getActionComponent()) {
+            AdyenPaymentHandler.getActionComponent().unmount();
         }
     }
 

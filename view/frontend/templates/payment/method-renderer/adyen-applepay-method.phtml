@@ -27,37 +27,44 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
             }
         }
 
-        window.addEventListener('checkout:payment:method-activate', async (event) => {
+        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+            unmountAdyenComponent();
             await init(event.detail.method);
         });
 
-        window.addEventListener('adyen:payment_component:refresh', async (event) => {
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
             await init(event.detail.method);
         });
 
         async function init(methodCode) {
             try {
-                clearContainer('ApplePayActionContainer');
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
-                let applePayHandler = new applePayComponentHandler(
-                    methodCode,
-                    wire,
-                    'ApplePayActionContainer'
-                );
+                wire.refreshProperties()
+                    .then(() => {
+                        let applePayHandler = new applePayComponentHandler(
+                            methodCode,
+                            wire,
+                            'ApplePayActionContainer'
+                        );
 
-                if (methodCode !== 'adyen_applepay') {
-                    applePayHandler.renderMethodUnavailableMessage();
-                    return;
-                }
+                        window.AdyenPaymentHandler = applePayHandler;
 
-                if (wire.get('requiresShipping')) {
-                    applePayHandler.renderMessage('Please select shipping method.');
-                } else {
-                    let rawResponse = wire.get('paymentResponse');
-                    let paymentMethods = JSON.parse(rawResponse);
-                    await applePayHandler.activateWalletMethod(methodCode, paymentMethods);
-                    hidePrimaryButton();
-                }
+                        if (methodCode !== 'adyen_applepay') {
+                            applePayHandler.renderMethodUnavailableMessage();
+                            return;
+                        }
+
+                        if (wire.get('requiresShipping')) {
+                            applePayHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            let rawResponse = wire.get('paymentResponse');
+                            let paymentMethods = JSON.parse(rawResponse);
+                            applePayHandler.activateWalletMethod(methodCode, paymentMethods);
+                            hidePrimaryButton();
+                        }
+                }).catch(() => {
+                    console.log('Error occurred during Applepay component load')
+                });
             } catch (e) {
             }
         }
