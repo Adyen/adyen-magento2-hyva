@@ -7,11 +7,6 @@ namespace Adyen\Hyva\Magewire\Checkout;
 use Adyen\Hyva\Model\Customer\CustomerGroupHandler;
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Api\GuestAdyenDonationsInterface;
-use Adyen\Payment\Helper\Config;
-use Exception;
-use Magento\Checkout\Model\Session;
-use Magento\Sales\Model\OrderFactory;
-use Magento\Store\Model\StoreManagerInterface;
 use Magewirephp\Magewire\Component;
 use Psr\Log\LoggerInterface;
 
@@ -20,12 +15,8 @@ class Success extends Component
     public bool $donationStatus = false;
 
     public function __construct(
-        private Session $session,
         private AdyenDonationsInterface $adyenDonations,
         private GuestAdyenDonationsInterface $guestAdyenDonations,
-        private OrderFactory $orderFactory,
-        private Config $helperConfig,
-        private StoreManagerInterface $storeManager,
         private CustomerGroupHandler $customerGroupHandler,
         private LoggerInterface $logger
     ) {
@@ -37,31 +28,6 @@ class Success extends Component
     public function userIsGuest(): bool
     {
         return $this->customerGroupHandler->userIsGuest();
-    }
-
-    public function showAdyenGiving(): bool
-    {
-        return $this->adyenGivingEnabled() && $this->hasDonationToken();
-    }
-
-    private function adyenGivingEnabled(): bool
-    {
-        return (bool) $this->helperConfig->adyenGivingEnabled($this->storeManager->getStore()->getId());
-    }
-
-    private function hasDonationToken(): bool
-    {
-        return $this->getDonationToken() && 'null' !== $this->getDonationToken();
-    }
-
-    private function getDonationToken()
-    {
-        return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
-    }
-
-    private function getOrder()
-    {
-        return $this->orderFactory->create()->load($this->session->getLastOrderId());
     }
 
     /**

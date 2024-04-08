@@ -2,14 +2,16 @@
 
 /** @var MagewireSuccess $magewire */
 /** @var Escaper $escaper */
+/** @var Success $block */
 
+use Adyen\Payment\Block\Checkout\Success;
 use \Adyen\Hyva\Magewire\Checkout\Success as MagewireSuccess;
 use Magento\Framework\Escaper;
 
 ?>
 
 <div>
-    <?php if ($magewire->showAdyenGiving()): ?>
+    <?php if ($block->showAdyenGiving() || $magewire->getDonationStatus()): ?>
         <div id="DonationActionContainer" wire:ignore></div>
         <script>
             (async function () {
