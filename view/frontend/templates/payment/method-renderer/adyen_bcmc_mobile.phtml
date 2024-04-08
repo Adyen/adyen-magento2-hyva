@@ -1,0 +1,72 @@
+<?php
+
+/** @var Paypal $magewire */
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\Paypal;
+
+?>
+
+<div>
+    <div id="BcmcActionContainer" wire:ignore></div>
+
+    <script>
+        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+            unmountAdyenComponent();
+            await init(event.detail.method);
+        });
+
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
+            await init(event.detail.method);
+        });
+
+        async function init(methodCode) {
+            try {
+                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                wire.refreshProperties()
+                    .then(async () =>  {
+                        let bcmcHandler = new componentHandler(
+                            methodCode,
+                            wire,
+                            'BcmcActionContainer'
+                        );
+
+                        window.AdyenPaymentHandler = bcmcHandler;
+
+                        if (methodCode !== 'adyen_bcmc_mobile') {
+                            bcmcHandler.renderMethodUnavailableMessage();
+                            return;
+                        }
+
+                        if (wire.get('requiresShipping')) {
+                            bcmcHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            let configuration = {
+                                "brands": [
+                                    "bcmc",
+                                    "visa"
+                                ],
+                                "name": "Bancontact card",
+                                "type": "bcmc",
+                                "showPayButton": false,
+                                "countryCode": "BE",
+                                "data": {}
+                            };
+
+                            let rawResponse = wire.get('paymentResponse');
+                            let paymentMethods = JSON.parse(rawResponse);
+
+                            bcmcHandler.activateCcMethod(methodCode, configuration, paymentMethods);
+                            showPrimaryButton();
+                        }
+                }).catch(() => {
+                    console.log('Error occurred during Paypal component load')
+                });
+            } catch (e) {
+            }
+        }
+    </script>
+</div>

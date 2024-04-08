@@ -159,7 +159,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         return true
                     }
                 },
-                document.getElementById('CreditCardActionContainer')
+                document.getElementById(self.elementLabel)
             );
         }
 
@@ -360,9 +360,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                     self.getCheckoutComponent().createFromAction(action).mount('#adyen-popup');
 
                     this.handleModal(true)
-                }
-
-                if (action.type === 'sdk') {
+                } else {
                     let component = self.getCheckoutComponent().components.at(0);
 
                     if (component) {

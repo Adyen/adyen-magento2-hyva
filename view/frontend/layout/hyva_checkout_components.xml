@@ -45,6 +45,15 @@
                     <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Paypal</argument>
                 </arguments>
             </block>
+
+            <block name="checkout.payment.method.adyen_bcmc_mobile"
+                   as="adyen_bcmc_mobile"
+                   template="Adyen_Hyva::payment/method-renderer/adyen_bcmc_mobile.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\BcmcMobile</argument>
+                </arguments>
+            </block>
+
         </referenceBlock>
     </body>
 </page>
