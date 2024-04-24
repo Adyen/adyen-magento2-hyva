@@ -14,6 +14,7 @@
                 <item name="adyen_applepay" xsi:type="string">adyen_applepay</item>
                 <item name="adyen_paypal" xsi:type="string">adyen_paypal</item>
                 <item name="adyen_cc_vault" xsi:type="string">adyen_cc_vault</item>
+                <item name="adyen_klarna" xsi:type="string">adyen_klarna</item>
             </argument>
         </arguments>
     </type>

@@ -9,6 +9,13 @@
         <observer name="adyen_hyva_cc_gateway_data_assign" instance="Adyen\Hyva\Observer\InstallmentsDataAssigner" />
     </event>
 
+    <!-- Brand code assigner -->
+    <!-- TODO:: Brand code assigner can be removed after implementing ECP-9078 -->
+    <event name="payment_method_assign_data_adyen_klarna">
+        <observer name="adyen_hyva_klarna_gateway_data_assign" instance="Adyen\Hyva\Observer\BrandCodeDataAssigner" />
+    </event>
+    <!-- End of brand code assigner -->
+
     <!-- Hyva Checkout Related -->
     <event name="checkout_submit_all_after">
         <observer name="CheckoutReset_HyvaCheckoutCheckoutSubmitAllAfter" disabled="true" />

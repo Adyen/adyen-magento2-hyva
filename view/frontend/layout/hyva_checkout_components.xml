@@ -45,6 +45,14 @@
                     <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Paypal</argument>
                 </arguments>
             </block>
+
+            <block name="checkout.payment.method.adyen_klarna"
+                   as="adyen_klarna"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-klarna-method.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Klarna</argument>
+                </arguments>
+            </block>
         </referenceBlock>
     </body>
 </page>
