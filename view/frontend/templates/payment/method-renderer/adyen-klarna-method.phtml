@@ -53,7 +53,7 @@ use Adyen\Hyva\Magewire\Payment\Method\Klarna;
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            klarnaHandler.activateWalletMethod(methodCode, paymentMethods, 'KlarnaActionContainer');
+                            klarnaHandler.activatePaymentMethod(methodCode, paymentMethods, 'KlarnaActionContainer');
                             showPrimaryButton();
                         }
                 }).catch(() => {

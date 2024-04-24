@@ -192,18 +192,18 @@ $billingAddress  = $block->getQuoteBillingAddress();
             );
         }
 
-        async activateWalletMethod(methodCode, paymentMethods, element = null) {
+        async activatePaymentMethod(methodCode, paymentMethods, element = null) {
             let self = this;
             let component;
 
-            let walletMethodConfiguration = self.collectWalletMethodConfiguration(
+            let paymentMethodConfiguration = self.collectPaymentMethodConfiguration(
                 paymentMethods,
                 methodCode.split("_").pop()
             );
 
-            if (walletMethodConfiguration !== null) {
+            if (paymentMethodConfiguration !== null) {
                 let configuration = self.buildConfiguration(
-                    walletMethodConfiguration,
+                    paymentMethodConfiguration,
                     paymentMethods.paymentMethodsExtraDetails
                 );
 
@@ -219,13 +219,13 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         }
                     );
 
-                    self.mountComponent(component, walletMethodConfiguration.type, configuration);
+                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
                 } else if (element !== null) {
                     component = await self.buildComponent(
                         paymentMethods.paymentMethodsResponse
                     );
 
-                    self.mountComponent(component, walletMethodConfiguration.type, configuration);
+                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
 
                     hyvaCheckout.payment.activate(methodCode,
                         {
@@ -247,7 +247,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
             }
         }
 
-        collectWalletMethodConfiguration(paymentMethods, walletCode) {
+        collectPaymentMethodConfiguration(paymentMethods, methodCode) {
             let methodConfiguration = null;
 
             if (paymentMethods.hasOwnProperty('paymentMethodsResponse')
@@ -256,7 +256,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 let methods = paymentMethods.paymentMethodsResponse.paymentMethods;
 
                 for (let i = 0; i < methods.length; i++) {
-                    if (methods[i].type == walletCode) {
+                    if (methods[i].type == methodCode) {
                         methodConfiguration = methods[i];
                         break;
                     }

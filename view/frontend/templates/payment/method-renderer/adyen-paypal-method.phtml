@@ -56,7 +56,7 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            paypalHandler.activateWalletMethod(methodCode, paymentMethods);
+                            paypalHandler.activatePaymentMethod(methodCode, paymentMethods);
                             hidePrimaryButton();
                         }
                 }).catch(() => {

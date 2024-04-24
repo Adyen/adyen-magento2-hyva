@@ -57,7 +57,7 @@ use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            googlePayHandler.activateWalletMethod(methodCode, paymentMethods);
+                            googlePayHandler.activatePaymentMethod(methodCode, paymentMethods);
                             hidePrimaryButton();
                         }
                     })
