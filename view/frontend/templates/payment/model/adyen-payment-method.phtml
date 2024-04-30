@@ -192,37 +192,62 @@ $billingAddress  = $block->getQuoteBillingAddress();
             );
         }
 
-        async activateWalletMethod(methodCode, paymentMethods) {
+        async activatePaymentMethod(methodCode, paymentMethods, element = null) {
             let self = this;
+            let component;
 
-            let walletMethodConfiguration = self.collectWalletMethodConfiguration(
+            let paymentMethodConfiguration = self.collectPaymentMethodConfiguration(
                 paymentMethods,
                 methodCode.split("_").pop()
             );
 
-            if (walletMethodConfiguration !== null) {
+            if (paymentMethodConfiguration !== null) {
                 let configuration = self.buildConfiguration(
-                    walletMethodConfiguration,
+                    paymentMethodConfiguration,
                     paymentMethods.paymentMethodsExtraDetails
                 );
-                let component = await self.buildComponent(
-                    paymentMethods.paymentMethodsResponse,
-                    function (result) {
-                        self.handleAdditionalDetails(result.data)
-                    },
-                    function (result) {},
-                    function (state) {
-                        self.placeOrder(state.data);
-                    }
-                );
 
-                self.mountComponent(component, walletMethodConfiguration.type, configuration);
+                if (configuration.showPayButton) {
+                    component = await self.buildComponent(
+                        paymentMethods.paymentMethodsResponse,
+                        function (result) {
+                            self.handleAdditionalDetails(result.data)
+                        },
+                        function (result) {},
+                        function (state) {
+                            self.placeOrder(state.data);
+                        }
+                    );
+
+                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
+                } else if (element !== null) {
+                    component = await self.buildComponent(
+                        paymentMethods.paymentMethodsResponse
+                    );
+
+                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
+
+                    hyvaCheckout.payment.activate(methodCode,
+                        {
+                            async placeOrder() {
+                                let stateData = self.getActionComponent().data;
+                                self.placeOrder(stateData);
+                            },
+                            placeOrderViaJs() {
+                                return true
+                            }
+                        },
+                        document.getElementById(element)
+                    );
+
+                    hyvaCheckout.navigation.enableButtonPlaceOrder();
+                }
             } else {
                 self.renderMethodUnavailableMessage();
             }
         }
 
-        collectWalletMethodConfiguration(paymentMethods, walletCode) {
+        collectPaymentMethodConfiguration(paymentMethods, methodCode) {
             let methodConfiguration = null;
 
             if (paymentMethods.hasOwnProperty('paymentMethodsResponse')
@@ -231,7 +256,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 let methods = paymentMethods.paymentMethodsResponse.paymentMethods;
 
                 for (let i = 0; i < methods.length; i++) {
-                    if (methods[i].type == walletCode) {
+                    if (methods[i].type == methodCode) {
                         methodConfiguration = methods[i];
                         break;
                     }
@@ -360,9 +385,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                     self.getCheckoutComponent().createFromAction(action).mount('#adyen-popup');
 
                     this.handleModal(true)
-                }
-
-                if (action.type === 'sdk') {
+                } else {
                     let component = self.getCheckoutComponent().components.at(0);
 
                     if (component) {

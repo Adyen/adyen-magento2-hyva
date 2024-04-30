@@ -1,26 +1,23 @@
 <?php
 
-/** @var Paypal $magewire */
+/** @var Klarna $magewire */
 /** @var Template $block */
 /** @var Escaper $escaper */
 
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
-use Adyen\Hyva\Magewire\Payment\Method\Paypal;
+use Adyen\Hyva\Magewire\Payment\Method\Klarna;
 
 ?>
 
 <div>
-    <div id="PaypalActionContainer" wire:ignore></div>
+    <div id="KlarnaActionContainer" wire:ignore></div>
 
     <script>
-        class paypalComponentHandler extends componentHandler {
+        class klarnaComponentHandler extends componentHandler {
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
-                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                paypalConfiguration.showPayButton = true;
-
-                return paypalConfiguration
+                return Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration)
             }
         }
 
@@ -38,29 +35,29 @@ use Adyen\Hyva\Magewire\Payment\Method\Paypal;
                 let wire = Magewire.find('checkout.payment.method.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
-                        let paypalHandler = new paypalComponentHandler(
+                        let klarnaHandler = new klarnaComponentHandler(
                             methodCode,
                             wire,
-                            'PaypalActionContainer'
+                            'KlarnaActionContainer'
                         );
 
-                        window.AdyenPaymentHandler = paypalHandler;
+                        window.AdyenPaymentHandler = klarnaHandler;
 
-                        if (methodCode !== 'adyen_paypal') {
-                            paypalHandler.renderMethodUnavailableMessage();
+                        if (methodCode !== 'adyen_klarna') {
+                            klarnaHandler.renderMethodUnavailableMessage();
                             return;
                         }
 
                         if (wire.get('requiresShipping')) {
-                            paypalHandler.renderMessage('Please select shipping method.');
+                            klarnaHandler.renderMessage('Please select shipping method.');
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            paypalHandler.activatePaymentMethod(methodCode, paymentMethods);
-                            hidePrimaryButton();
+                            klarnaHandler.activatePaymentMethod(methodCode, paymentMethods, 'KlarnaActionContainer');
+                            showPrimaryButton();
                         }
                 }).catch(() => {
-                    console.log('Error occurred during Paypal component load')
+                    console.log('Error occurred during Klarna component load')
                 });
             } catch (e) {
             }

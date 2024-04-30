@@ -59,7 +59,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            applePayHandler.activateWalletMethod(methodCode, paymentMethods);
+                            applePayHandler.activatePaymentMethod(methodCode, paymentMethods);
                             hidePrimaryButton();
                         }
                 }).catch(() => {
