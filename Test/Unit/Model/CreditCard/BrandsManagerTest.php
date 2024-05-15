@@ -8,6 +8,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class BrandsManagerTest extends \PHPUnit\Framework\TestCase
 {
+    private MockObject $quote;
     private MockObject $session;
     private MockObject $paymentMethods;
     private MockObject $serializer;
@@ -16,6 +17,7 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
+        $this->quote = $this->getMockBuilder(Quote::class)->disableOriginalConstructor()->getMock();
         $this->session = $this->getMockBuilder(\Magento\Checkout\Model\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -37,97 +39,61 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testGetBrandsAsArray()
+    /**
+     * @dataProvider inputProvider
+     */
+    public function testGetBrandsAsArrayConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $quoteId = 123;
-        $brands = ['mc', 'visa'];
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => $brands,
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $quote = $this->getMockBuilder(Quote::class)->disableOriginalConstructor()->getMock();
-
-        $this->session->expects($this->exactly(2))
-            ->method('getQuote')
-            ->willReturn($quote);
-
-        $quote->expects($this->exactly(2))
-            ->method('getId')
-            ->willReturn($quoteId);
-
-        $this->paymentMethods->expects($this->once())
-            ->method('getDataAsArray')
-            ->with($this->equalTo($quoteId))
-            ->willReturn($paymentMethodsResponse);
-
-        $this->assertEquals($brands, $this->brandsManager->getBrandsAsArray());
-    }
-
-    public function testGetBrandsAsArrayConsecutive()
-    {
-        $quoteId = 123;
-        $brands = ['mc', 'visa'];
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => $brands,
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $quote = $this->getMockBuilder(Quote::class)->disableOriginalConstructor()->getMock();
-
-        $this->session->expects($this->exactly(2))
-            ->method('getQuote')
-            ->willReturn($quote);
-
-        $quote->expects($this->exactly(2))
-            ->method('getId')
-            ->willReturn($quoteId);
-
-        $this->paymentMethods->expects($this->once())
-            ->method('getDataAsArray')
-            ->with($this->equalTo($quoteId))
-            ->willReturn($paymentMethodsResponse);
+        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse);
 
         $this->brandsManager->getBrandsAsArray();
         $result = $this->brandsManager->getBrandsAsArray();
+
         $this->assertEquals($brands, $result);
     }
 
-    public function testGetBrands()
+    /**
+     * @dataProvider inputProvider
+     */
+    public function testGetBrands($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $quoteId = 123;
-        $brands = ['mc', 'visa'];
-        $brandsSerialized = json_encode($brands);
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => $brands,
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $quote = $this->getMockBuilder(Quote::class)->disableOriginalConstructor()->getMock();
+        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, true);
 
+        $this->assertEquals($brandsSerialized, $this->brandsManager->getBrands());
+    }
+
+    public function inputProvider(): array
+    {
+        return [
+            '#1' => [
+                'quoteId' => 123,
+                'brands' => ['mc', 'visa'],
+                'brandsSerialized' => json_encode(['mc', 'visa']),
+                'paymentMethodsResponse' => [
+                    'paymentMethodsResponse' => [
+                        'paymentMethods' => [
+                            'card' => [
+                                'type' => 'scheme',
+                                'brands' => ['mc', 'visa'],
+                            ],
+                            'somethings_else' => [
+                                'type' => 'something_else',
+                                'brands' => [],
+                            ],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    private function setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, $serialize = false)
+    {
         $this->session->expects($this->exactly(2))
             ->method('getQuote')
-            ->willReturn($quote);
+            ->willReturn($this->quote);
 
-        $quote->expects($this->exactly(2))
+        $this->quote->expects($this->exactly(2))
             ->method('getId')
             ->willReturn($quoteId);
 
@@ -136,11 +102,9 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
             ->with($this->equalTo($quoteId))
             ->willReturn($paymentMethodsResponse);
 
-        $this->serializer->expects($this->once())
+        $this->serializer->expects($serialize ? $this->once() : $this->never())
             ->method('serialize')
             ->with($brands)
             ->willReturn($brandsSerialized);
-
-        $this->assertEquals($brandsSerialized, $this->brandsManager->getBrands());
     }
 }
