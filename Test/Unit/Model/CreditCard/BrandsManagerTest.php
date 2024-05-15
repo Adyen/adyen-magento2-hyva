@@ -17,7 +17,9 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
-        $this->quote = $this->getMockBuilder(Quote::class)->disableOriginalConstructor()->getMock();
+        $this->quote = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->session = $this->getMockBuilder(\Magento\Checkout\Model\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -40,7 +42,7 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider inputProvider
+     * @dataProvider inputProviderBrandsManager
      */
     public function testGetBrandsAsArrayConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
@@ -53,7 +55,7 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider inputProvider
+     * @dataProvider inputProviderBrandsManager
      */
     public function testGetBrands($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
@@ -62,11 +64,11 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($brandsSerialized, $this->brandsManager->getBrands());
     }
 
-    public function inputProvider(): array
+    public function inputProviderBrandsManager(): array
     {
         return [
             '#1' => [
-                'quoteId' => 123,
+                'quoteId' => 456,
                 'brands' => ['mc', 'visa'],
                 'brandsSerialized' => json_encode(['mc', 'visa']),
                 'paymentMethodsResponse' => [
@@ -76,8 +78,8 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
                                 'type' => 'scheme',
                                 'brands' => ['mc', 'visa'],
                             ],
-                            'somethings_else' => [
-                                'type' => 'something_else',
+                            'somethings_irrelevant' => [
+                                'type' => 'somethings_irrelevant',
                                 'brands' => [],
                             ],
                         ]

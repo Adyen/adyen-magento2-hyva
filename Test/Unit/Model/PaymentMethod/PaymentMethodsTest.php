@@ -34,7 +34,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider inputProvider
+     * @dataProvider inputProviderPaymentMethods
      */
     public function testGetDataAsArrayConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
@@ -64,7 +64,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider inputProvider
+     * @dataProvider inputProviderPaymentMethods
      */
     public function testGetDataConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
@@ -76,7 +76,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(json_encode($paymentMethodsResponse), $result);
     }
 
-    public function inputProvider(): array
+    public function inputProviderPaymentMethods(): array
     {
         return [
             '#1' => [

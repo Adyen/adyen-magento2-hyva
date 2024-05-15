@@ -9,6 +9,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class PaymentMethodTest extends \PHPUnit\Framework\TestCase
 {
+    private MockObject $quote;
+    private MockObject $address;
     private MockObject $context;
     private MockObject $configuration;
     private MockObject $methodList;
@@ -19,6 +21,13 @@ class PaymentMethodTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
+        $this->quote = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->address = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->context = $this->createMock(\Magento\Framework\View\Element\Template\Context::class);
         $this->configuration = $this->createMock(\Adyen\Hyva\Model\Configuration::class);
         $this->methodList = $this->createMock(\Adyen\Hyva\Model\MethodList::class);
@@ -58,16 +67,10 @@ class PaymentMethodTest extends \PHPUnit\Framework\TestCase
         $data = [
             'some-key' => 'some-value'
         ];
-        $quote = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $address = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
-            ->disableOriginalConstructor()
-            ->getMock();
 
-        $this->session->expects($this->once())->method('getQuote')->willReturn($quote);
-        $quote->expects($this->exactly(2))->method('getShippingAddress')->willReturn($address);
-        $address->expects($this->once())->method('getData')->willReturn($data);
+        $this->setQuoteShippingAddressCommmonExpectations();
+
+        $this->address->expects($this->once())->method('getData')->willReturn($data);
         $this->jsonSerializer->expects($this->once())->method('serialize')->willReturn(json_encode($data));
 
         $this->assertEquals(json_encode($data), $this->paymentMethod->getQuoteShippingAddress());
@@ -75,16 +78,9 @@ class PaymentMethodTest extends \PHPUnit\Framework\TestCase
 
     public function testGetQuoteShippingAddressWithException(): void
     {
-        $quote = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $address = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->setQuoteShippingAddressCommmonExpectations();
 
-        $this->session->expects($this->once())->method('getQuote')->willReturn($quote);
-        $quote->expects($this->exactly(2))->method('getShippingAddress')->willReturn($address);
-        $address->expects($this->once())->method('getData')
+        $this->address->expects($this->once())->method('getData')
             ->willThrowException(new \InvalidArgumentException());
         $this->jsonSerializer->expects($this->once())
             ->method('serialize')
@@ -93,21 +89,22 @@ class PaymentMethodTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(json_encode([]), $this->paymentMethod->getQuoteShippingAddress());
     }
 
+    private function setQuoteShippingAddressCommmonExpectations()
+    {
+        $this->session->expects($this->once())->method('getQuote')->willReturn($this->quote);
+        $this->quote->expects($this->exactly(2))->method('getShippingAddress')->willReturn($this->address);
+    }
+
+
     public function testGetQuoteBillingAddress()
     {
         $data = [
             'some-key' => 'some-value'
         ];
-        $quote = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $address = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
-            ->disableOriginalConstructor()
-            ->getMock();
 
-        $this->session->expects($this->once())->method('getQuote')->willReturn($quote);
-        $quote->expects($this->exactly(2))->method('getBillingAddress')->willReturn($address);
-        $address->expects($this->once())->method('getData')->willReturn($data);
+        $this->session->expects($this->once())->method('getQuote')->willReturn($this->quote);
+        $this->quote->expects($this->exactly(2))->method('getBillingAddress')->willReturn($this->address);
+        $this->address->expects($this->once())->method('getData')->willReturn($data);
         $this->jsonSerializer->expects($this->once())->method('serialize')->willReturn(json_encode($data));
 
         $this->assertEquals(json_encode($data), $this->paymentMethod->getQuoteBillingAddress());

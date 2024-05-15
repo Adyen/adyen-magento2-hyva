@@ -99,10 +99,10 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
             ->getMock();
 
         $this->creditCard = new \Adyen\Hyva\Magewire\Payment\Method\CreditCard(
-            $this->context,
-            $this->brandsManager,
-            $this->installmentsManager
-        );
+                    $this->context,
+                    $this->brandsManager,
+                    $this->installmentsManager
+                );
     }
 
     public function testGetMethodCode()
