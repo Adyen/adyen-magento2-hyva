@@ -15,7 +15,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class CreditCardTest extends \PHPUnit\Framework\TestCase
 {
-    private Quote $quote;
+    private MockObject $payment;
+    private MockObject $quote;
+    private MockObject $order;
     private MockObject $checkoutStateDataValidator;
     private MockObject $configuration;
     private MockObject $session;
@@ -34,9 +36,16 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
+        $this->payment = $this->getMockBuilder(Quote\Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->quote = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->order = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->checkoutStateDataValidator = $this->getMockBuilder(CheckoutStateDataValidator::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -90,10 +99,10 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
             ->getMock();
 
         $this->creditCard = new \Adyen\Hyva\Magewire\Payment\Method\CreditCard(
-                    $this->context,
-                    $this->brandsManager,
-                    $this->installmentsManager
-                );
+            $this->context,
+            $this->brandsManager,
+            $this->installmentsManager
+        );
     }
 
     public function testGetMethodCode()
@@ -131,23 +140,12 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
         $paymentStatus = 'success';
         $quoteId = '111';
         $orderId = '123';
-        $payment = $this->getMockBuilder(Quote\Payment::class)->disableOriginalConstructor()->getMock();
 
-        $this->session->expects($this->once())
-            ->method('getQuoteId')
-            ->willReturn($quoteId);
-
-        $this->session->expects($this->once())
-            ->method('getQuote')
-            ->willReturn($this->quote);
-
-        $this->quote->expects($this->once())
-            ->method('getPayment')
-            ->willReturn($payment);
+        $this->setPlaceOrderCommonExpectations($quoteId);
 
         $this->paymentInformationManagement->expects($this->once())
             ->method('savePaymentInformationAndPlaceOrder')
-            ->with($quoteId, $payment)
+            ->with($quoteId, $this->payment)
             ->willReturn($orderId);
 
         $this->adyenOrderPaymentStatus->expects($this->once())
@@ -164,8 +162,25 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
     {
         $data = ['stateData' => []];
         $quoteId = '111';
-        $payment = $this->getMockBuilder(Quote\Payment::class)->disableOriginalConstructor()->getMock();
 
+        $this->setPlaceOrderCommonExpectations($quoteId);
+
+        $this->paymentInformationManagement->expects($this->once())
+            ->method('savePaymentInformationAndPlaceOrder')
+            ->with($quoteId, $this->payment)
+            ->willThrowException(new \Exception('Some error occurred while placing Order'));
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Could not place the Adyen order: Some error occurred while placing Order');
+
+        $this->creditCard->placeOrder($data);
+
+        $this->assertEquals('{"isRefused":true}', $this->creditCard->paymentStatus);
+    }
+
+    private function setPlaceOrderCommonExpectations($quoteId)
+    {
         $this->session->expects($this->once())
             ->method('getQuoteId')
             ->willReturn($quoteId);
@@ -176,20 +191,7 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
 
         $this->quote->expects($this->once())
             ->method('getPayment')
-            ->willReturn($payment);
-
-        $this->paymentInformationManagement->expects($this->once())
-            ->method('savePaymentInformationAndPlaceOrder')
-            ->with($quoteId, $payment)
-            ->willThrowException(new \Exception('Some error occurred while placing Order'));
-
-        $this->logger->expects($this->once())
-            ->method('error')
-            ->with('Could not place the Adyen order: Some error occurred while placing Order');
-
-        $this->creditCard->placeOrder($data);
-
-        $this->assertEquals('{"isRefused":true}', $this->creditCard->paymentStatus);
+            ->willReturn($this->payment);
     }
 
     public function testEvaluateCompletion()
@@ -208,19 +210,7 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
         $quoteId = '111';
         $paymentResponse = '{"some-data-structure":["some-values"]}';
 
-        $this->session->expects($this->exactly(2))
-            ->method('getQuote')
-            ->willReturn($this->quote);
-
-        $this->quote->expects($this->once())
-            ->method('isVirtual');
-
-        $this->quote->expects($this->once())
-            ->method('getShippingAddress');
-
-        $this->session->expects($this->once())
-            ->method('getQuoteId')
-            ->willReturn($quoteId);
+        $this->setRefreshPropertiesCommonExpectations($quoteId);
 
         $this->paymentMethods->expects($this->once())
             ->method('getData')
@@ -232,22 +222,15 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($paymentResponse, $this->creditCard->paymentResponse);
     }
 
-
     public function testRefreshPropertiesThrowsException()
     {
-        $quoteId = '111';
+        $quoteIdException = '111';
 
-        $this->session->expects($this->exactly(2))
-            ->method('getQuote')
-            ->willReturn($this->quote);
-
-        $this->session->expects($this->once())
-            ->method('getQuoteId')
-            ->willReturn($quoteId);
+        $this->setRefreshPropertiesCommonExpectations($quoteIdException);
 
         $this->paymentMethods->expects($this->once())
             ->method('getData')
-            ->with($quoteId)
+            ->with($quoteIdException)
             ->willThrowException(new \Exception('Some error occurred while refreshing properties'));
 
         $this->logger->expects($this->once())
@@ -259,6 +242,20 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('{}', $this->creditCard->paymentResponse);
     }
 
+    private function setRefreshPropertiesCommonExpectations($quoteId)
+    {
+        $this->session->expects($this->exactly(2))
+            ->method('getQuote')
+            ->willReturn($this->quote);
+
+        $this->quote->expects($this->once())
+            ->method('getShippingAddress');
+
+        $this->session->expects($this->once())
+            ->method('getQuoteId')
+            ->willReturn($quoteId);
+    }
+
     public function testCollectPaymentDetails()
     {
         $data = [
@@ -266,17 +263,11 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
             'key2' => 'value2',
             'key3' => 'value3',
         ];
-        $order = $this->getMockBuilder(Order::class)->disableOriginalConstructor()->getMock();
+
         $orderId = '123';
         $paymentDetails = '{"some-data-structure":[{"some-key":"some-value"}]}';
 
-        $this->session->expects($this->once())
-            ->method('getLastRealOrder')
-            ->willReturn($order);
-
-        $order->expects($this->once())
-            ->method('getId')
-            ->willReturn($orderId);
+        $this->setCollectPaymentDetailsCommonExpectations($orderId);
 
         $this->adyenPaymentDetails->expects($this->once())
             ->method('initiate')
@@ -296,16 +287,9 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
             'key2' => 'value2',
             'key3' => 'value3',
         ];
-        $order = $this->getMockBuilder(Order::class)->disableOriginalConstructor()->getMock();
         $orderId = '123';
 
-        $this->session->expects($this->once())
-            ->method('getLastRealOrder')
-            ->willReturn($order);
-
-        $order->expects($this->once())
-            ->method('getId')
-            ->willReturn($orderId);
+        $this->setCollectPaymentDetailsCommonExpectations($orderId);
 
         $this->adyenPaymentDetails->expects($this->once())
             ->method('initiate')
@@ -319,5 +303,16 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
         $this->creditCard->collectPaymentDetails($data);
 
         $this->assertEquals('{"isRefused":true}', $this->creditCard->paymentDetails);
+    }
+
+    private function setCollectPaymentDetailsCommonExpectations($orderId)
+    {
+        $this->session->expects($this->once())
+            ->method('getLastRealOrder')
+            ->willReturn($this->order);
+
+        $this->order->expects($this->once())
+            ->method('getId')
+            ->willReturn($orderId);
     }
 }
