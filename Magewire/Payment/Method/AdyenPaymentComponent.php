@@ -83,7 +83,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $this->handleSessionVariables($data);
             $quoteId = $this->session->getQuoteId();
             $payment = $this->session->getQuote()->getPayment();
-            $payment->setAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE,self::FRONTENDTYPE_HYVA);
+            $payment->setAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE, self::FRONTENDTYPE_HYVA);
             $stateDataReceived = $this->collectValidatedStateData($data);
             //Temporary (per request) storage of state data
             $this->stateData->setStateData($stateDataReceived, (int) $quoteId);
