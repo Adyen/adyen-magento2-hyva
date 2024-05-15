@@ -33,61 +33,16 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testGetDataAsArray()
+    /**
+     * @dataProvider inputProvider
+     */
+    public function testGetDataAsArrayConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $quoteId = 123;
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => ['mc'],
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $paymentMethodsResponseSerialized = json_encode($paymentMethodsResponse);
-
-        $this->adyenPaymentMethods->expects($this->once())
-            ->method('getPaymentMethods')
-            ->willReturn($paymentMethodsResponseSerialized);
-
-        $this->serializer->expects($this->once())
-            ->method('unserialize')
-            ->with($paymentMethodsResponseSerialized)
-            ->willReturn($paymentMethodsResponse);
-
-        $this->assertEquals($paymentMethodsResponse, $this->paymentMethods->getDataAsArray($quoteId));
-    }
-
-    public function testGetDataAsArrayConsecutive()
-    {
-        $quoteId = 123;
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => ['mc'],
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $paymentMethodsResponseSerialized = json_encode($paymentMethodsResponse);
-
-        $this->adyenPaymentMethods->expects($this->once())
-            ->method('getPaymentMethods')
-            ->willReturn($paymentMethodsResponseSerialized);
-
-        $this->serializer->expects($this->once())
-            ->method('unserialize')
-            ->with($paymentMethodsResponseSerialized)
-            ->willReturn($paymentMethodsResponse);
+        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse);
 
         $this->paymentMethods->getDataAsArray($quoteId);
         $result = $this->paymentMethods->getDataAsArray($quoteId);
+
         $this->assertEquals($paymentMethodsResponse, $result);
     }
 
@@ -108,39 +63,58 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([], $this->paymentMethods->getDataAsArray($quoteId));
     }
 
-    public function testGetDataConsecutive()
+    /**
+     * @dataProvider inputProvider
+     */
+    public function testGetDataConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $quoteId = 123;
-        $paymentMethods = [
-            'card' => [
-                'type' => 'scheme',
-                'brands' => ['mc'],
-            ],
-            'somethings_else' => [
-                'type' => 'something_else',
-                'brands' => [],
-            ],
-        ];
-        $paymentMethodsResponse = ['paymentMethodsResponse' => ['paymentMethods' => $paymentMethods]];
-        $paymentMethodsResponseSerialized = json_encode($paymentMethodsResponse);
-
-        $this->adyenPaymentMethods->expects($this->once())
-            ->method('getPaymentMethods')
-            ->willReturn($paymentMethodsResponseSerialized);
-
-        $this->serializer->expects($this->once())
-            ->method('unserialize')
-            ->with($paymentMethodsResponseSerialized)
-            ->willReturn($paymentMethodsResponse);
-
-        $this->serializer->expects($this->once())
-            ->method('serialize')
-            ->with($paymentMethodsResponse)
-            ->willReturn($paymentMethodsResponseSerialized);
+        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, true);
 
         $this->paymentMethods->getData($quoteId);
         $result = $this->paymentMethods->getData($quoteId);
 
-        $this->assertEquals($paymentMethodsResponseSerialized, $result);
+        $this->assertEquals(json_encode($paymentMethodsResponse), $result);
+    }
+
+    public function inputProvider(): array
+    {
+        return [
+            '#1' => [
+                'quoteId' => 123,
+                'brands' => ['mc', 'visa'],
+                'brandsSerialized' => json_encode(['mc', 'visa']),
+                'paymentMethodsResponse' => [
+                    'paymentMethodsResponse' => [
+                        'paymentMethods' => [
+                            'card' => [
+                                'type' => 'scheme',
+                                'brands' => ['mc', 'visa'],
+                            ],
+                            'somethings_else' => [
+                                'type' => 'something_else',
+                                'brands' => [],
+                            ],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    private function setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, $serialize = false)
+    {
+        $this->adyenPaymentMethods->expects($this->once())
+            ->method('getPaymentMethods')
+            ->willReturn(json_encode($paymentMethodsResponse));
+
+        $this->serializer->expects($this->once())
+            ->method('unserialize')
+            ->with(json_encode($paymentMethodsResponse))
+            ->willReturn($paymentMethodsResponse);
+
+        $this->serializer->expects($serialize ? $this->once() : $this->never())
+            ->method('serialize')
+            ->with($paymentMethodsResponse)
+            ->willReturn(json_encode($paymentMethodsResponse));
     }
 }
