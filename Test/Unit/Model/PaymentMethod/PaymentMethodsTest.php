@@ -38,7 +38,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetDataAsArrayConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse);
+        $this->setExpectations($paymentMethodsResponse);
 
         $this->paymentMethods->getDataAsArray($quoteId);
         $result = $this->paymentMethods->getDataAsArray($quoteId);
@@ -68,7 +68,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetDataConsecutive($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse)
     {
-        $this->setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, true);
+        $this->setExpectations($paymentMethodsResponse, true);
 
         $this->paymentMethods->getData($quoteId);
         $result = $this->paymentMethods->getData($quoteId);
@@ -101,7 +101,7 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function setExpectations($quoteId, $brands, $brandsSerialized, $paymentMethodsResponse, $serialize = false)
+    private function setExpectations($paymentMethodsResponse, $serialize = false)
     {
         $this->adyenPaymentMethods->expects($this->once())
             ->method('getPaymentMethods')
