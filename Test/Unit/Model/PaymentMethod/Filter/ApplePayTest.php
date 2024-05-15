@@ -10,12 +10,28 @@ use PHPUnit\Framework\TestCase;
 
 class ApplePayTest extends TestCase
 {
+    private MockObject $adyenCc;
+    private MockObject $adyenGPay;
+    private MockObject $adyenApplePay;
     private MockObject $http;
 
     private ApplePay $applePay;
 
     public function setUp(): void
     {
+        $this->adyenCc = $this->getMockBuilder(PaymentMethodInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getCode', 'getTitle'])
+            ->getMock();
+        $this->adyenGPay = $this->getMockBuilder(PaymentMethodInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getCode', 'getTitle'])
+            ->getMock();
+        $this->adyenApplePay = $this->getMockBuilder(PaymentMethodInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getCode', 'getTitle'])
+            ->getMock();
+
         $this->http = $this->createMock(Http::class);
 
         $this->applePay = new ApplePay($this->http);
@@ -29,38 +45,17 @@ class ApplePayTest extends TestCase
             'adyen_applepay'
         ];
 
-        $adyenCc = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenGPay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenApplePay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-
-
-        $list = [
-            'adyen_cc' => $adyenCc,
-            'adyen_googlepay' => $adyenGPay,
-            'adyen_applepay' => $adyenApplePay
-        ];
-
-        $adyenApplePay->expects($this->never())->method('getCode')->willReturn('adyen_applepay');
+        $list = $this->getList();
 
         $this->http->expects($this->once())
             ->method('getServerValue')
             ->willReturn('something-with-safari-in-it');
 
+        $this->adyenApplePay->expects($this->never())->method('getCode')->willReturn('adyen_applepay');
+
         $result = $this->applePay->execute(123, $list);
 
-        $this->assertEquals(
-            $supportedMethods,
-            array_keys($result)
-        );
+        $this->doAssert($supportedMethods, $result);
     }
 
     public function testExecuteWithChrome()
@@ -70,38 +65,15 @@ class ApplePayTest extends TestCase
             'adyen_googlepay'
         ];
 
-        $adyenCc = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenGPay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenApplePay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-
-
-        $list = [
-            'adyen_cc' => $adyenCc,
-            'adyen_googlepay' => $adyenGPay,
-            'adyen_applepay' => $adyenApplePay
-        ];
-
-        $adyenApplePay->expects($this->once())->method('getCode')->willReturn('adyen_applepay');
-
         $this->http->expects($this->once())
             ->method('getServerValue')
             ->willReturn('something-with-chrome-and-safari-in-it');
 
-        $result = $this->applePay->execute(123, $list);
+        $this->adyenApplePay->expects($this->once())->method('getCode')->willReturn('adyen_applepay');
 
-        $this->assertEquals(
-            $supportedMethods,
-            array_keys($result)
-        );
+        $result = $this->applePay->execute(123, $this->getList());
+
+        $this->doAssert($supportedMethods, $result);
     }
 
     public function testExecuteWithAnythingElse()
@@ -111,34 +83,28 @@ class ApplePayTest extends TestCase
             'adyen_googlepay'
         ];
 
-        $adyenCc = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenGPay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-        $adyenApplePay = $this->getMockBuilder(PaymentMethodInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getCode', 'getTitle'])
-            ->getMock();
-
-
-        $list = [
-            'adyen_cc' => $adyenCc,
-            'adyen_googlepay' => $adyenGPay,
-            'adyen_applepay' => $adyenApplePay
-        ];
-
-        $adyenApplePay->expects($this->once())->method('getCode')->willReturn('adyen_applepay');
-
         $this->http->expects($this->once())
             ->method('getServerValue')
             ->willReturn('something-with-anything-else-in-it');
 
-        $result = $this->applePay->execute(123, $list);
+        $this->adyenApplePay->expects($this->once())->method('getCode')->willReturn('adyen_applepay');
 
+        $result = $this->applePay->execute(123, $this->getList());
+
+        $this->doAssert($supportedMethods, $result);
+    }
+
+    private function getList(): array
+    {
+        return [
+            'adyen_cc' => $this->adyenCc,
+            'adyen_googlepay' => $this->adyenGPay,
+            'adyen_applepay' => $this->adyenApplePay
+        ];
+    }
+
+    private function doAssert(array $supportedMethods, array $result)
+    {
         $this->assertEquals(
             $supportedMethods,
             array_keys($result)
