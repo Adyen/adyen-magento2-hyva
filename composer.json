@@ -1,7 +1,6 @@
 {
     "name": "adyen/module-hyva-checkout",
     "description": "Adyen Integration with Hyva Checkout",
-    "version": "100.0.0",
     "type": "magento2-module",
     "require": {
         "adyen/module-payment": "^9.5.0",
