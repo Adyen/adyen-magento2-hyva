@@ -44,7 +44,7 @@ class PaymentMethod extends Template
             $quote = $this->getQuote();
 
             if ($quote && $quote->getShippingAddress()) {
-                return json_encode($quote->getShippingAddress()->getData());
+                return $this->jsonSerializer->serialize($quote->getShippingAddress()->getData());
             }
         } catch (\InvalidArgumentException $exception) {
             return $this->defaultResponse();
