@@ -2,6 +2,7 @@
     "name": "adyen/module-hyva-checkout",
     "description": "Adyen Integration with Hyva Checkout",
     "type": "magento2-module",
+    "license": "MIT",
     "require": {
         "adyen/module-payment": "^9.5.2",
         "hyva-themes/magento2-default-theme": "^1.3"
