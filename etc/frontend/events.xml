@@ -1,0 +1,24 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- Adyen Checkout Related -->
+    <event name="payment_method_assign_data_vault">
+        <observer name="adyen_hyva_vault_data_assigner" instance="Adyen\Hyva\Observer\PaymentTokenAssigner" />
+    </event>
+
+    <event name="payment_method_assign_data_adyen_cc">
+        <observer name="adyen_hyva_cc_gateway_data_assign" instance="Adyen\Hyva\Observer\InstallmentsDataAssigner" />
+    </event>
+
+    <!-- Brand code assigner -->
+    <!-- TODO:: Brand code assigner can be removed after implementing ECP-9078 -->
+    <event name="payment_method_assign_data_adyen_klarna">
+        <observer name="adyen_hyva_klarna_gateway_data_assign" instance="Adyen\Hyva\Observer\BrandCodeDataAssigner" />
+    </event>
+    <!-- End of brand code assigner -->
+
+    <!-- Hyva Checkout Related -->
+    <event name="checkout_submit_all_after">
+        <observer name="CheckoutReset_HyvaCheckoutCheckoutSubmitAllAfter" disabled="true" />
+        <observer name="Adyen_Hyva_CheckoutSubmitAllAfter" instance="Adyen\Hyva\Observer\HyvaCheckoutSessionReset"/>
+    </event>
+</config>

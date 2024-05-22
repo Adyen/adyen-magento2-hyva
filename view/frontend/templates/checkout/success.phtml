@@ -1,0 +1,89 @@
+<?php
+
+/** @var MagewireSuccess $magewire */
+/** @var Escaper $escaper */
+/** @var Success $block */
+
+use Adyen\Payment\Block\Checkout\Success;
+use \Adyen\Hyva\Magewire\Checkout\Success as MagewireSuccess;
+use Magento\Framework\Escaper;
+
+?>
+
+<div>
+    <?php if ($block->showAdyenGiving() || $magewire->getDonationStatus()): ?>
+        <div id="DonationActionContainer" wire:ignore></div>
+        <script>
+            (async function () {
+                function handleOnDonate(state, component) {
+                    let wire = Magewire.find('onepage.success.adyen_payment');
+
+                    if (state.isValid) {
+                        let payload = state.data;
+                        payload.returnUrl = window.location.href;
+
+                        if ('<?= (bool) $magewire->userIsGuest() ?>') {
+                            const maskedQuoteId = "<?= $escaper->escapeJs($block->getMaskedQuoteId()) ?>";
+                            wire.donateGuest(maskedQuoteId, payload)
+                                .then(() => {
+                                    handleSuccess(wire,component);
+                                }).catch(() => {
+                                    component.setStatus('error');
+                                });
+                        } else {
+                            const orderId = <?= $escaper->escapeJs($block->getOrder()->getId()) ?>;
+                            wire.donate(orderId, payload)
+                                .then(() => {
+                                    handleSuccess(wire,component);
+                                }).catch(() => {
+                                    component.setStatus('error');
+                                });
+                        }
+                    } else {
+                        component.setStatus('ready');
+                    }
+                }
+
+                function handleSuccess(wire, component)
+                {
+                    let donationStatus = JSON.parse(wire.get('donationStatus'));
+                    if (donationStatus) {
+                        component.setStatus("success");
+                    } else  {
+                        component.setStatus('error');
+                    }
+                }
+
+                function handleOnCancel(state, component) {
+                    let continueActionUrl = document.querySelector('div.checkout-success a.btn-primary').href;
+                    window.location = continueActionUrl;
+                }
+
+                const donationConfig = {
+                    amounts: {
+                        currency: "<?= $escaper->escapeJs($block->getOrder()->getOrderCurrencyCode())?>",
+                        values: [<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['donationAmounts']);?>]
+                    },
+                    backgroundUrl: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['backgroundUrl']);?>",
+                    description: "<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['description']);?>",
+                    logoUrl: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['logoUrl']);?>",
+                    name: "<?= $escaper->escapeJs($block->getDonationComponentConfiguration()['name']);?>",
+                    url: "<?= $escaper->escapeUrl($block->getDonationComponentConfiguration()['website']);?>",
+                    showCancelButton: true,
+                    onDonate: handleOnDonate,
+                    onCancel: handleOnCancel
+                };
+                let checkoutComponent = await AdyenCheckout({
+                    locale: '<?= $escaper->escapeJs($block->getLocale()); ?>',
+                    environment: '<?= $escaper->escapeJs($block->getEnvironment()); ?>',
+                    clientKey: '<?= $escaper->escapeJs($block->getClientKey()); ?>'
+                });
+                try {
+                    const donation = checkoutComponent.create('donation', donationConfig).mount('#DonationActionContainer');
+                } catch (err) {
+                    console.log(err);
+                }
+            })();
+        </script>
+    <?php endif; ?>
+</div>

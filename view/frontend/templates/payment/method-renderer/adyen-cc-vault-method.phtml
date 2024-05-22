@@ -1,0 +1,91 @@
+<?php
+/** @var StoredCards $magewire */
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
+use Adyen\Hyva\Api\ProcessingMetadataInterface;
+use Adyen\Hyva\Magewire\Payment\Method\StoredCards;
+use Magewirephp\Magewire\Component;
+
+/** @var Component $magewire */
+$magewire = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_MAGEWIRE);
+/** @var StoredCreditCardInterface $storedCard */
+$storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_CARD);
+?>
+
+<div>
+    <?php if ($storedCard):?>
+        <div id="<?= $escaper->escapeHtmlAttr($storedCard->getLayoutId()) ?>_ActionContainer" wire:ignore></div>
+
+        <script>
+            window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+                unmountAdyenComponent();
+                await init(event.detail.method);
+            });
+
+            window.addEventListener('checkout:payment:method-activate', async (event) => {
+                await init(event.detail.method);
+            });
+
+            async function init(cardLayoutId) {
+                try {
+                    let wire = Magewire.find(cardLayoutId);
+                    wire.refreshProperties()
+                        .then(() => {
+                            let magewireMethodCode = '<?= $escaper->escapeJs($magewire->getMethodCode()) ?>';
+
+                            let creditCardHandler = new componentHandler(
+                                magewireMethodCode,
+                                wire,
+                                cardLayoutId + '_ActionContainer'
+                            );
+
+                            window.AdyenPaymentHandler = creditCardHandler;
+
+                            if (magewireMethodCode !== 'adyen_cc') {
+                                creditCardHandler.renderMethodUnavailableMessage();
+                                return;
+                            }
+
+                            if (wire.get('requiresShipping')) {
+                                creditCardHandler.renderMessage('Please select shipping method.');
+                            } else {
+                                let rawResponse = wire.get('paymentResponse');
+                                let paymentMethods = JSON.parse(rawResponse);
+                                creditCardHandler.setPublicHash('<?= $escaper->escapeJs($storedCard->getPublicHash()) ?>');
+
+                                let creditCardConfiguration = {
+                                    type: "card",
+                                    hideCVC: <?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyenCc/requireCvc')) ? 'false' : 'true' ?>,
+                                    brand: '<?= $escaper->escapeJs($storedCard->getType()) ?>',
+                                    storedPaymentMethodId: '<?= $escaper->escapeJs($storedCard->getGatewayToken()) ?>',
+                                    expiryMonth: '<?= $escaper->escapeJs($storedCard->getExpiryMonth()) ?>',
+                                    expiryYear: '<?= $escaper->escapeJs($storedCard->getExpiryYear()) ?>',
+                                    onChange: function (state, component) {
+                                        if (!state.isValid) {
+                                            hyvaCheckout.navigation.disableButtonPlaceOrder();
+                                        } else {
+                                            creditCardHandler.clearMessage();
+                                            hyvaCheckout.navigation.enableButtonPlaceOrder();
+                                        }
+                                    },
+                                    installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
+                                    showInstallmentAmounts: true,
+                                    onBrand: function (state) {
+                                        creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode('<?= $escaper->escapeJs($storedCard->getType()) ?>'));
+                                    }
+                                }
+
+                                creditCardHandler.activateVaultMethod(cardLayoutId, creditCardConfiguration, paymentMethods);
+                                showPrimaryButton();
+                            }
+                        }).catch(() => {
+                        console.log('Error occurred during vault component load')
+                    });
+                } catch (e) {
+                }
+            }
+        </script>
+    <?php endif; ?>
+</div>

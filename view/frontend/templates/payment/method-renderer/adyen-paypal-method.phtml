@@ -1,0 +1,69 @@
+<?php
+
+/** @var Paypal $magewire */
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Adyen\Hyva\Magewire\Payment\Method\Paypal;
+
+?>
+
+<div>
+    <div id="PaypalActionContainer" wire:ignore></div>
+
+    <script>
+        class paypalComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                paypalConfiguration.showPayButton = true;
+
+                return paypalConfiguration
+            }
+        }
+
+        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+            unmountAdyenComponent();
+            await init(event.detail.method);
+        });
+
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
+            await init(event.detail.method);
+        });
+
+        async function init(methodCode) {
+            try {
+                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                wire.refreshProperties()
+                    .then(() => {
+                        let paypalHandler = new paypalComponentHandler(
+                            methodCode,
+                            wire,
+                            'PaypalActionContainer'
+                        );
+
+                        window.AdyenPaymentHandler = paypalHandler;
+
+                        if (methodCode !== 'adyen_paypal') {
+                            paypalHandler.renderMethodUnavailableMessage();
+                            return;
+                        }
+
+                        if (wire.get('requiresShipping')) {
+                            paypalHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            let rawResponse = wire.get('paymentResponse');
+                            let paymentMethods = JSON.parse(rawResponse);
+                            paypalHandler.activatePaymentMethod(methodCode, paymentMethods);
+                            hidePrimaryButton();
+                        }
+                }).catch(() => {
+                    console.log('Error occurred during Paypal component load')
+                });
+            } catch (e) {
+            }
+        }
+    </script>
+</div>

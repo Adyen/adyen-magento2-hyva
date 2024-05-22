@@ -1,0 +1,33 @@
+<?php
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+?>
+
+<script>
+    (function (window) {
+        window.AdyenCheckoutLibrary = function () {
+            let loaded = window.hasOwnProperty('AdyenCheckout');
+
+            return new Promise(function (resolve) {
+                if (loaded) return resolve(window.AdyenCheckout);
+
+                const script = document.createElement('script');
+                script.src = '<?= $escaper->escapeJs($block->getViewFileUrl('Adyen_Payment::js/adyen.js')) ?>';
+                script.type = 'text/javascript';
+                script.onload = function () {
+                    loaded = true;
+                    resolve(window.AdyenCheckout);
+                };
+
+                document.head.appendChild(script);
+            });
+        };
+    })(window);
+</script>
+
+<?php echo $block->getChildHtml('checkout.payment.method.model.common'); ?>

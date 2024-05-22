@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="checkout"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/adyen.css" />
+    </head>
+    <body>
+        <block name="block-loader" template="Hyva_Theme::ui/loading-block.phtml"/>
+
+        <referenceContainer name="head.additional">
+            <block name="adyen.hyva.payment.initialize" template="Adyen_Hyva::payment/init/init.phtml" after="-">
+                <block class="Adyen\Hyva\Block\PaymentMethod"
+                       name="checkout.payment.method.model.common"
+                       as="checkout.payment.method.model.common"
+                       template="Adyen_Hyva::payment/model/adyen-payment-method.phtml">
+                </block>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

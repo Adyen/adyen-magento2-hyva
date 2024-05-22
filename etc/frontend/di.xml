@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="adyen.hyva.init.methods" type="Adyen\Hyva\Plugin\InitMethods" />
+    </type>
+
+    <type name="Hyva\Checkout\Model\Magewire\Component\Resolver\Checkout">
+        <plugin name="adyen.hyva.resolver.checkout" type="Adyen\Hyva\Plugin\HyvaCheckout\Model\Magewire\Component\Resolver\Checkout" />
+    </type>
+</config>
