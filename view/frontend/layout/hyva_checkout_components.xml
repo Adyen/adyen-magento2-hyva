@@ -3,7 +3,9 @@
     <body>
         <block name="block-loader" template="Hyva_Theme::ui/loading-block.phtml"/>
 
-        <referenceBlock name="checkout.payment.methods" template="Adyen_Hyva::checkout/payment/method-list.phtml">
+        <referenceBlock name="checkout.payment.methods"
+                        class="Adyen\Hyva\Block\Template"
+                        template="Adyen_Hyva::checkout/payment/method-list.phtml">
             <arguments>
                 <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\MethodList</argument>
             </arguments>
@@ -19,38 +21,6 @@
                    template="Adyen_Hyva::payment/method-renderer/adyen-cc-method.phtml">
                 <arguments>
                     <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\CreditCard</argument>
-                </arguments>
-            </block>
-
-            <block name="checkout.payment.method.adyen_googlepay"
-                   as="adyen_googlepay"
-                   template="Adyen_Hyva::payment/method-renderer/adyen-googlepay-method.phtml">
-                <arguments>
-                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\GooglePay</argument>
-                </arguments>
-            </block>
-
-            <block name="checkout.payment.method.adyen_applepay"
-                   as="adyen_applepay"
-                   template="Adyen_Hyva::payment/method-renderer/adyen-applepay-method.phtml">
-                <arguments>
-                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\ApplePay</argument>
-                </arguments>
-            </block>
-
-            <block name="checkout.payment.method.adyen_paypal"
-                   as="adyen_paypal"
-                   template="Adyen_Hyva::payment/method-renderer/adyen-paypal-method.phtml">
-                <arguments>
-                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Paypal</argument>
-                </arguments>
-            </block>
-
-            <block name="checkout.payment.method.adyen_klarna"
-                   as="adyen_klarna"
-                   template="Adyen_Hyva::payment/method-renderer/adyen-klarna-method.phtml">
-                <arguments>
-                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\Klarna</argument>
                 </arguments>
             </block>
         </referenceBlock>
