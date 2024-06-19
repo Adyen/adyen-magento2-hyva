@@ -4,11 +4,22 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Model;
 
+use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
+
 class MethodList
 {
+    /**
+     * @var AdyenHyvaConfigProvider
+     */
+    private AdyenHyvaConfigProvider $adyenHyvaConfigProvider;
+
+    /**
+     * @param AdyenHyvaConfigProvider $adyenHyvaConfigProvider
+     */
     public function __construct(
-        private $availableMethods = []
+        AdyenHyvaConfigProvider $adyenHyvaConfigProvider
     ) {
+        $this->adyenHyvaConfigProvider = $adyenHyvaConfigProvider;
     }
 
     /**
@@ -16,6 +27,6 @@ class MethodList
      */
     public function collectAvailableMethods(): array
     {
-        return $this->availableMethods;
+        return array_keys($this->adyenHyvaConfigProvider->getPaymentMethodTxVariants());
     }
 }

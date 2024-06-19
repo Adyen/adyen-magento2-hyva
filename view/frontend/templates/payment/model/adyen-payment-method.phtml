@@ -198,8 +198,8 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
             let paymentMethodConfiguration = self.collectPaymentMethodConfiguration(
                 paymentMethods,
-                methodCode.split("_").pop()
-            );
+                methodCode.replace('adyen_', '')
+            )
 
             if (paymentMethodConfiguration !== null) {
                 let configuration = self.buildConfiguration(
@@ -278,7 +278,11 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 data: {}
             };
 
-            return configuration
+            if (!!paymentMethodsExtraInfo[paymentMethod.type].configuration) {
+                return Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration)
+            } else {
+                return configuration;
+            }
         }
 
         async buildComponent(

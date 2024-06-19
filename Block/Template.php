@@ -4,37 +4,57 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Block;
 
-use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
-use Adyen\Hyva\Magewire\Payment\Method\GooglePay;
-use Adyen\Hyva\Magewire\Payment\Method\Klarna;
-use Adyen\Hyva\Magewire\Payment\Method\Paypal;
-use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;
+use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
+use Adyen\Hyva\Model\MethodList;
+use Adyen\Hyva\Model\PaymentMethodBlock;
+use Adyen\Hyva\Model\PaymentMethodBlockFactory;
+use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
 use Magento\Framework\View\Element\Template\Context;
+
+use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWireFactory;
 
 class Template extends \Magento\Framework\View\Element\Template
 {
     const PARENT_PAYMENT_METHODS_BLOCK = 'checkout.payment.methods';
+    const DEFAULT_ADYEN_PAYMENT_METHOD_TEMPLATE = 'adyen-default';
+    const TEMPLATE_NAME_SUFFIX = 'method.phtml';
+    const TEMPLATE_DIR = 'Adyen_Hyva::payment/method-renderer';
     const MAGEWIRE = 'magewire';
 
-    private GooglePay $googlepayWire;
-    private Klarna $klarnaWire;
-    private ApplePay $applePayWire;
-    private Paypal $paypalWire;
+    /**
+     * @var AdyenHyvaConfigProvider
+     */
+    private AdyenHyvaConfigProvider $adyenHyvaConfigProvider;
+
+    /**
+     * @var PaymentMethodBlockFactory
+     */
+    private PaymentMethodBlockFactory $paymentMethodBlockFactory;
+
+    /**
+     * @var AbstractPaymentMethodWireFactory
+     */
+    private AbstractPaymentMethodWireFactory $paymentMethodWireFactory;
+
+    /**
+     * @var MethodList
+     */
+    private MethodList $methodList;
 
     public function __construct(
-        GooglePay $googlepayWire,
-        Klarna $klarnaWire,
-        ApplePay $applePayWire,
-        Paypal $paypalWire,
+        AdyenHyvaConfigProvider $adyenHyvaConfigProvider,
+        PaymentMethodBlockFactory $paymentMethodBlockFactory,
+        AbstractPaymentMethodWireFactory $paymentMethodWireFactory,
         Context $context,
+        MethodList $methodList,
         array $data = []
     ) {
         parent::__construct($context, $data);
 
-        $this->googlepayWire = $googlepayWire;
-        $this->klarnaWire = $klarnaWire;
-        $this->applePayWire = $applePayWire;
-        $this->paypalWire = $paypalWire;
+        $this->adyenHyvaConfigProvider = $adyenHyvaConfigProvider;
+        $this->paymentMethodBlockFactory = $paymentMethodBlockFactory;
+        $this->paymentMethodWireFactory = $paymentMethodWireFactory;
+        $this->methodList = $methodList;
     }
 
     public function _prepareLayout()
@@ -46,63 +66,78 @@ class Template extends \Magento\Framework\View\Element\Template
 
     private function renderAdyenPaymentMethods(): void
     {
-        // TODO:: Remove this sample data and obtain payment methods from main module.
-        // TODO:: Create abstract class for payment method wires.
-        // TODO:: Create abstract payment method template
-        $samplePaymentMethods = [
-            [
-                'method' => 'adyen_googlepay',
-                'blockName' => 'checkout.payment.method.adyen_googlepay',
-                'template' => 'Adyen_Hyva::payment/method-renderer/adyen-googlepay-method.phtml',
-                'wire' => $this->googlepayWire
-            ],
-            [
-                'method' => 'adyen_klarna',
-                'blockName' => 'checkout.payment.method.adyen_klarna',
-                'template' => 'Adyen_Hyva::payment/method-renderer/adyen-klarna-method.phtml',
-                'wire' => $this->klarnaWire
-            ],
-            [
-                'method' => 'adyen_applepay',
-                'blockName' => 'checkout.payment.method.adyen_applepay',
-                'template' => 'Adyen_Hyva::payment/method-renderer/adyen-applepay-method.phtml',
-                'wire' => $this->applePayWire
-            ],
-            [
-                'method' => 'adyen_paypal',
-                'blockName' => 'checkout.payment.method.adyen_paypal',
-                'template' => 'Adyen_Hyva::payment/method-renderer/adyen-paypal-method.phtml',
-                'wire' => $this->paypalWire
-            ]
-        ];
+        $methods = $this->methodList->collectAvailableMethods();
+        /** @var PaymentMethodBlock[] $paymentMethodBlocks */
+        $paymentMethodBlocks = [];
 
-        foreach ($samplePaymentMethods as $samplePaymentMethod) {
-            $this->generatePaymentMethodBlock(
-                $samplePaymentMethod['method'],
-                $samplePaymentMethod['blockName'],
-                $samplePaymentMethod['wire'],
-                $samplePaymentMethod['template']
+        foreach ($methods as $method) {
+            /** @var PaymentMethodBlock $paymentMethodBlock */
+            $paymentMethodBlock = $this->paymentMethodBlockFactory->create();
+
+            /** @var AbstractPaymentMethodWire $paymentMethodWire */
+            $paymentMethodWire = $this->paymentMethodWireFactory->create();
+            $paymentMethodWire->setMethodCode($method);
+
+            $paymentMethodBlock->setMethodName($method);
+            $paymentMethodBlock->setBlockName(
+                $this->generateBlockNameFromPaymentMethodName($method)
+            );
+            $paymentMethodBlock->setTemplate(
+                $this->getPaymentMethodTemplate($method)
+            );
+            $paymentMethodBlock->setWire($paymentMethodWire);
+
+            $paymentMethodBlocks[] = $paymentMethodBlock;
+        }
+
+        foreach ($paymentMethodBlocks as $paymentMethodBlock) {
+            $this->createPaymentMethodBlock($paymentMethodBlock);
+        }
+    }
+
+    private function createPaymentMethodBlock(PaymentMethodBlock $paymentMethodBlock): void
+    {
+        $layout = $this->getLayout();
+
+        if (!array_key_exists($paymentMethodBlock->getBlockName(), $layout->getAllBlocks())) {
+            $block = $layout->createBlock(
+                \Magento\Framework\View\Element\Template::class,
+                $paymentMethodBlock->getBlockName()
+            );
+            $block->setTemplate($paymentMethodBlock->getTemplate());
+            $block->setData(self::MAGEWIRE, $paymentMethodBlock->getWire());
+
+            $layout->setChild(
+                self::PARENT_PAYMENT_METHODS_BLOCK,
+                $paymentMethodBlock->getBlockName(),
+                $paymentMethodBlock->getMethodName()
             );
         }
     }
 
-    private function generatePaymentMethodBlock(
-        string $methodCode,
-        string $blockName,
-        EvaluationInterface $paymentMethodWire,
-        string $template
-    ): void {
-        $layout = $this->getLayout();
+    /**
+     * @param string $paymentMethodName
+     * @return string
+     */
+    private function generateBlockNameFromPaymentMethodName(string $paymentMethodName): string
+    {
+        return sprintf('%s.%s', self::PARENT_PAYMENT_METHODS_BLOCK, $paymentMethodName);
+    }
 
-        if (!array_key_exists($blockName, $layout->getAllBlocks())) {
-            $block = $layout->createBlock(
-                \Magento\Framework\View\Element\Template::class,
-                $blockName
-            );
-            $block->setTemplate($template);
-            $block->setData(self::MAGEWIRE, $paymentMethodWire);
-
-            $layout->setChild(self::PARENT_PAYMENT_METHODS_BLOCK, $blockName, $methodCode);
+    /**
+     * Builds template file depending on the custom renderer requirement.
+     *
+     * @param string $paymentMethodName
+     * @return string
+     */
+    private function getPaymentMethodTemplate(string $paymentMethodName): string
+    {
+        if ($this->adyenHyvaConfigProvider->isCustomRendererRequired($paymentMethodName)) {
+            $template = str_replace('_', '-', $paymentMethodName);
+        } else {
+            $template = self::DEFAULT_ADYEN_PAYMENT_METHOD_TEMPLATE;
         }
+
+        return sprintf('%s/%s-%s', self::TEMPLATE_DIR, $template, self::TEMPLATE_NAME_SUFFIX);
     }
 }
