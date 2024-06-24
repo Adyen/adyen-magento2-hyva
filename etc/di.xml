@@ -14,6 +14,21 @@
         </arguments>
     </type>
 
+    <type name="Adyen\Hyva\Model\MethodList">
+        <arguments>
+            <argument name="customMethodRenderers" xsi:type="array">
+                <item name="adyen_applepay" xsi:type="string">adyen-applepay-method.phtml</item>
+                <item name="adyen_googlepay" xsi:type="string">adyen-googlepay-method.phtml</item>
+                <item name="adyen_paypal" xsi:type="string">adyen-paypal-method.phtml</item>
+            </argument>
+            <argument name="staticallyDefinedMethods" xsi:type="array">
+                <item name="adyen_cc" xsi:type="string">adyen_cc</item>
+                <item name="adyen_cc_vault" xsi:type="string">adyen_cc_vault</item>
+            </argument>
+        </arguments>
+    </type>
+
+
     <type name="Adyen\Hyva\Model\PaymentMethod\Filter\Composite">
         <arguments>
             <argument name="filters" xsi:type="array">

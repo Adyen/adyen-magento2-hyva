@@ -28,7 +28,7 @@ class AdyenHyvaConfigProvider extends AdyenGenericConfigProvider
     {
         $customMethodRenderers = $this->getCustomMethodRenderers();
 
-        return in_array($methodName, $customMethodRenderers);
+        return key_exists($methodName, $customMethodRenderers);
     }
 
     /**

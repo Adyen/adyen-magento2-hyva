@@ -9,15 +9,15 @@ use Adyen\Hyva\Model\MethodList;
 use Adyen\Hyva\Model\PaymentMethodBlock;
 use Adyen\Hyva\Model\PaymentMethodBlockFactory;
 use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\Template\Context;
-
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWireFactory;
+use Override;
 
 class Template extends \Magento\Framework\View\Element\Template
 {
     const PARENT_PAYMENT_METHODS_BLOCK = 'checkout.payment.methods';
-    const DEFAULT_ADYEN_PAYMENT_METHOD_TEMPLATE = 'adyen-default';
-    const TEMPLATE_NAME_SUFFIX = 'method.phtml';
+    const DEFAULT_ADYEN_PAYMENT_METHOD_TEMPLATE = 'adyen-default-method.phtml';
     const TEMPLATE_DIR = 'Adyen_Hyva::payment/method-renderer';
     const MAGEWIRE = 'magewire';
 
@@ -57,13 +57,25 @@ class Template extends \Magento\Framework\View\Element\Template
         $this->methodList = $methodList;
     }
 
-    public function _prepareLayout()
+    /**
+     * Overrides parent method to include Adyen payment methods
+     *
+     * @return Template
+     * @throws LocalizedException
+     */
+    #[Override] public function _prepareLayout()
     {
         $this->renderAdyenPaymentMethods();
 
         return parent::_prepareLayout();
     }
 
+    /**
+     * Render available payment methods
+     *
+     * @return void
+     * @throws LocalizedException
+     */
     private function renderAdyenPaymentMethods(): void
     {
         $methods = $this->methodList->collectAvailableMethods();
@@ -71,6 +83,11 @@ class Template extends \Magento\Framework\View\Element\Template
         $paymentMethodBlocks = [];
 
         foreach ($methods as $method) {
+            // Skip statically rendered payment methods
+            if ($this->methodList->isStaticallyRenderedMethod($method)) {
+                continue;
+            }
+
             /** @var PaymentMethodBlock $paymentMethodBlock */
             $paymentMethodBlock = $this->paymentMethodBlockFactory->create();
 
@@ -95,6 +112,13 @@ class Template extends \Magento\Framework\View\Element\Template
         }
     }
 
+    /**
+     * Creates the payment method block in the checkout layout
+     *
+     * @param PaymentMethodBlock $paymentMethodBlock
+     * @return void
+     * @throws LocalizedException
+     */
     private function createPaymentMethodBlock(PaymentMethodBlock $paymentMethodBlock): void
     {
         $layout = $this->getLayout();
@@ -116,6 +140,8 @@ class Template extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Generates the payment method block name from the given method name
+     *
      * @param string $paymentMethodName
      * @return string
      */
@@ -133,11 +159,11 @@ class Template extends \Magento\Framework\View\Element\Template
     private function getPaymentMethodTemplate(string $paymentMethodName): string
     {
         if ($this->adyenHyvaConfigProvider->isCustomRendererRequired($paymentMethodName)) {
-            $template = str_replace('_', '-', $paymentMethodName);
+            $template = $this->methodList->getCustomMethodRenderer($paymentMethodName);
         } else {
             $template = self::DEFAULT_ADYEN_PAYMENT_METHOD_TEMPLATE;
         }
 
-        return sprintf('%s/%s-%s', self::TEMPLATE_DIR, $template, self::TEMPLATE_NAME_SUFFIX);
+        return sprintf('%s/%s', self::TEMPLATE_DIR, $template);
     }
 }
