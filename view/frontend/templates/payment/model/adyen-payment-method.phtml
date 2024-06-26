@@ -198,8 +198,8 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
             let paymentMethodConfiguration = self.collectPaymentMethodConfiguration(
                 paymentMethods,
-                methodCode.split("_").pop()
-            );
+                methodCode.replace('adyen_', '')
+            )
 
             if (paymentMethodConfiguration !== null) {
                 let configuration = self.buildConfiguration(
@@ -275,10 +275,20 @@ $billingAddress  = $block->getQuoteBillingAddress();
                 ...paymentMethod,
                 showPayButton: showPayButton,
                 countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id,
-                data: {}
+                onChange: function(state, component) {
+                    if (!state.isValid) {
+                        hyvaCheckout.navigation.disableButtonPlaceOrder();
+                    } else {
+                        hyvaCheckout.navigation.enableButtonPlaceOrder();
+                    }
+                }
             };
 
-            return configuration
+            if (!!paymentMethodsExtraInfo[paymentMethod.type].configuration) {
+                return Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration)
+            } else {
+                return configuration;
+            }
         }
 
         async buildComponent(
