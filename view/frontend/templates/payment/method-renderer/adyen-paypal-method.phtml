@@ -17,10 +17,9 @@ use Magento\Framework\View\Element\Template;
         class paypalComponentHandler extends componentHandler {
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
-                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                paypalConfiguration.showPayButton = true;
+                baseComponentConfiguration.showPayButton = true;
 
-                return paypalConfiguration
+                return baseComponentConfiguration;
             }
         }
 
@@ -35,7 +34,7 @@ use Magento\Framework\View\Element\Template;
 
         async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
                         let paypalHandler = new paypalComponentHandler(

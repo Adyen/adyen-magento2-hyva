@@ -17,11 +17,9 @@ use Magento\Framework\View\Element\Template;
         class googlePayComponentHandler extends componentHandler {
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+                baseComponentConfiguration.showPayButton = true;
 
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                googlePayConfiguration.showPayButton = true;
-
-                return googlePayConfiguration
+                return baseComponentConfiguration;
             }
         }
 
@@ -36,7 +34,7 @@ use Magento\Framework\View\Element\Template;
 
         async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
                         let googlePayHandler = new googlePayComponentHandler(

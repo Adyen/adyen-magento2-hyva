@@ -18,12 +18,11 @@ use Magento\Framework\View\Element\Template;
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
 
-                let applePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                applePayConfiguration.showPayButton = true;
-                applePayConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
-                applePayConfiguration.code = "adyen_applepay";
+                baseComponentConfiguration.showPayButton = true;
+                baseComponentConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
+                baseComponentConfiguration.code = "adyen_applepay";
 
-                return applePayConfiguration
+                return baseComponentConfiguration
             }
         }
 
@@ -38,7 +37,7 @@ use Magento\Framework\View\Element\Template;
 
         async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
                         let applePayHandler = new applePayComponentHandler(
