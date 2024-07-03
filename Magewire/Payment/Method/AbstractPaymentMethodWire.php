@@ -26,7 +26,7 @@ class AbstractPaymentMethodWire extends AdyenPaymentComponent implements Evaluat
     /**
      * @return string
      */
-    function getMethodCode(): string
+    public function getMethodCode(): string
     {
         return $this->methodCode;
     }
