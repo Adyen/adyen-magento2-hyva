@@ -225,7 +225,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         paymentMethods.paymentMethodsResponse
                     );
 
-                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
+                    await self.mountComponent(component, paymentMethodConfiguration.type, configuration);
 
                     hyvaCheckout.payment.activate(methodCode,
                         {
@@ -239,8 +239,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         },
                         document.getElementById(element)
                     );
-
-                    hyvaCheckout.navigation.enableButtonPlaceOrder();
                 }
             } else {
                 self.renderMethodUnavailableMessage();
@@ -274,14 +272,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let configuration = {
                 ...paymentMethod,
                 showPayButton: showPayButton,
-                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id,
-                onChange: function(state, component) {
-                    if (!state.isValid) {
-                        hyvaCheckout.navigation.disableButtonPlaceOrder();
-                    } else {
-                        hyvaCheckout.navigation.enableButtonPlaceOrder();
-                    }
-                }
+                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id
             };
 
             if (!!paymentMethodsExtraInfo[paymentMethod.type].configuration) {
@@ -371,7 +362,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
             if (responseJSON.isRefused) {
                 self.renderMessage("<?= __("The Payment is Refused") ?>");
-                hyvaCheckout.navigation.enableButtonPlaceOrder();
                 setTimeout(() => {
                     self.clearMessage();
                 }, 4000);
@@ -439,7 +429,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
         }
 
         renderMethodUnavailableMessage() {
-            self.renderMessage('We are sorry, this method is temporarily unavailable');
+            this.renderMessage('We are sorry, this method is temporarily unavailable');
         }
 
         renderMessage(message) {

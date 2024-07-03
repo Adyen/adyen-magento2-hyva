@@ -23,6 +23,21 @@ use Magento\Framework\View\Element\Template;
             await init(event.detail.method);
         });
 
+        window.addEventListener('checkout:init:evaluation', event => {
+            hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
+                let isValid;
+
+                if (!window.AdyenPaymentHandler.actionComponent.isValid) {
+                    window.AdyenPaymentHandler.actionComponent.showValidation();
+                    isValid = false;
+                } else {
+                    isValid = true;
+                }
+
+                return isValid;
+            })
+        })
+
         async function init(methodCode) {
             try {
                 let wire = Magewire.find('checkout.payment.methods.' + methodCode);
