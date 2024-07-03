@@ -20,7 +20,7 @@ class AbstractPaymentMethodWire extends AdyenPaymentComponent implements Evaluat
      */
     public function evaluateCompletion(EvaluationResultFactory $resultFactory): EvaluationResult
     {
-        return $resultFactory->createBlocking();
+        return $resultFactory->createSuccess();
     }
 
     /**
