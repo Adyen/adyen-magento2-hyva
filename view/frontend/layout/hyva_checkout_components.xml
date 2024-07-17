@@ -15,14 +15,6 @@
                    class="Adyen\Hyva\Block\StoredCards"
                    template="Adyen_Hyva::checkout/payment/method-list/stored-cards.phtml">
             </block>
-
-            <block name="checkout.payment.method.adyen_cc"
-                   as="adyen_cc"
-                   template="Adyen_Hyva::payment/method-renderer/adyen-cc-method.phtml">
-                <arguments>
-                    <argument name="magewire" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\CreditCard</argument>
-                </arguments>
-            </block>
         </referenceBlock>
     </body>
 </page>

@@ -12,7 +12,6 @@ use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\Template\Context;
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWireFactory;
-use Override;
 
 class Template extends \Magento\Framework\View\Element\Template
 {
@@ -63,7 +62,7 @@ class Template extends \Magento\Framework\View\Element\Template
      * @return Template
      * @throws LocalizedException
      */
-    #[Override] public function _prepareLayout()
+    public function _prepareLayout()
     {
         $this->renderAdyenPaymentMethods();
 
@@ -83,17 +82,18 @@ class Template extends \Magento\Framework\View\Element\Template
         $paymentMethodBlocks = [];
 
         foreach ($methods as $method) {
-            // Skip statically rendered payment methods
-            if ($this->methodList->isStaticallyRenderedMethod($method)) {
-                continue;
-            }
-
             /** @var PaymentMethodBlock $paymentMethodBlock */
             $paymentMethodBlock = $this->paymentMethodBlockFactory->create();
 
-            /** @var AbstractPaymentMethodWire $paymentMethodWire */
-            $paymentMethodWire = $this->paymentMethodWireFactory->create();
-            $paymentMethodWire->setMethodCode($method);
+            if ($this->methodList->getCustomMagewireClass($method)) {
+                $paymentMethodBlock->setWire($this->methodList->getCustomMagewireClass($method));
+            } else {
+                /** @var AbstractPaymentMethodWire $paymentMethodWire */
+                $paymentMethodWire = $this->paymentMethodWireFactory->create();
+                $paymentMethodWire->setMethodCode($method);
+
+                $paymentMethodBlock->setWire($paymentMethodWire);
+            }
 
             $paymentMethodBlock->setMethodName($method);
             $paymentMethodBlock->setBlockName(
@@ -102,7 +102,6 @@ class Template extends \Magento\Framework\View\Element\Template
             $paymentMethodBlock->setTemplate(
                 $this->getPaymentMethodTemplate($method)
             );
-            $paymentMethodBlock->setWire($paymentMethodWire);
 
             $paymentMethodBlocks[] = $paymentMethodBlock;
         }

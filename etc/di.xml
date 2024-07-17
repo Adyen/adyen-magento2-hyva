@@ -17,15 +17,15 @@
     <type name="Adyen\Hyva\Model\MethodList">
         <arguments>
             <argument name="customMethodRenderers" xsi:type="array">
+                <item name="adyen_cc" xsi:type="string">adyen-cc-method.phtml</item>
                 <item name="adyen_applepay" xsi:type="string">adyen-applepay-method.phtml</item>
                 <item name="adyen_googlepay" xsi:type="string">adyen-googlepay-method.phtml</item>
                 <item name="adyen_paypal" xsi:type="string">adyen-paypal-method.phtml</item>
                 <item name="adyen_cashapp" xsi:type="string">adyen-cashapp-method.phtml</item>
                 <item name="adyen_affirm" xsi:type="string">adyen-affirm-method.phtml</item>
             </argument>
-            <argument name="staticallyDefinedMethods" xsi:type="array">
-                <item name="adyen_cc" xsi:type="string">adyen_cc</item>
-                <item name="adyen_cc_vault" xsi:type="string">adyen_cc_vault</item>
+            <argument name="customMagewireClasses" xsi:type="array">
+                <item name="adyen_cc" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\CreditCard</item>
             </argument>
         </arguments>
     </type>

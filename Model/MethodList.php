@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Adyen\Hyva\Model;
 
+use Adyen\Hyva\Magewire\Payment\Method\AdyenPaymentComponent;
 use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
 
 class MethodList
@@ -19,27 +20,23 @@ class MethodList
     public array $customMethodRenderers;
 
     /**
-     * Those payment method layouts are not generated dynamically.
-     * They are added from hyva_checkout_components.xml
-     * This override is required to include them in the available payment methods.
-     *
      * @var array
      */
-    public array $staticallyDefinedMethods;
+    public array $customMagewireClasses;
 
     /**
      * @param AdyenHyvaConfigProvider $adyenHyvaConfigProvider
      * @param array $customMethodRenderers
-     * @param array $staticallyDefinedMethods
+     * @param array $customMagewireClasses
      */
     public function __construct(
         AdyenHyvaConfigProvider $adyenHyvaConfigProvider,
         array $customMethodRenderers = [],
-        array $staticallyDefinedMethods = []
+        array $customMagewireClasses = []
     ) {
         $this->adyenHyvaConfigProvider = $adyenHyvaConfigProvider;
         $this->customMethodRenderers = $customMethodRenderers;
-        $this->staticallyDefinedMethods = $staticallyDefinedMethods;
+        $this->customMagewireClasses = $customMagewireClasses;
     }
 
     /**
@@ -63,7 +60,7 @@ class MethodList
             }
         }
 
-        return array_values(array_merge($availableMethods, $this->staticallyDefinedMethods));
+        return array_values(array_merge($availableMethods, array_keys($this->customMagewireClasses)));
     }
 
     /**
@@ -81,10 +78,10 @@ class MethodList
      * Checks if the payment method has a statically rendered layout block
      *
      * @param string $methodCode
-     * @return bool
+     * @return string|null
      */
-    public function isStaticallyRenderedMethod(string $methodCode): bool
+    public function getCustomMagewireClass(string $methodCode): ?AdyenPaymentComponent
     {
-        return array_key_exists($methodCode, $this->staticallyDefinedMethods);
+        return $this->customMagewireClasses[$methodCode] ?? null;
     }
 }
