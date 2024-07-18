@@ -25,7 +25,7 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 
         async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
                         let creditCardHandler = new componentHandler(

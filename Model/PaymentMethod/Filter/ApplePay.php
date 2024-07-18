@@ -2,7 +2,6 @@
 
 namespace Adyen\Hyva\Model\PaymentMethod\Filter;
 
-use Adyen\Hyva\Magewire\Payment\Method\ApplePay as ApplePayComponent;
 use Magento\Framework\App\Request\Http as HttpRequest;
 
 /**
@@ -10,6 +9,8 @@ use Magento\Framework\App\Request\Http as HttpRequest;
  */
 class ApplePay implements FilterInterface
 {
+    const METHOD_APPLE_PAY = 'adyen_applepay';
+
     public function __construct(
         private readonly HttpRequest $httpRequest
     ) {
@@ -27,7 +28,7 @@ class ApplePay implements FilterInterface
         }
 
         foreach ($list as $key => $method) {
-            if ($method->getCode() == ApplePayComponent::METHOD_APPLE_PAY) {
+            if ($method->getCode() == self::METHOD_APPLE_PAY) {
                 unset($list[$key]);
             }
         }

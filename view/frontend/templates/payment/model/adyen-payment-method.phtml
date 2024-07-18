@@ -198,8 +198,8 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
             let paymentMethodConfiguration = self.collectPaymentMethodConfiguration(
                 paymentMethods,
-                methodCode.split("_").pop()
-            );
+                methodCode.replace('adyen_', '')
+            )
 
             if (paymentMethodConfiguration !== null) {
                 let configuration = self.buildConfiguration(
@@ -225,7 +225,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         paymentMethods.paymentMethodsResponse
                     );
 
-                    self.mountComponent(component, paymentMethodConfiguration.type, configuration);
+                    await self.mountComponent(component, paymentMethodConfiguration.type, configuration);
 
                     hyvaCheckout.payment.activate(methodCode,
                         {
@@ -239,8 +239,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
                         },
                         document.getElementById(element)
                     );
-
-                    hyvaCheckout.navigation.enableButtonPlaceOrder();
                 }
             } else {
                 self.renderMethodUnavailableMessage();
@@ -274,11 +272,14 @@ $billingAddress  = $block->getQuoteBillingAddress();
             let configuration = {
                 ...paymentMethod,
                 showPayButton: showPayButton,
-                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id,
-                data: {}
+                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id
             };
 
-            return configuration
+            if (!!paymentMethodsExtraInfo[paymentMethod.type].configuration) {
+                return Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration)
+            } else {
+                return configuration;
+            }
         }
 
         async buildComponent(
@@ -361,7 +362,6 @@ $billingAddress  = $block->getQuoteBillingAddress();
 
             if (responseJSON.isRefused) {
                 self.renderMessage("<?= __("The Payment is Refused") ?>");
-                hyvaCheckout.navigation.enableButtonPlaceOrder();
                 setTimeout(() => {
                     self.clearMessage();
                 }, 4000);
@@ -429,7 +429,7 @@ $billingAddress  = $block->getQuoteBillingAddress();
         }
 
         renderMethodUnavailableMessage() {
-            self.renderMessage('We are sorry, this method is temporarily unavailable');
+            this.renderMessage('We are sorry, this method is temporarily unavailable');
         }
 
         renderMessage(message) {
