@@ -14,7 +14,7 @@ This module depends on:
 The dependencies may be obtained like for example
 
 ```
-    "adyen/module-payment": "9.2.0",
+    "adyen/module-payment": "^9.6.1",
     "hyva-themes/magento2-default-theme": "^1.3",
     "hyva-themes/magento2-hyva-checkout": "^1.1",
 ```
@@ -30,20 +30,4 @@ Then, the setup requires that for a given store, the Hyva theme and the Hyva che
  - Navigate to the Stores > Configuration > Hyva Themes > Checkout > General and activate `Hyva Default` (or `Hyva One page`) for a given store view
 ### Supported methods
 
-The following payment methods are supported:
-   
- - Credit card    
- - Stored (Tokenized) credit card    
- - Google pay
- - Apple Pay
- - Paypal
-    
-### Magewire usage
-
-Each payment method implementation depends on the work of a magewire component. (https://github.com/magewirephp/magewire) 
-
-Reference classes are located under the `Adyen\Hyva\Magewire\Payment\Method` namespace.
-
-### PSI compliance 
-When making an order, the state data is extracted from the request parameters, 
-and the state data is temporarily attached (but never persisted) to the Adyen's native State Data Object (`Adyen\Payment\Helper\StateData`).
+Please refer to [Adobe Commerce Supported Payment Methods](https://docs.adyen.com/plugins/adobe-commerce/supported-payment-methods/) documentation.

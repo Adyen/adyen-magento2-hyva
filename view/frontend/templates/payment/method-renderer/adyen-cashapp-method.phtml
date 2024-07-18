@@ -1,23 +1,24 @@
 <?php
 
-/** @var AbstractPaymentMethodWire $magewire */
-/** @var Template $block */
-/** @var Escaper $escaper */
-
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
+/** @var AbstractPaymentMethodWire $magewire  */
+/** @var Template $block */
+/** @var Escaper $escaper */
+
 ?>
 
 <div>
-    <div id="PaypalActionContainer" wire:ignore></div>
+    <div id="<?= $magewire->getContainerName() ?>ActionContainer" wire:ignore></div>
 
     <script>
-        class paypalComponentHandler extends componentHandler {
+        class cashappComponentHandler extends componentHandler {
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
                 baseComponentConfiguration.showPayButton = true;
+                baseComponentConfiguration.enableStoreDetails = true;
 
                 return baseComponentConfiguration;
             }
@@ -32,34 +33,50 @@ use Magento\Framework\View\Element\Template;
             await init(event.detail.method);
         });
 
+        window.addEventListener('checkout:init:evaluation', event => {
+            hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
+                let isValid;
+
+                if (!window.AdyenPaymentHandler.actionComponent.isValid) {
+                    window.AdyenPaymentHandler.actionComponent.showValidation();
+                    isValid = false;
+                } else {
+                    isValid = true;
+                }
+
+                return isValid;
+            })
+        })
+
         async function init(methodCode) {
             try {
                 let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+
                 wire.refreshProperties()
                     .then(() => {
-                        let paypalHandler = new paypalComponentHandler(
+                        let methodHandler = new cashappComponentHandler(
                             methodCode,
                             wire,
-                            'PaypalActionContainer'
+                            '<?= $magewire->getContainerName() ?>ActionContainer'
                         );
 
-                        window.AdyenPaymentHandler = paypalHandler;
+                        window.AdyenPaymentHandler = methodHandler;
 
-                        if (methodCode !== 'adyen_paypal') {
-                            paypalHandler.renderMethodUnavailableMessage();
+                        if (methodCode !== '<?= $magewire->getMethodCode() ?>') {
+                            methodHandler.renderMethodUnavailableMessage();
                             return;
                         }
 
                         if (wire.get('requiresShipping')) {
-                            paypalHandler.renderMessage('Please select shipping method.');
+                            methodHandler.renderMessage('Please select shipping method.');
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            paypalHandler.activatePaymentMethod(methodCode, paymentMethods);
+                            methodHandler.activatePaymentMethod(methodCode, paymentMethods, '<?= $magewire->getContainerName() ?>ActionContainer');
                             hidePrimaryButton();
                         }
                 }).catch(() => {
-                    console.log('Error occurred during Paypal component load')
+                    console.log(`Error occurred during ${methodCode} component load`)
                 });
             } catch (e) {
             }

@@ -1,12 +1,12 @@
 <?php
 
-/** @var ApplePay $magewire */
+/** @var AbstractPaymentMethodWire $magewire */
 /** @var Template $block */
 /** @var Escaper $escaper */
 
+use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
-use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
 
 ?>
 
@@ -18,12 +18,11 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
 
-                let applePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                applePayConfiguration.showPayButton = true;
-                applePayConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
-                applePayConfiguration.code = "adyen_applepay";
+                baseComponentConfiguration.showPayButton = true;
+                baseComponentConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
+                baseComponentConfiguration.code = "adyen_applepay";
 
-                return applePayConfiguration
+                return baseComponentConfiguration
             }
         }
 
@@ -38,7 +37,7 @@ use Adyen\Hyva\Magewire\Payment\Method\ApplePay;
 
         async function init(methodCode) {
             try {
-                let wire = Magewire.find('checkout.payment.method.' + methodCode);
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
                     .then(() => {
                         let applePayHandler = new applePayComponentHandler(
