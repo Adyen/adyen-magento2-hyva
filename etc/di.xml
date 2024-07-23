@@ -23,6 +23,7 @@
                 <item name="adyen_paypal" xsi:type="string">adyen-paypal-method.phtml</item>
                 <item name="adyen_cashapp" xsi:type="string">adyen-cashapp-method.phtml</item>
                 <item name="adyen_affirm" xsi:type="string">adyen-affirm-method.phtml</item>
+                <item name="adyen_amazonpay" xsi:type="string">adyen-amazonpay-method.phtml</item>
             </argument>
             <argument name="customMagewireClasses" xsi:type="array">
                 <item name="adyen_cc" xsi:type="object">Adyen\Hyva\Magewire\Payment\Method\CreditCard</item>

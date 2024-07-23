@@ -24,11 +24,22 @@ use Psr\Log\LoggerInterface;
 
 abstract class AdyenPaymentComponent extends Component implements EvaluationInterface
 {
+    const REQUIRED_ADDRESS_FIELDS = [
+        'city',
+        'country_id',
+        'postcode',
+        'street',
+        'firstname',
+        'lastname',
+        'telephone'
+    ];
+
     public bool $requiresShipping = true;
     public ?string $paymentResponse = null;
     public ?string $paymentStatus = null;
     public ?string $paymentDetails = null;
-
+    public ?string $billingAddress = null;
+    public ?string $shippingAddress = null;
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
     protected Configuration $configuration;
@@ -126,6 +137,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     {
         $this->processRequiresShipping();
         $this->processPaymentResponse();
+        $this->processQuoteAddresses();
     }
 
     /**
@@ -214,5 +226,29 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $this->paymentResponse = '{}';
             $this->logger->error('Could not collect Adyen payment methods response: ' . $e->getMessage());
         }
+    }
+
+    private function processQuoteAddresses(): void
+    {
+        $billingAddress = $this->session->getQuote()->getBillingAddress();
+        if (isset($billingAddress)) {
+            $this->billingAddress = json_encode($this->filterAddressFields($billingAddress->toArray()));
+        }
+
+        $shippingAddress = $this->session->getQuote()->getShippingAddress();
+        if (isset($shippingAddress)) {
+            $this->shippingAddress = json_encode($this->filterAddressFields($shippingAddress->toArray()));
+        }
+    }
+
+    private function filterAddressFields(array $address): array
+    {
+        foreach($address as $fieldName => $value) {
+            if (!in_array($fieldName, self::REQUIRED_ADDRESS_FIELDS)) {
+                unset($address[$fieldName]);
+            }
+        }
+
+        return $address;
     }
 }

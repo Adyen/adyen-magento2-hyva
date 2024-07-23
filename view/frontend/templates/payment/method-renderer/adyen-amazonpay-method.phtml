@@ -1,0 +1,169 @@
+<?php
+
+/** @var AbstractPaymentMethodWire $magewire */
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+?>
+
+<div>
+    <div id="<?= $magewire->getContainerName() ?>ActionContainer" wire:ignore></div>
+
+    <script>
+        class amazonPayComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+                let self = this;
+                let formattedShippingAddress = {};
+                let formattedBillingAddress = {};
+
+                let shippingAddress = this.wire.get('shippingAddress');
+                let billingAddress = this.wire.get('billingAddress');
+
+                formattedShippingAddress = this.getFormattedAddress(JSON.parse(shippingAddress));
+                formattedBillingAddress = this.getFormattedAddress(JSON.parse(billingAddress));
+
+                // if (!quote.isVirtual() && !!quote.shippingAddress()) {
+                //     formattedShippingAddress = this.getFormattedAddress(quote.shippingAddress());
+                // }
+
+                // if (!!quote.billingAddress()) {
+                //     formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
+                // }
+                baseComponentConfiguration.showPayButton = true;
+                baseComponentConfiguration.onClick = function(resolve,reject) {
+                    resolve();
+                }
+
+                baseComponentConfiguration.productType = 'PayAndShip';
+                baseComponentConfiguration.checkoutMode = 'ProcessOrder';
+                let url = new URL(location.href);
+                url.searchParams.delete('amazonCheckoutSessionId');
+                baseComponentConfiguration.returnUrl = url.href;
+                baseComponentConfiguration.onSubmit = async (state, amazonPayComponent) => {
+                    try {
+                        await self.handleOnSubmit(state.data, amazonPayComponent);
+                    } catch (error) {
+                        amazonPayComponent.handleDeclineFlow();
+                    }
+                };
+
+                if (formattedShippingAddress &&
+                    formattedShippingAddress.telephone) {
+                    baseComponentConfiguration.addressDetails = {
+                        name: formattedShippingAddress.firstName +
+                            ' ' +
+                            formattedShippingAddress.lastName,
+                        addressLine1: formattedShippingAddress.street,
+                        addressLine2: formattedShippingAddress.houseNumber,
+                        city: formattedShippingAddress.city,
+                        postalCode: formattedShippingAddress.postalCode,
+                        countryCode: formattedShippingAddress.country,
+                        phoneNumber: formattedShippingAddress.telephone
+                    };
+                    if (baseComponentConfiguration.addressDetails.countryCode === 'US') {
+                        baseComponentConfiguration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
+                    }
+                } else if (formattedBillingAddress &&
+                    formattedBillingAddress.telephone) {
+                    baseComponentConfiguration.addressDetails = {
+                        name: formattedBillingAddress.firstName +
+                            ' ' +
+                            formattedBillingAddress.lastName,
+                        addressLine1: formattedBillingAddress.street,
+                        addressLine2: formattedBillingAddress.houseNumber,
+
+                        city: formattedBillingAddress.city,
+                        postalCode: formattedBillingAddress.postalCode,
+                        countryCode: formattedBillingAddress.country,
+                        phoneNumber: formattedBillingAddress.telephone
+                    };
+                    if (baseComponentConfiguration.addressDetails.countryCode === 'US') {
+                        baseComponentConfiguration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
+                    }
+                }
+
+                return baseComponentConfiguration;
+            }
+
+            mountComponent(checkoutComponent, paymentMethodType, configuration, result = undefined) {
+                let self = this;
+                const containerId = "<?= $magewire->getContainerName() ?>ActionContainer";
+
+                let url = new URL(location.href);
+                //Handles the redirect back to checkout page with amazonSessionKey in url
+                if (url.searchParams.has('amazonCheckoutSessionId')) {
+                    let componentConfig = {
+                        amazonCheckoutSessionId: url.searchParams.get('amazonCheckoutSessionId'),
+                        showOrderButton: false,
+                        amount: {
+                            currency: configuration.amount.currency,
+                            value: configuration.amount.value
+                        },
+                        showChangePaymentDetailsButton: false
+                    }
+                    try {
+                        let amazonPayComponent = checkoutComponent.create(
+                            paymentMethodType,
+                            componentConfig
+                        );
+
+                        amazonPayComponent.mount('#' + containerId);
+                        amazonPayComponent.submit();
+                    } catch (err) {
+                        console.log(err);
+                    }
+                } else{
+                    this._super();
+                }
+            }
+        }
+
+        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+            unmountAdyenComponent();
+            await init(event.detail.method);
+        });
+
+        window.addEventListener('checkout:payment:method-activate', async (event) => {
+            await init(event.detail.method);
+        });
+
+        async function init(methodCode) {
+            try {
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+                wire.refreshProperties()
+                    .then(() => {
+                        let amazonPayHandler = new amazonPayComponentHandler(
+                            methodCode,
+                            wire,
+                            '<?= $magewire->getContainerName() ?>ActionContainer'
+                        );
+
+                        window.AdyenPaymentHandler = amazonPayHandler;
+
+                        if (methodCode !== 'adyen_amazonpay') {
+                            amazonPayHandler.renderMethodUnavailableMessage();
+                            return;
+                        }
+
+                        if (wire.get('requiresShipping')) {
+                            amazonPayHandler.renderMessage('Please select shipping method.');
+                        } else {
+                            let rawResponse = wire.get('paymentResponse');
+                            let paymentMethods = JSON.parse(rawResponse);
+                            amazonPayHandler.activatePaymentMethod(methodCode, paymentMethods);
+                            hidePrimaryButton();
+                        }
+                }).catch(() => {
+                    console.log('Error occurred during Amazon Pay component load')
+                });
+            } catch (e) {
+            }
+        }
+    </script>
+</div>
