@@ -119,7 +119,7 @@ use Magento\Framework\View\Element\Template;
                         console.log(err);
                     }
                 } else{
-                    this._super();
+                    super.mountComponent(checkoutComponent, paymentMethodType, configuration, result);
                 }
             }
         }
