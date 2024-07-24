@@ -25,16 +25,14 @@ use Magento\Framework\View\Element\Template;
                 let shippingAddress = this.wire.get('shippingAddress');
                 let billingAddress = this.wire.get('billingAddress');
 
-                formattedShippingAddress = this.getFormattedAddress(JSON.parse(shippingAddress));
-                formattedBillingAddress = this.getFormattedAddress(JSON.parse(billingAddress));
+                if (shippingAddress) {
+                    formattedShippingAddress = this.getFormattedAddress(JSON.parse(shippingAddress));
+                }
 
-                // if (!quote.isVirtual() && !!quote.shippingAddress()) {
-                //     formattedShippingAddress = this.getFormattedAddress(quote.shippingAddress());
-                // }
+                if (billingAddress) {
+                    formattedBillingAddress = this.getFormattedAddress(JSON.parse(billingAddress));
+                }
 
-                // if (!!quote.billingAddress()) {
-                //     formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
-                // }
                 baseComponentConfiguration.showPayButton = true;
                 baseComponentConfiguration.onClick = function(resolve,reject) {
                     resolve();
