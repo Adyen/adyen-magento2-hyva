@@ -15,6 +15,12 @@ use Magento\Framework\View\Element\Template;
 
     <script>
         class amazonPayComponentHandler extends componentHandler {
+            constructor(paymentMethodCode, wire, elementLabel) {
+                super(paymentMethodCode, wire, elementLabel);
+
+                this.amazonPayStatus = null;
+            }
+
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
 
@@ -43,13 +49,6 @@ use Magento\Framework\View\Element\Template;
                 let url = new URL(location.href);
                 url.searchParams.delete('amazonCheckoutSessionId');
                 baseComponentConfiguration.returnUrl = url.href;
-                baseComponentConfiguration.onSubmit = async (state, amazonPayComponent) => {
-                    try {
-                        await self.handleOnSubmit(state.data, amazonPayComponent);
-                    } catch (error) {
-                        amazonPayComponent.handleDeclineFlow();
-                    }
-                };
 
                 if (formattedShippingAddress &&
                     formattedShippingAddress.telephone) {
@@ -94,8 +93,9 @@ use Magento\Framework\View\Element\Template;
                 const containerId = "<?= $magewire->getContainerName() ?>ActionContainer";
 
                 let url = new URL(location.href);
-                //Handles the redirect back to checkout page with amazonSessionKey in url
-                if (url.searchParams.has('amazonCheckoutSessionId')) {
+                // Handles the redirect back to checkout page with amazonSessionKey in url
+                // If previous attempt has failed, component is mounted again and session ID is ignored.
+                if (this.amazonPayStatus !== false && url.searchParams.has('amazonCheckoutSessionId')) {
                     let componentConfig = {
                         amazonCheckoutSessionId: url.searchParams.get('amazonCheckoutSessionId'),
                         showOrderButton: false,
@@ -103,7 +103,14 @@ use Magento\Framework\View\Element\Template;
                             currency: configuration.amount.currency,
                             value: configuration.amount.value
                         },
-                        showChangePaymentDetailsButton: false
+                        showChangePaymentDetailsButton: false,
+                        onSubmit: async (state, amazonPayComponent) => {
+                            self.placeOrder(state.data, null, amazonPayComponent);
+                        },
+                        onError: (error) => {
+                            unmountAdyenComponent();
+                            super.mountComponent(checkoutComponent, paymentMethodType, configuration, result);
+                        }
                     }
                     try {
                         let amazonPayComponent = checkoutComponent.create(
@@ -116,8 +123,44 @@ use Magento\Framework\View\Element\Template;
                     } catch (err) {
                         console.log(err);
                     }
-                } else{
+                } else {
                     super.mountComponent(checkoutComponent, paymentMethodType, configuration, result);
+                }
+            }
+
+            placeOrder(data, publicHash = null, amazonPayComponent) {
+                let self = this;
+                let wire = self.wire;
+
+                wire.placeOrder({
+                    stateData: data,
+                    ccType: this.getCreditCardType(),
+                    publicHash: publicHash
+                })
+                    .then(() => {
+                        let paymentStatus = JSON.parse(wire.get('paymentStatus'));
+                        self.handleAdyenResult(paymentStatus, amazonPayComponent);
+                    }).catch(() => {
+                    console.log('Error occurred during order placement')
+                });
+            }
+
+            handleAdyenResult(responseJSON, amazonPayComponent) {
+                let self = this;
+
+                if (responseJSON.isRefused) {
+                    let message = "<?= __("The Payment is Refused") ?>";
+
+                    this.amazonPayStatus = false;
+
+                    self.renderMessage(message);
+                    setTimeout(() => {
+                        self.clearMessage();
+                    }, 4000);
+
+                    amazonPayComponent.handleDeclineFlow();
+                } else {
+                    super.handleAdyenResult(responseJSON);
                 }
             }
         }
