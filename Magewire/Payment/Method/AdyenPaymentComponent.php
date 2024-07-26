@@ -243,12 +243,14 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
 
     private function filterAddressFields(array $address): array
     {
+        $filteredAddress = [];
+
         foreach($address as $fieldName => $value) {
-            if (!in_array($fieldName, self::REQUIRED_ADDRESS_FIELDS)) {
-                unset($address[$fieldName]);
+            if (in_array($fieldName, self::REQUIRED_ADDRESS_FIELDS)) {
+                $filteredAddress[$fieldName] = $value;
             }
         }
 
-        return $address;
+        return $filteredAddress;
     }
 }
