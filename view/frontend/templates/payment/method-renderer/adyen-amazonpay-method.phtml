@@ -24,12 +24,11 @@ use Magento\Framework\View\Element\Template;
             buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
 
-                let self = this;
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
 
-                let shippingAddress = this.wire.get('shippingAddress');
-                let billingAddress = this.wire.get('billingAddress');
+                const shippingAddress = this.wire.get('shippingAddress');
+                const billingAddress = this.wire.get('billingAddress');
 
                 if (shippingAddress) {
                     formattedShippingAddress = this.getFormattedAddress(JSON.parse(shippingAddress));
@@ -40,7 +39,7 @@ use Magento\Framework\View\Element\Template;
                 }
 
                 baseComponentConfiguration.showPayButton = true;
-                baseComponentConfiguration.onClick = function(resolve,reject) {
+                baseComponentConfiguration.onClick = function(resolve, reject) {
                     resolve();
                 }
 
