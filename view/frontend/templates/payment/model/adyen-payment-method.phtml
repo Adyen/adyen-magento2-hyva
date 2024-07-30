@@ -12,9 +12,10 @@ use Adyen\Hyva\Block\PaymentMethod;
 
 $modalViewModel = $viewModels->require(Modal::class);
 $availableMethods = json_encode(array_keys($block->getAvailableMethods()));
-$environment     = $block->getConfiguration()->getValue('adyen/checkoutEnvironment');
+$environment = $block->getConfiguration()->getValue('adyen/checkoutEnvironment');
+$houseNumberStreetLine = $block->getConfiguration()->getValue('adyen/houseNumberStreetLine');
 $shippingAddress = $block->getQuoteShippingAddress();
-$billingAddress  = $block->getQuoteBillingAddress();
+$billingAddress = $block->getQuoteBillingAddress();
 
 ?>
 <div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
@@ -447,6 +448,52 @@ $billingAddress  = $block->getQuoteBillingAddress();
             if (messageContainerElement) {
                 messageContainerElement.remove();
             }
+        }
+
+        getFormattedAddress(address) {
+            let city = '';
+            let country = '';
+            let postalCode = '';
+            let street = '';
+            let houseNumber = '';
+
+            let getHouseNumberStreetLineConfig = "<?= $houseNumberStreetLine ?>";
+
+            city = address.city;
+            country = address.country_id;
+            postalCode = address.postcode;
+
+            street = address.street.split("\n");
+
+            // address contains line items as an array, otherwise if string just pass along as is
+            if (Array.isArray(street)) {
+                // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
+                if (getHouseNumberStreetLineConfig > 0) {
+                    // removes the street line from array that is used to contain house number
+                    houseNumber = street.splice(getHouseNumberStreetLineConfig - 1, 1);
+                } else if (street.length > 1) { // getHouseNumberStreetLine = 0 uses the last street line as house number
+                    // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
+                    houseNumber = street.pop();
+                }
+
+                // Concat street lines except house number
+                street = street.join(' ');
+            }
+
+            let firstName = address.firstname;
+            let lastName = address.lastname;
+            let telephone = address.telephone;
+
+            return {
+                city: city,
+                country: country,
+                postalCode: postalCode,
+                street: street,
+                houseNumber: houseNumber,
+                firstName: firstName,
+                lastName: lastName,
+                telephone: telephone
+            };
         }
     }
 </script>
