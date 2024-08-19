@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.1"
+    image: ecommerce-plugins.local/magento2-hyva-dev:latest
+    container_name: magento2-hyva-container
+    networks:
+      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      MAGENTO_VERSION: "2.4.5"
+      USE_SSL: 1
+      MAGENTO_HOST: localhost:8443 #Use 8443 if SSL isrequired
+      VIRTUAL_HOST: localhost
+      DB_SERVER: magento2-hyva-mysql-container
+      DB_NAME: magento
+      DB_USER: magento
+      DB_PASSWORD: magento
+      ELASTICSEARCH_SERVER: magento2-hyva-elasticsearch
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "Adyen123@"
+      DEPLOY_SAMPLEDATA: 1
+    ports:
+      - 8080:8080
+      - 8443:8443
+    depends_on:
+      - db
+      - elastic
+    volumes:
+      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
+      - ./volumes/wwwdir:/var/www/html
+  db:
+    image: acr-ext.is.adyen.com/external/mysql:8.0.36
+    container_name: magento2-hyva-mysql-container
+    networks:
+      - backend
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: magento
+      MYSQL_USER: magento
+      MYSQL_PASSWORD: magento
+  elastic:
+    image: acr-ext.is.adyen.com/external/elasticsearch:7.16.2
+    container_name: magento2-hyva-elasticsearch
+    networks:
+      - backend
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+networks:
+  backend:
+volumes:
+  magento:
+  composer:
