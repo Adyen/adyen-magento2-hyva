@@ -28,6 +28,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+        #todo make ${HYVA_KEY_PATH} point to the ssh key from secrets
+#      - name: Set up SSH
+#        run: |
+#          mkdir -p ~/.ssh
+#          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/hyva_id_rsa
+#          chmod 600 ~/.ssh/hyva_id_rsa
+#          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+#          export HYVA_KEY_PATH="~/.ssh/hyva_id_rsa"
+
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
@@ -35,16 +44,19 @@ jobs:
         run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
-        run: docker exec magento2-container make fs
+        run: docker exec magento2-hyva-container make fs
 
       - name: Check install
-        run: docker exec magento2-container make sys-check
+        run: docker exec magento2-hyva-container make sys-check
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
+        run: docker exec -u www-data magento2-hyva-container make plugin
 
       - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
+        run: docker exec magento2-hyva-container /etc/init.d/cron stop
+
+      #todo Break here and check if everything was successful (verbose logging?)
+      #todo ?? Create zip of .vendor so it can be used in the local version?
 
       - name: Checkout developer module
         uses: actions/checkout@v3
@@ -55,26 +67,26 @@ jobs:
           path: Developer
 
       - name: Make the folder for dev module
-        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
+        run: docker exec -u www-data magento2-hyva-container mkdir -p /var/www/html/app/code/Adyen
 
       - name: Copy dev module into Docker container
-        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
+        run: docker cp ./Developer magento2-hyva-container:/var/www/html/app/code/Adyen
 
       - name: Change ownership of developer module folder
-        run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
+        run: docker exec magento2-hyva-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
 
       - name: Enable developer module
-        run: docker exec -u www-data magento2-container make dev-module
+        run: docker exec -u www-data magento2-hyva-container make dev-module
       - name: Switch to production mode
-        run: docker exec -u www-data magento2-container make production
+        run: docker exec -u www-data magento2-hyva-container make production
 
       - name: Setup permissions
-        run: docker exec magento2-container make fs
+        run: docker exec magento2-hyva-container make fs
 
       - name: Run E2E tests
         run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: hyva-develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
