@@ -1,4 +1,4 @@
-name: Magento 2 E2E Pipeline
+name: Magento-Hyva E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on:
