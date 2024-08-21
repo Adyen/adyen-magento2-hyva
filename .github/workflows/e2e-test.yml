@@ -37,7 +37,9 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/hyva_id_rsa
           chmod 600 ~/.ssh/hyva_id_rsa
           ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
-          export HYVA_KEY_PATH="~/.ssh/hyva_id_rsa"
+#          export HYVA_KEY_PATH="~/.ssh/hyva_id_rsa"
+          export HYVA_KEY_PATH="$HOME/.ssh/hyva_id_rsa"
+          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
           unset SSH_PRIVATE_KEY
 
       - name: Install Magento
