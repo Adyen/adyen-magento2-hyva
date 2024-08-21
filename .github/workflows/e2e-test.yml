@@ -29,13 +29,16 @@ jobs:
       - uses: actions/checkout@v3
 
         #todo make ${HYVA_KEY_PATH} point to the ssh key from secrets
-#      - name: Set up SSH
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/hyva_id_rsa
-#          chmod 600 ~/.ssh/hyva_id_rsa
-#          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
-#          export HYVA_KEY_PATH="~/.ssh/hyva_id_rsa"
+      - name: Set up SSH
+        env:
+         SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/hyva_id_rsa
+          chmod 600 ~/.ssh/hyva_id_rsa
+          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+          export HYVA_KEY_PATH="~/.ssh/hyva_id_rsa"
+          unset SSH_PRIVATE_KEY
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
