@@ -24,7 +24,7 @@ services:
       - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
   web:
     build:
-      context: .
+      context: workflows
       args:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
