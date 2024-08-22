@@ -45,7 +45,7 @@ jobs:
 #          unset SSH_PRIVATE_KEY
 
       - name: Build the container and install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_magento.sh
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Check .ssh folder contents
         run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
