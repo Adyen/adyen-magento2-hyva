@@ -112,6 +112,14 @@ else
 
 	echo "Installation completed"
 
+  # Install sample data
+  echo "Installing sample data"
+  mkdir ../sample-data
+  tar -xf ../sample-data.tar.gz --strip-components 1 -C ../sample-data
+  rm ../sample-data.tar.gz
+  php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
+  bin/magento setup:upgrade
+
 	# Set up SSH config for gitlab.hyva.io
   echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
   echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
@@ -134,19 +142,6 @@ else
   bin/magento setup:di:compile
   bin/magento setup:static-content:deploy -f
   bin/magento cache:clean
-fi
-
-if [ "$DEPLOY_SAMPLEDATA" -eq 1 ]; then
-	if [[ -e ../sample-data.tar.gz ]]; then
-		echo "Installing sample data"
-		mkdir ../sample-data
-		tar -xf ../sample-data.tar.gz --strip-components 1 -C ../sample-data
-		rm ../sample-data.tar.gz
-		php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
-		bin/magento setup:upgrade
-	else
-		echo "Sample data is already installed"
-	fi
 fi
 
 ISSET_USE_SSL=$(bin/magento config:show web/secure/use_in_frontend)
