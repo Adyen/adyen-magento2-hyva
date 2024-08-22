@@ -1,3 +1,10 @@
+  php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+  php composer-setup.php --quiet
+  rm composer-setup.php
+  mv composer.phar /usr/local/bin/composer
+
+  composer install
+
 	# Set up SSH config for gitlab.hyva.io
   echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
   echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
