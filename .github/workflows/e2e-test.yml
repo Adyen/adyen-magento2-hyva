@@ -43,21 +43,21 @@ jobs:
 #          export HYVA_KEY_PATH="/root/.ssh/hyva_id_rsa"
 #          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
 #          unset SSH_PRIVATE_KEY
-
-      - name: Build the container and install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
-
-      - name: Check .ssh folder contents
-        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
-
-      - name: Check .ssh/config
-        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/config
-
-      - name: Validate the SSH key
-        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
-
-      - name: Check Key file
-        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
+#
+#      - name: Build the container and install Magento
+#        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+#
+#      - name: Check .ssh folder contents
+#        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
+#
+#      - name: Check .ssh/config
+#        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/config
+#
+#      - name: Validate the SSH key
+#        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
+#
+#      - name: Check Key file
+#        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento

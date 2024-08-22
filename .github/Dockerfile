@@ -48,7 +48,6 @@ RUN a2ensite default-ssl.conf #can be removed if not needed
 WORKDIR /var/www/html
 COPY config/php.ini /usr/local/etc/php/
 COPY scripts/install_magento.sh /tmp/install_magento.sh
-COPY scripts/install_hyva.sh /tmp/install_hyva.sh
 
 RUN if [ -x "$(command -v apache2-foreground)" ]; then a2enmod rewrite; fi
 
@@ -68,6 +67,5 @@ RUN echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config
 RUN chmod 600 /root/.ssh/config
 
 RUN chmod +x /tmp/install_magento.sh
-RUN chmod +x /tmp/install_hyva.sh
 
 CMD ["bash", "/tmp/install_magento.sh"]
