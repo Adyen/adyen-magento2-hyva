@@ -82,25 +82,25 @@ else
 	chown -R www-data:www-data .
 	chmod u+x bin/magento
 
-	bin/magento setup:install \
-		--base-url="http://$MAGENTO_HOST" \
-		--db-host="$DB_SERVER:$DB_PORT" \
-		--db-name="$DB_NAME" \
-		--db-user="$DB_USER" \
-		--db-password="$DB_PASSWORD" \
-		--db-prefix="$DB_PREFIX" \
-		--admin-firstname="$ADMIN_NAME" \
-		--admin-lastname="$ADMIN_LASTNAME" \
-		--admin-email="$ADMIN_EMAIL" \
-		--admin-user="$ADMIN_USERNAME" \
-		--admin-password="$ADMIN_PASSWORD" \
-		--backend-frontname="$ADMIN_URLEXT" \
-		--language=en_US \
-		--currency=EUR \
-		--timezone=Europe/Amsterdam \
-		--use-rewrites=1 \
-		--cleanup-database \
-		$MAGENTO_INSTALL_ARGS;
+#	bin/magento setup:install \
+#		--base-url="http://$MAGENTO_HOST" \
+#		--db-host="$DB_SERVER:$DB_PORT" \
+#		--db-name="$DB_NAME" \
+#		--db-user="$DB_USER" \
+#		--db-password="$DB_PASSWORD" \
+#		--db-prefix="$DB_PREFIX" \
+#		--admin-firstname="$ADMIN_NAME" \
+#		--admin-lastname="$ADMIN_LASTNAME" \
+#		--admin-email="$ADMIN_EMAIL" \
+#		--admin-user="$ADMIN_USERNAME" \
+#		--admin-password="$ADMIN_PASSWORD" \
+#		--backend-frontname="$ADMIN_URLEXT" \
+#		--language=en_US \
+#		--currency=EUR \
+#		--timezone=Europe/Amsterdam \
+#		--use-rewrites=1 \
+#		--cleanup-database \
+#		$MAGENTO_INSTALL_ARGS;
 
 #	bin/magento setup:di:compile
 #	bin/magento setup:static-content:deploy -f

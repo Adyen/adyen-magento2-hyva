@@ -26,21 +26,33 @@ DEPLOY_SAMPLEDATA=0 \
 USE_SSL=1
 
 RUN apt-get update \
-    && apt-get install -y ssh
+    && apt-get install -y libjpeg62-turbo-dev \
+        libpng-dev \
+        libfreetype6-dev \
+        libxml2-dev \
+        libzip-dev \
+        libssl-dev \
+        libxslt-dev \
+        default-mysql-client \
+        ssl-cert \
+        wget \
+        cron \
+        unzip \
+        ssh
 
-#RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-#RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
-#RUN a2enmod ssl
-#RUN a2ensite default-ssl.conf #can be removed if not needed
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
+RUN a2enmod ssl
+RUN a2ensite default-ssl.conf #can be removed if not needed
 WORKDIR /var/www/html
 COPY config/php.ini /usr/local/etc/php/
-COPY scripts/install_hyva.sh /tmp/install_hyva.sh
+COPY scripts/install_magento.sh /tmp/install_hyva.sh
 
-#RUN if [ -x "$(command -v apache2-foreground)" ]; then a2enmod rewrite; fi
+RUN if [ -x "$(command -v apache2-foreground)" ]; then a2enmod rewrite; fi
 
-#ARG MAGENTO_VERSION
-#ADD "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/magento.tar.gz
-#ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/sample-data.tar.gz
+ARG MAGENTO_VERSION
+ADD "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/magento.tar.gz
+ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/sample-data.tar.gz
 
 ARG SSH_PRIVATE_KEY
 RUN mkdir -p /root/.ssh
@@ -50,4 +62,4 @@ RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
 
 RUN chmod +x /tmp/install_hyva.sh
 
-CMD ["bash"]
+CMD ["bash", "/tmp/install_hyva.sh"]
