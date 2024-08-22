@@ -61,6 +61,11 @@ RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
 RUN chmod 600 ~/.ssh/hyva_id_rsa
 RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
 
+RUN echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
+RUN echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
+RUN echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
+RUN chmod 600 /root/.ssh/config
+
 RUN chmod +x /tmp/install_magento.sh
 RUN chmod +x /tmp/install_hyva.sh
 
