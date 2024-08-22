@@ -25,10 +25,11 @@ services:
   web:
     build:
       context: .
+      dockerfile: Dockerfile_hyva
       args:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
-#        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
+        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
 #    image: ecommerce-plugins.local/magento2-hyva-dev:latest
     container_name: magento2-hyva-container
     networks:
@@ -56,7 +57,7 @@ services:
       - db
       - elastic
     volumes:
-      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
+#      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
