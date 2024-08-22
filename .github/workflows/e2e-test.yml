@@ -44,8 +44,8 @@ jobs:
           echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
           unset SSH_PRIVATE_KEY
 
-      - name: Check Key file
-        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/hyva_id_rsa
+#      - name: Check Key file
+#        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/hyva_id_rsa
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
