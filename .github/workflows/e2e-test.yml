@@ -53,6 +53,9 @@ jobs:
       - name: Setup permissions
         run: docker exec magento2-hyva-container make fs
 
+      - name: Check Key file
+        run: cat ~/.ssh/hyva_id_rsa
+
       - name: Check install
         run: docker exec magento2-hyva-container make sys-check
 

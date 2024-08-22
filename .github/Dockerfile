@@ -38,7 +38,7 @@ RUN apt-get update \
         wget \
         cron \
         unzip \
-        openssh-client
+        ssh
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
