@@ -25,7 +25,6 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile_hyva
       args:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
