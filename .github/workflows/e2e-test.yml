@@ -44,6 +44,9 @@ jobs:
 #          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
 #          unset SSH_PRIVATE_KEY
 
+      - name: Build the container
+        run: docker compose -f .github/docker-compose.yml build web
+
       - name: Check Key file
         run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
