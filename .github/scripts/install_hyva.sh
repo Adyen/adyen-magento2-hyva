@@ -102,12 +102,12 @@ else
 		--cleanup-database \
 		$MAGENTO_INSTALL_ARGS;
 
-	bin/magento setup:di:compile
-	bin/magento setup:static-content:deploy -f
-	bin/magento indexer:reindex
-	bin/magento deploy:mode:set developer
-	bin/magento maintenance:disable
-	bin/magento cron:install
+#	bin/magento setup:di:compile
+#	bin/magento setup:static-content:deploy -f
+#	bin/magento indexer:reindex
+#	bin/magento deploy:mode:set developer
+#	bin/magento maintenance:disable
+#	bin/magento cron:install
 
 	echo "Installation completed"
 
@@ -129,8 +129,8 @@ else
   echo "Installing Hyva compatibility module"
   composer require adyen/module-hyva-checkout:dev-develop
 
-  bin/magento module:enable --all
-  bin/magento setup:di:compile
-  bin/magento setup:static-content:deploy -f
-  bin/magento cache:clean
+#  bin/magento module:enable --all
+#  bin/magento setup:di:compile
+#  bin/magento setup:static-content:deploy -f
+#  bin/magento cache:clean
 fi
