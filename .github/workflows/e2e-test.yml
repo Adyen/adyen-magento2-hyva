@@ -27,22 +27,22 @@ jobs:
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-      SSH_PRIVATE_KEY: ${{secrets.GITLAB_SSH_KEY}}
+#      SSH_PRIVATE_KEY: ${{secrets.GITLAB_SSH_KEY}}
       DEPLOY_SAMPLEDATA: 1
     steps:
       - uses: actions/checkout@v3
 
-#      - name: Set up SSH
-#        env:
-#         SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "$SSH_PRIVATE_KEY" > ~/.ssh/hyva_id_rsa
-#          chmod 600 ~/.ssh/hyva_id_rsa
-#          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
-#          export HYVA_KEY_PATH="$HOME/.ssh/hyva_id_rsa"
-#          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
-#          unset SSH_PRIVATE_KEY
+      - name: Set up SSH
+        env:
+         SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/hyva_id_rsa
+          chmod 600 ~/.ssh/hyva_id_rsa
+          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+          export HYVA_KEY_PATH="$HOME/.ssh/hyva_id_rsa"
+          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
+          unset SSH_PRIVATE_KEY
 
       - name: Check Key file
         run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/hyva_id_rsa
