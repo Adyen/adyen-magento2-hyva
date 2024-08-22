@@ -37,10 +37,10 @@ jobs:
          SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/hyva_id_rsa
+          echo "$SSH_PRIVATE_KEY" > /root/.ssh/hyva_id_rsa
           chmod 600 ~/.ssh/hyva_id_rsa
-          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
-          export HYVA_KEY_PATH="$HOME/.ssh/hyva_id_rsa"
+          ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
+          export HYVA_KEY_PATH="/root/.ssh/hyva_id_rsa"
           echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
           unset SSH_PRIVATE_KEY
 
