@@ -48,6 +48,9 @@ jobs:
         run: docker compose -f .github/docker-compose.yml build
 
       - name: Check Key file
+        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
+
+      - name: Check Key file
         run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
 
       - name: Check Key file
