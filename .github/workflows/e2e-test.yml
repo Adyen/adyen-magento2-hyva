@@ -36,7 +36,7 @@ jobs:
         env:
          SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh
+          mkdir -p /root/.ssh
           echo "$SSH_PRIVATE_KEY" > /root/.ssh/hyva_id_rsa
           chmod 600 ~/.ssh/hyva_id_rsa
           ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
