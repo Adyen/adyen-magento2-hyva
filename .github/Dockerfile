@@ -54,10 +54,11 @@ ARG MAGENTO_VERSION
 ADD "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/magento.tar.gz
 ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/sample-data.tar.gz
 
-RUN mkdir -p ~/.ssh
-RUN echo "${SSH_PRIVATE_KEY}" > ~/.ssh/hyva_id_rsa
+ARG SSH_PRIVATE_KEY
+RUN mkdir -p /root/.ssh
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
 RUN chmod 600 ~/.ssh/hyva_id_rsa
-RUN ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
 
 RUN chmod +x /tmp/install_magento.sh
 
