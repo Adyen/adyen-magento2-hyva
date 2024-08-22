@@ -37,7 +37,8 @@ RUN apt-get update \
         ssl-cert \
         wget \
         cron \
-        unzip
+        unzip \
+        openssh-client
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
