@@ -44,12 +44,10 @@ jobs:
 #          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
 #          unset SSH_PRIVATE_KEY
 
-      - name: Build the container
-        run: docker compose -f .github/docker-compose.yml build
+      - name: Build the container and install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_magento.sh
 
       - name: Check .ssh folder contents
-        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
-      - name: Check Key file
         run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
 
       - name: Check .ssh/config

@@ -64,4 +64,4 @@ RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
 RUN chmod +x /tmp/install_magento.sh
 RUN chmod +x /tmp/install_hyva.sh
 
-CMD ["bash", "/tmp/install_magento.sh"]
+CMD []
