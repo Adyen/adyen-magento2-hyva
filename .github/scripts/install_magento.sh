@@ -111,6 +111,14 @@ else
 	bin/magento cron:install
 
 	echo "Installation completed"
+
+  # Set up SSH config for gitlab.hyva.io
+  echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
+  echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
+  echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
+  chmod 600 /root/.ssh/config
+
+  echo "Hyva SSH config completed."
 #
 #	# Set up SSH config for gitlab.hyva.io
 #  echo "Host gitlab.hyva.io" >> /root/.ssh/config && \

@@ -45,7 +45,10 @@ jobs:
 #          unset SSH_PRIVATE_KEY
 
       - name: Build the container
-        run: docker compose -f .github/docker-compose.yml build web
+        run: docker compose -f .github/docker-compose.yml build
+
+      - name: Check Key file
+        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
 
       - name: Check Key file
         run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
