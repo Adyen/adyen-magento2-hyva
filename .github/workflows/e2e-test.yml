@@ -45,7 +45,7 @@ jobs:
 #          unset SSH_PRIVATE_KEY
 
       - name: Check Key file
-        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/hyva_id_rsa
+        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
