@@ -5,33 +5,29 @@ LABEL maintainer="Ecommerce Plugins"
 
 WORKDIR /var/www/html
 
-ENV MAGENTO_VERSION="<will be defined>" \
-    MAGENTO_HOST="<will be defined>" \
-    VIRTUAL_HOST="<will be defined>" \
-    DB_SERVER="<will be defined>" \
-    DB_PORT=3306 \
-    DB_NAME="<will be defined>" \
-    DB_USER="<will be defined>" \
-    DB_PASSWORD="<will be defined>" \
-    DB_PREFIX=m2_ \
-    ELASTICSEARCH_SERVER="<will be defined>" \
-    ELASTICSEARCH_PORT=9200 \
-    ELASTICSEARCH_INDEX_PREFIX=magento2 \
-    ELASTICSEARCH_TIMEOUT=15 \
-    ADMIN_NAME=admin \
-    ADMIN_LASTNAME=admin \
-    ADMIN_EMAIL=admin@example.com \
-    ADMIN_USERNAME=admin \
-    ADMIN_PASSWORD=admin123 \
-    ADMIN_URLEXT=admin \
-    MAGENTO_LANGUAGE=en_US \
-    MAGENTO_CURRENCY=EUR \
-    MAGENTO_TZ=Europe/Amsterdam \
-    DEPLOY_SAMPLEDATA=0 \
-    PHP_IDE_CONFIG=serverName=localhost \
-    USE_SSL=0 \
-    PHP_VERSION=${PHP_VERSION} \
-    MAGE_ROOT=/var/www/html
+ENV
+MAGENTO_HOST="<will be defined>" \
+DB_SERVER="<will be defined>" \
+DB_PORT=3306 \
+DB_NAME=magento \
+DB_USER=magento \
+DB_PASSWORD=magento \
+DB_PREFIX=m2_ \
+ELASTICSEARCH_SERVER="<will be defined>" \
+ELASTICSEARCH_PORT=9200 \
+ELASTICSEARCH_INDEX_PREFIX=magento2 \
+ELASTICSEARCH_TIMEOUT=15 \
+ADMIN_NAME=admin \
+ADMIN_LASTNAME=admin \
+ADMIN_EMAIL=admin@example.com \
+ADMIN_USERNAME=admin \
+ADMIN_PASSWORD=admin123 \
+ADMIN_URLEXT=admin \
+MAGENTO_LANGUAGE=en_US \
+MAGENTO_CURRENCY=EUR \
+MAGENTO_TZ=Europe/Amsterdam \
+DEPLOY_SAMPLEDATA=0 \
+USE_SSL=1
 
 RUN apt-get update -y --fix-missing \
     && apt install -y apt-transport-https lsb-release ca-certificates wget \
