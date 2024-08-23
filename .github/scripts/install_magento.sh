@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [[ -e /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini ]]; then
-	# Disable Xdebug for CLI
-	mv /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini.disabled
-	service php${PHP_VERSION}-fpm restart
-	service nginx restart
-fi
+#if [[ -e /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini ]]; then
+#	# Disable Xdebug for CLI
+#	mv /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini.disabled
+#	service php${PHP_VERSION}-fpm restart
+#	service nginx restart
+#fi
 
 if [ "${MAGENTO_VERSION}" == "<will be defined>" ]; then
 	echo "MAGENTO_VERSION is not defined!"

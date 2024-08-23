@@ -54,8 +54,7 @@ RUN apt-get update \
         unzip \
         ssh \
         git \
-        zip \
-        fpm
+        zip
 
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 
