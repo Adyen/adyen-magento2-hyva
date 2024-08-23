@@ -5,8 +5,7 @@ LABEL maintainer="Ecommerce Plugins"
 
 WORKDIR /var/www/html
 
-ENV
-MAGENTO_HOST="<will be defined>" \
+ENV MAGENTO_HOST="<will be defined>" \
 DB_SERVER="<will be defined>" \
 DB_PORT=3306 \
 DB_NAME=magento \
