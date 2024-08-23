@@ -44,13 +44,14 @@ services:
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
       DONATION_ACCOUNT:
-      ADMIN_USERNAME:
-      ADMIN_PASSWORD:
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "Adyen123@"
       ADYEN_MERCHANT:
       ADYEN_API_KEY:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      DEPLOY_SAMPLEDATA: 1
     depends_on:
       - db
       - elastic
