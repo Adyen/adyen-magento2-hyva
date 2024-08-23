@@ -1,5 +1,4 @@
-FROM acr-ext.is.adyen.com/external/nginx:1.24.0
-
+FROM php:${PHP_VERSION}-apache
 LABEL maintainer="Ecommerce Plugins"
 
 WORKDIR /var/www/html
