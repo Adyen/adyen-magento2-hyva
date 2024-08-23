@@ -59,11 +59,13 @@ jobs:
 ##      - name: Check Hyva install
 #        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
-      - name: Install Magento
+      - name: Ensure composer cache directory exists
         run: |
-          mkdir -p /var/www/.cache/composer
-          chown -R www-data:www-data /var/www/.cache/composer
-          docker compose -f .github/docker-compose.yml run --rm web make magento
+          sudo mkdir -p /var/www/.cache/composer
+          sudo chown -R www-data:www-data /var/www/.cache/composer
+
+      - name: Install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
         run: docker compose -f .github/docker-compose.yml up -d web
