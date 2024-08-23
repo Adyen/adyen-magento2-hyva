@@ -60,7 +60,10 @@ jobs:
 #        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
       - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+        run: |
+          mkdir -p /var/www/.cache/composer
+          chown -R www-data:www-data /var/www/.cache/composer
+          docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
         run: docker compose -f .github/docker-compose.yml up -d web
