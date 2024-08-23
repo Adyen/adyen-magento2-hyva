@@ -47,16 +47,16 @@ jobs:
 #      - name: Build the container and install Magento
 #        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 #
-#      - name: Check .ssh folder contents
-#        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
-#
-#      - name: Check .ssh/config
-#        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/config
-#
-#      - name: Validate the SSH key
-#        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
-#
-#      - name: Check Key file
+      - name: Check .ssh folder contents
+        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
+
+      - name: Check .ssh/config
+        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/config
+
+      - name: Validate the SSH key
+        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
+
+#      - name: Check Hyva install
 #        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
 
       - name: Install Magento
