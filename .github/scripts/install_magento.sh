@@ -78,7 +78,26 @@ fi
 #else
 #	composer install -n
 
+if [[ -e /var/www/html/composer.lock ]]; then
+	echo "Magento 2 is already installed."
+else
+	# Configure Nginx
+	tee -a /etc/nginx/conf.d/magento.conf <<EOF
+upstream fastcgi_backend {
+  server  unix:/run/php/php${PHP_VERSION}-fpm.sock;
+}
 
+server {
+  listen 8080;
+  listen 8443 ssl;
+  server_name ${VIRTUAL_HOST};
+  ssl_certificate magento.cer;
+  ssl_certificate_key magento.key;
+  set \$MAGE_ROOT /var/www/html;
+  include /var/www/html/nginx.conf.sample;
+}
+
+EOF
 
 	mkdir /run/php
 	update-alternatives --set php /usr/bin/php${PHP_VERSION}
