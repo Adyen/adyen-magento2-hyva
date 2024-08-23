@@ -56,7 +56,7 @@ ADD "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.ta
 ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/sample-data.tar.gz
 
 ARG SSH_PRIVATE_KEY
-RUN mkdir -p /root/.ssh
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
 RUN chmod 600 ~/.ssh/hyva_id_rsa
 RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
