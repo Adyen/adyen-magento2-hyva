@@ -1,9 +1,9 @@
+
+ARG PHP_VERSION
 FROM php:${PHP_VERSION}-apache
 LABEL maintainer="Ecommerce Plugins"
 
 WORKDIR /var/www/html
-
-ARG PHP_VERSION
 
 ENV MAGENTO_VERSION="<will be defined>" \
     MAGENTO_HOST="<will be defined>" \
