@@ -8,7 +8,7 @@ services:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
         - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
-    image: ecommerce-plugins.local/magento2-hyva-dev:latest
+#    image: ecommerce-plugins.local/magento2-hyva-dev:latest
     container_name: magento2-hyva-container
     networks:
       backend:
@@ -41,20 +41,18 @@ services:
       - composer:/usr/local/bin
       - magento:/var/www/html
   db:
-    image: acr-ext.is.adyen.com/external/mysql:8.0.36
-    container_name: magento2-hyva-mysql-container
+    image: mariadb:10.4
+    container_name: mariadb
     networks:
       - backend
-    ports:
-      - 3306:3306
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: magento
-      MYSQL_USER: magento
-      MYSQL_PASSWORD: magento
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: magento
+      MARIADB_USER: magento
+      MARIADB_PASSWORD: magento
   elastic:
-    image: acr-ext.is.adyen.com/external/elasticsearch:7.16.2
-    container_name: magento2-hyva-elasticsearch
+    image: elasticsearch:7.17.13
+    container_name: elasticsearch
     networks:
       - backend
     ports:
