@@ -1,6 +1,13 @@
 #!/bin/bash
 
-MAGENTO_INSTALL_ARGS="";
+if [[ -e /usr/local/bin/composer ]]; then
+	echo "Composer already exists"
+else
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+	php composer-setup.php --quiet
+	rm composer-setup.php
+	mv composer.phar /usr/local/bin/composer
+fi
 
 if [ "$DB_SERVER" != "<will be defined>" ]; then
 	RET=1
@@ -20,6 +27,7 @@ else
 	exit 1
 fi
 
+MAGENTO_INSTALL_ARGS="";
 USE_ELASTICSEARCH='1'
 if [[ "$MAGENTO_VERSION" =~ ^2\.3 ]]; then
 	USE_ELASTICSEARCH='0'
@@ -45,37 +53,46 @@ if [ "$USE_ELASTICSEARCH" == '1' ] && [ "$ELASTICSEARCH_SERVER" != "<will be def
 	echo "Elasticsearch server $ELASTICSEARCH_SERVER is available."
 fi
 
-if [[ -e /tmp/magento.tar.gz ]]; then
-	mv /tmp/magento.tar.gz /var/www/html
-else
-	echo "Magento 2 tar is already moved to /var/www/html"
-fi
+# Install Magento
+#if [[ -e /tmp/magento.tar.gz ]]; then
+#	mv /tmp/magento.tar.gz /var/www/html
+#else
+#	echo "Magento 2 tar is already moved to /var/www/html"
+#fi
+#
+#if [[ -e /tmp/sample-data.tar.gz ]]; then
+#	mv /tmp/sample-data.tar.gz /var/www
+#else
+#	echo "Magento 2 sample data tar is already moved to /var/www"
+#fi
+#
+#if [[ -e /var/www/html/pub/index.php ]]; then
+#	echo "Already extracted Magento"
+#else
+#	tar -xf magento.tar.gz --strip-components 1
+#	rm magento.tar.gz
+#fi
+#
+#if [[ -d /var/www/html/vendor/magento ]]; then
+#	echo "Magento is already installed."
+#else
+#	composer install -n
 
-if [[ -e /tmp/sample-data.tar.gz ]]; then
-	mv /tmp/sample-data.tar.gz /var/www
-else
-	echo "Magento 2 sample data tar is alread moved to /var/www"
-fi
 
-if [[ -e /var/www/html/pub/index.php ]]; then
-	echo "Already extracted Magento"
-else
-	tar -xf magento.tar.gz --strip-components 1
-	rm magento.tar.gz
-fi
 
-if [[ -e /usr/local/bin/composer ]]; then
-	echo "Composer already exists"
-else
-	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-	php composer-setup.php --quiet
-	rm composer-setup.php
-	mv composer.phar /usr/local/bin/composer
-fi
+	mkdir /run/php
+	update-alternatives --set php /usr/bin/php${PHP_VERSION}
+	usermod -a -G www-data nginx
+	service php${PHP_VERSION}-fpm restart
+	service nginx restart
 
-if [[ -d /var/www/html/vendor/magento ]]; then
-	echo "Magento is already installed."
-else
+	# Install Magento
+	wget https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz
+	wget -O ../sample-data.tar.gz https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz
+
+	tar -xf ${MAGENTO_VERSION}.tar.gz --strip-components 1
+	rm ${MAGENTO_VERSION}.tar.gz
+
 	composer install -n
 
 	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
@@ -110,7 +127,7 @@ else
 	bin/magento maintenance:disable
 	bin/magento cron:install
 
-	echo "Installation completed"
+	echo "Magento installation completed"
 
   # Install sample data
   echo "Installing sample data"
@@ -145,7 +162,6 @@ else
 fi
 
 ISSET_USE_SSL=$(bin/magento config:show web/secure/use_in_frontend)
-
 if [ "$USE_SSL" -eq 1 ]; then
 	if [ "${ISSET_USE_SSL:-0}" -eq 1 ]; then
 		echo "Use SSL is set, but SSL is already enabled."
@@ -170,10 +186,14 @@ else
 	echo "ServerName is added to Apache config."
 fi
 
-if [[ -e /tmp/enable_debugging.sh ]]; then
-	echo "Configuring Xdebug"
-	/tmp/enable_debugging.sh
-fi
+#if [[ -e /tmp/enable_debugging.sh ]]; then
+#	echo "Configuring Xdebug"
+#	/tmp/enable_debugging.sh
+#fi
+
+
+service php${PHP_VERSION}-fpm restart
+service nginx restart
 
 /etc/init.d/cron start
 
