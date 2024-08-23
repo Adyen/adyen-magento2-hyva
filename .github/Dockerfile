@@ -38,28 +38,24 @@ RUN apt-get update -y --fix-missing \
     && wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg \
     && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php.list
 
-RUN apt-get update -y --fix-missing \
-    && apt-get install -y \
-        php${PHP_VERSION}-bcmath \
-        php${PHP_VERSION}-common \
-        php${PHP_VERSION}-curl \
-        php${PHP_VERSION}-fpm \
-        php${PHP_VERSION}-gd \
-        php${PHP_VERSION}-intl \
-        php${PHP_VERSION}-mbstring \
-        php${PHP_VERSION}-mysql \
-        php${PHP_VERSION}-soap \
-        php${PHP_VERSION}-xml \
-        php${PHP_VERSION}-xsl\
-        php${PHP_VERSION}-zip \
-        php${PHP_VERSION}-xdebug \
+
+RUN apt-get update \
+    && apt-get install -y libjpeg62-turbo-dev \
+        libpng-dev \
+        libfreetype6-dev \
+        libxml2-dev \
+        libzip-dev \
+        libssl-dev \
+        libxslt-dev \
         default-mysql-client \
-        git \
-        nano \
-        vim \
+        ssl-cert \
+        wget \
+        cron \
+        unzip \
         ssh \
-	cron \
-    && apt upgrade -y -y
+        git \
+        zip \
+        fpm
 
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 
