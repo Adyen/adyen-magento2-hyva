@@ -34,6 +34,7 @@ RUN apt-get update -y --fix-missing \
     && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php.list
 
 
+
 RUN apt-get update \
     && apt-get install -y libjpeg62-turbo-dev \
         libpng-dev \
@@ -45,28 +46,10 @@ RUN apt-get update \
         default-mysql-client \
         ssl-cert \
         wget \
+        cron \
         unzip \
-        ssh
-
-RUN apt-get update -y --fix-missing \
-    && apt-get install -y \
-        php${PHP_VERSION}-bcmath \
-        php${PHP_VERSION}-common \
-        php${PHP_VERSION}-curl \
-        php${PHP_VERSION}-fpm \
-        php${PHP_VERSION}-gd \
-        php${PHP_VERSION}-intl \
-        php${PHP_VERSION}-mbstring \
-        php${PHP_VERSION}-mysql \
-        php${PHP_VERSION}-soap \
-        php${PHP_VERSION}-xml \
-        php${PHP_VERSION}-xsl\
-        php${PHP_VERSION}-zip \
-        git \
-        nano \
-        vim \
-	    cron \
-    && apt upgrade -y -y \
+        ssh \
+        git
 
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 
