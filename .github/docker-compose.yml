@@ -1,19 +1,54 @@
 version: '3'
 
 services:
-  db:
-    image: mariadb:10.4
-    container_name: mariadb
+  web:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.1"
+    image: ecommerce-plugins.local/magento2-hyva-dev:latest
+    container_name: magento2-hyva-container
     networks:
       - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      MARIADB_ROOT_PASSWORD: root_password
-      MARIADB_DATABASE: magento
-      MARIADB_USER: magento
-      MARIADB_PASSWORD: magento
+      MAGENTO_VERSION: "2.4.5"
+      USE_SSL: 1
+      MAGENTO_HOST: localhost:8443 #Use 8443 if SSL isrequired
+      VIRTUAL_HOST: localhost
+      DB_SERVER: magento2-hyva-mysql-container
+      DB_NAME: magento
+      DB_USER: magento
+      DB_PASSWORD: magento
+      ELASTICSEARCH_SERVER: magento2-hyva-elasticsearch
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "Adyen123@"
+      DEPLOY_SAMPLEDATA: 1
+    ports:
+      - 8080:8080
+      - 8443:8443
+    depends_on:
+      - db
+      - elastic
+    volumes:
+      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
+      - ./volumes/wwwdir:/var/www/html
+  db:
+    image: acr-ext.is.adyen.com/external/mysql:8.0.36
+    container_name: magento2-hyva-mysql-container
+    networks:
+      - backend
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: magento
+      MYSQL_USER: magento
+      MYSQL_PASSWORD: magento
   elastic:
-    image: elasticsearch:7.17.13
-    container_name: elasticsearch
+    image: acr-ext.is.adyen.com/external/elasticsearch:7.16.2
+    container_name: magento2-hyva-elasticsearch
     networks:
       - backend
     ports:
@@ -22,45 +57,6 @@ services:
     environment:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
-  web:
-    build:
-      context: .
-      args:
-        - PHP_VERSION=${PHP_VERSION}
-        - MAGENTO_VERSION=${MAGENTO_VERSION}
-        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
-#    image: ecommerce-plugins.local/magento2-hyva-dev:latest
-    container_name: magento2-hyva-container
-    networks:
-      backend:
-        aliases:
-          - magento2.test.com
-    extra_hosts:
-      - "magento2.test.com:127.0.0.1"
-    environment:
-      DB_SERVER: mariadb
-      ELASTICSEARCH_SERVER: elasticsearch
-      MAGENTO_HOST: magento2.test.com
-      VIRTUAL_HOST: magento2.test.com
-      COMPOSER_MEMORY_LIMIT: -1
-      DONATION_ACCOUNT:
-      ADMIN_USERNAME: "admin"
-      ADMIN_PASSWORD: "Adyen123@"
-      ADYEN_MERCHANT:
-      ADYEN_API_KEY:
-      ADYEN_CLIENT_KEY:
-      PHP_VERSION:
-      MAGENTO_VERSION:
-      DEPLOY_SAMPLEDATA: 1
-    depends_on:
-      - db
-      - elastic
-    volumes:
-#      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
-      - ../:/data/extensions/workdir
-      - ./Makefile:/var/www/html/Makefile
-      - composer:/usr/local/bin
-      - magento:/var/www/html
 networks:
   backend:
 volumes:

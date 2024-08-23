@@ -1,17 +1,5 @@
 #!/bin/bash
 
-if [[ -e /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini ]]; then
-	# Disable Xdebug for CLI
-	mv /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini /etc/php/${PHP_VERSION}/cli/conf.d/20-xdebug.ini.disabled
-	service php${PHP_VERSION}-fpm restart
-	service nginx restart
-fi
-
-if [ "${MAGENTO_VERSION}" == "<will be defined>" ]; then
-	echo "MAGENTO_VERSION is not defined!"
-	exit 1
-fi
-
 if [[ -e /usr/local/bin/composer ]]; then
 	echo "Composer already exists"
 else
@@ -21,11 +9,11 @@ else
 	mv composer.phar /usr/local/bin/composer
 fi
 
-if [ "${DB_SERVER}" != "<will be defined>" ]; then
+if [ "$DB_SERVER" != "<will be defined>" ]; then
 	RET=1
 	while [ $RET -ne 0 ]; do
-		echo "Checking if ${DB_SERVER} is available."
-		mysql -h "${DB_SERVER}" -P "${DB_PORT}" -u "${DB_USER}" -p"${DB_PASSWORD}" -e "status" >/dev/null 2>&1
+		echo "Checking if $DB_SERVER is available."
+		mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "status" >/dev/null 2>&1
 		RET=$?
 
 		if [ $RET -ne 0 ]; then
@@ -33,7 +21,7 @@ if [ "${DB_SERVER}" != "<will be defined>" ]; then
 			sleep 5
 		fi
 	done
-	echo "DB server ${DB_SERVER} is available."
+	echo "DB server $DB_SERVER is available."
 else
 	echo "MySQL/MariaDB server is not defined!"
 	exit 1
@@ -41,16 +29,20 @@ fi
 
 MAGENTO_INSTALL_ARGS="";
 USE_ELASTICSEARCH='1'
-if [ "$USE_ELASTICSEARCH" == '1' ] && [ "${ELASTICSEARCH_SERVER}" != "<will be defined>" ]; then
+if [[ "$MAGENTO_VERSION" =~ ^2\.3 ]]; then
+	USE_ELASTICSEARCH='0'
+fi
+
+if [ "$USE_ELASTICSEARCH" == '1' ] && [ "$ELASTICSEARCH_SERVER" != "<will be defined>" ]; then
 	MAGENTO_INSTALL_ARGS=$(echo \
-		--elasticsearch-host="${ELASTICSEARCH_SERVER}" \
-		--elasticsearch-port="${ELASTICSEARCH_PORT}" \
-		--elasticsearch-index-prefix="${ELASTICSEARCH_INDEX_PREFIX}" \
-		--elasticsearch-timeout="${ELASTICSEARCH_TIMEOUT}")
+		--elasticsearch-host="$ELASTICSEARCH_SERVER" \
+		--elasticsearch-port="$ELASTICSEARCH_PORT" \
+		--elasticsearch-index-prefix="$ELASTICSEARCH_INDEX_PREFIX" \
+		--elasticsearch-timeout="$ELASTICSEARCH_TIMEOUT")
 	RET=1
 	while [ $RET -ne 0 ]; do
-		echo "Checking if ${ELASTICSEARCH_SERVER} is available."
-		curl -XGET "${ELASTICSEARCH_SERVER}:${ELASTICSEARCH_PORT}/_cat/health?v&pretty" >/dev/null 2>&1
+		echo "Checking if $ELASTICSEARCH_SERVER is available."
+		curl -XGET "$ELASTICSEARCH_SERVER:$ELASTICSEARCH_PORT/_cat/health?v&pretty" >/dev/null 2>&1
 		RET=$?
 
 		if [ $RET -ne 0 ]; then
@@ -58,11 +50,33 @@ if [ "$USE_ELASTICSEARCH" == '1' ] && [ "${ELASTICSEARCH_SERVER}" != "<will be d
 			sleep 5
 		fi
 	done
-	echo "Elasticsearch server ${ELASTICSEARCH_SERVER} is available."
+	echo "Elasticsearch server $ELASTICSEARCH_SERVER is available."
 fi
 
-# Change working directory to web server root
-cd /var/www/html
+# Install Magento
+#if [[ -e /tmp/magento.tar.gz ]]; then
+#	mv /tmp/magento.tar.gz /var/www/html
+#else
+#	echo "Magento 2 tar is already moved to /var/www/html"
+#fi
+#
+#if [[ -e /tmp/sample-data.tar.gz ]]; then
+#	mv /tmp/sample-data.tar.gz /var/www
+#else
+#	echo "Magento 2 sample data tar is already moved to /var/www"
+#fi
+#
+#if [[ -e /var/www/html/pub/index.php ]]; then
+#	echo "Already extracted Magento"
+#else
+#	tar -xf magento.tar.gz --strip-components 1
+#	rm magento.tar.gz
+#fi
+#
+#if [[ -d /var/www/html/vendor/magento ]]; then
+#	echo "Magento is already installed."
+#else
+#	composer install -n
 
 if [[ -e /var/www/html/composer.lock ]]; then
 	echo "Magento 2 is already installed."
@@ -106,17 +120,18 @@ EOF
 	chmod u+x bin/magento
 
 	bin/magento setup:install \
-		--base-url="http://${MAGENTO_HOST}" \
-		--db-host="${DB_SERVER}:${DB_PORT}" \
-		--db-name="${DB_NAME}" \
-		--db-user="${DB_USER}" \
-		--db-password="${DB_PASSWORD}" \
-		--admin-firstname="${ADMIN_NAME}" \
-		--admin-lastname="${ADMIN_LASTNAME}" \
-		--admin-email="${ADMIN_EMAIL}" \
-		--admin-user="${ADMIN_USERNAME}" \
-		--admin-password="${ADMIN_PASSWORD}" \
-		--backend-frontname="${ADMIN_URLEXT}" \
+		--base-url="http://$MAGENTO_HOST" \
+		--db-host="$DB_SERVER:$DB_PORT" \
+		--db-name="$DB_NAME" \
+		--db-user="$DB_USER" \
+		--db-password="$DB_PASSWORD" \
+		--db-prefix="$DB_PREFIX" \
+		--admin-firstname="$ADMIN_NAME" \
+		--admin-lastname="$ADMIN_LASTNAME" \
+		--admin-email="$ADMIN_EMAIL" \
+		--admin-user="$ADMIN_USERNAME" \
+		--admin-password="$ADMIN_PASSWORD" \
+		--backend-frontname="$ADMIN_URLEXT" \
 		--language=en_US \
 		--currency=EUR \
 		--timezone=Europe/Amsterdam \
@@ -133,15 +148,15 @@ EOF
 
 	echo "Magento installation completed"
 
-	# Install sample data
-	echo "Installing sample data"
-	mkdir ../sample-data
-	tar -xf ../sample-data.tar.gz --strip-components 1 -C ../sample-data
-	rm ../sample-data.tar.gz
-	php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
-	bin/magento setup:upgrade
+  # Install sample data
+  echo "Installing sample data"
+  mkdir ../sample-data
+  tar -xf ../sample-data.tar.gz --strip-components 1 -C ../sample-data
+  rm ../sample-data.tar.gz
+  php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
+  bin/magento setup:upgrade
 
-  # Set up SSH config for gitlab.hyva.io
+	# Set up SSH config for gitlab.hyva.io
   echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
   echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
   echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
@@ -161,17 +176,17 @@ EOF
 
   bin/magento module:enable --all
   bin/magento setup:di:compile
-	bin/magento setup:static-content:deploy -f
-	bin/magento cache:clean
+  bin/magento setup:static-content:deploy -f
+  bin/magento cache:clean
 fi
 
 ISSET_USE_SSL=$(bin/magento config:show web/secure/use_in_frontend)
-if [ "${USE_SSL}" -eq 1 ]; then
+if [ "$USE_SSL" -eq 1 ]; then
 	if [ "${ISSET_USE_SSL:-0}" -eq 1 ]; then
 		echo "Use SSL is set, but SSL is already enabled."
 	else
 		bin/magento setup:store-config:set \
-			--base-url-secure="https://${MAGENTO_HOST}" \
+			--base-url-secure="https://$MAGENTO_HOST" \
 			--use-secure=1 \
 			--use-secure-admin=1
 		echo "SSL for Magento is configured."
@@ -180,9 +195,25 @@ else
 	echo "Use SSL is not set, skipping."
 fi
 
+grep "ServerName" /etc/apache2/apache2.conf >/dev/null 2>&1
+SERVERNAME_EXISTS=$?
+
+if [ $SERVERNAME_EXISTS -eq 0 ]; then
+	echo "ServerName is already added in Apache config."
+else
+	echo "ServerName $MAGENTO_HOST" >>/etc/apache2/apache2.conf
+	echo "ServerName is added to Apache config."
+fi
+
+#if [[ -e /tmp/enable_debugging.sh ]]; then
+#	echo "Configuring Xdebug"
+#	/tmp/enable_debugging.sh
+#fi
+
+
 service php${PHP_VERSION}-fpm restart
 service nginx restart
 
-service cron start
+/etc/init.d/cron start
 
-tail -f /dev/null
+exec apache2-foreground
