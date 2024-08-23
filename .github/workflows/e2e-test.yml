@@ -61,7 +61,7 @@ jobs:
 
       - name: Ensure composer cache directory exists
         run: |
-          sudo mkdir -p /var/www/.cache/composer
+          sudo mkdir -p /var/www/.cache/composer/vcs
           sudo chown -R www-data:www-data /var/www/.cache/composer
 
       - name: Install Magento
