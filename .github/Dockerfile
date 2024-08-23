@@ -58,16 +58,31 @@ RUN apt-get update -y --fix-missing \
         git \
         nano \
         vim \
+        ssh \
 	cron \
     && apt upgrade -y -y
 
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 
-COPY src/config/90-custom-php.ini /etc/php/${PHP_VERSION}/fpm/conf.d/90-custom-php.ini
-COPY src/config/20-xdebug.ini /etc/php/${PHP_VERSION}/fpm/conf.d/20-xdebug.ini
-COPY src/certificates/magento.cer /etc/nginx/magento.cer
-COPY src/certificates/magento.key /etc/nginx/magento.key
-COPY src/script/install_magento.sh /tmp/install_magento.sh
+#COPY src/config/90-custom-php.ini /etc/php/${PHP_VERSION}/fpm/conf.d/90-custom-php.ini
+#COPY src/config/20-xdebug.ini /etc/php/${PHP_VERSION}/fpm/conf.d/20-xdebug.ini
+#COPY src/certificates/magento.cer /etc/nginx/magento.cer
+#COPY src/certificates/magento.key /etc/nginx/magento.key
+#COPY src/script/install_magento.sh /tmp/install_magento.sh
+
+COPY config/php.ini /usr/local/etc/php/
+COPY scripts/install_magento.sh /tmp/install_magento.sh
+
+ARG SSH_PRIVATE_KEY
+#RUN mkdir -p /root/.ssh
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
+RUN chmod 600 ~/.ssh/hyva_id_rsa
+RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
+
+RUN echo "Host gitlab.hyva.io" >> /root/.ssh/config
+RUN echo "  StrictHostKeyChecking no" >> /root/.ssh/config
+RUN echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config
+RUN chmod 600 /root/.ssh/config
 
 RUN chmod +x /tmp/install_magento.sh
 
