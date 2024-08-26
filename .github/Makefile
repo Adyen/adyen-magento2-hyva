@@ -23,6 +23,7 @@ install:
 	bin/magento module:enable Adyen_Payment && \
 	bin/magento setup:upgrade && \
 	bin/magento setup:di:compile
+	echo "Install complete"
 
 # Install developer module
 dev-module:
@@ -31,6 +32,7 @@ dev-module:
 
 # Configuration
 configure: n98-magerun2.phar
+	echo "configuration step started"
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento adyen:enablepaymentmethods:run
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
@@ -55,7 +57,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
-
+	echo "configuration step ended"
 # Clear cache
 flush:
 	bin/magento cache:flush
