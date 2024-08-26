@@ -66,7 +66,7 @@ jobs:
 #          ls -la /var/www/.cache/composer
 
       - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/docker-compose.yml run web make magento
 
       - name: Start web server in background
         run: docker compose -f .github/docker-compose.yml up -d web
