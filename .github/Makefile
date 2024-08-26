@@ -13,15 +13,15 @@ magento:
 
 # Plugin install
 install:
-	export COMPOSER_CACHE_DIR=/tmp/composer-cache
-	mkdir -p "${COMPOSER_CACHE_DIR}"
-	chown -R www-data:www-data "${COMPOSER_CACHE_DIR}"
-	composer config cache-dir "${COMPOSER_CACHE_DIR}"
-	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
-	bin/magento module:enable Adyen_Payment
-	bin/magento setup:upgrade
+	export COMPOSER_CACHE_DIR=/tmp/composer-cache && \
+	mkdir -p $${COMPOSER_CACHE_DIR} && \
+	chown -R www-data:www-data $${COMPOSER_CACHE_DIR} && \
+	composer config cache-dir $${COMPOSER_CACHE_DIR} && \
+	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }' && \
+	composer require "adyen/module-payment:*" && \
+	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment && \
+	bin/magento module:enable Adyen_Payment && \
+	bin/magento setup:upgrade && \
 	bin/magento setup:di:compile
 
 # Install developer module
