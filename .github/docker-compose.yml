@@ -35,7 +35,7 @@ services:
       - db
       - elastic
     volumes:
-      #      - ${HYVA_KEY_PATH}:/root/.ssh/hyva_id_rsa:ro
+      - ssh:/root/.ssh
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
@@ -64,5 +64,6 @@ services:
 networks:
   backend:
 volumes:
+  ssh:
   magento:
   composer:
