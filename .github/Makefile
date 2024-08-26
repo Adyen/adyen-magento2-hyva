@@ -15,7 +15,7 @@ magento:
 install:
 	export COMPOSER_CACHE_DIR=/tmp/composer-cache
 	mkdir -p $COMPOSER_CACHE_DIR
-	chown -R www-data:www-data $COMPOSER_CACHE_DIR
+	chown -R www-data:www-data $$COMPOSER_CACHE_DIR
 	composer config cache-dir $$COMPOSER_CACHE_DIR
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 	composer require "adyen/module-payment:*"
