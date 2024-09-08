@@ -1,14 +1,6 @@
 name: Magento-Hyva E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
-
-on:
-#  push:
-  workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-  pull_request_target:
-    types: [opened, synchronize, ready_for_review]
-
+on: [pull_request, pull_request_target]
 
 jobs:
   build:
@@ -32,39 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-#      - name: Set up SSH
-#        env:
-#         SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_KEY }}
-#        run: |
-#          mkdir -p /root/.ssh
-#          echo "$SSH_PRIVATE_KEY" > /root/.ssh/hyva_id_rsa
-#          chmod 600 ~/.ssh/hyva_id_rsa
-#          ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
-#          export HYVA_KEY_PATH="/root/.ssh/hyva_id_rsa"
-#          echo "HYVA_KEY_PATH=$HYVA_KEY_PATH" >> $GITHUB_ENV
-#          unset SSH_PRIVATE_KEY
-#
-#      - name: Build the container and install Magento
-#        run: docker compose -f .github/docker-compose.yml run --rm web make magento
-#
-#      - name: Check .ssh folder contents
-#        run: docker compose -f .github/docker-compose.yml run --rm web ls -la /root/.ssh
-#
-#      - name: Check .ssh/config
-#        run: docker compose -f .github/docker-compose.yml run --rm web cat /root/.ssh/config
-#
-#      - name: Validate the SSH key
-#        run: docker compose -f .github/docker-compose.yml run --rm web ssh -v git@gitlab.hyva.io
-#
-##      - name: Check Hyva install
-#        run: docker compose -f .github/docker-compose.yml run --rm web /tmp/install_hyva.sh
-
-#      - name: Ensure composer cache directory exists
-#        run: |
-#          sudo mkdir -p /var/www/.cache/composer/vcs
-#          sudo chown -R www-data:www-data /var/www/.cache/composer
-#          ls -la /var/www/.cache/composer
-
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run web make magento
 
@@ -83,28 +42,6 @@ jobs:
       - name: Kill Cron Jobs
         run: docker exec magento2-hyva-container /etc/init.d/cron stop
 
-      #todo Break here and check if everything was successful (verbose logging?)
-      #todo ?? Create zip of .vendor so it can be used in the local version?
-
-      - name: Checkout developer module
-        uses: actions/checkout@v3
-        with:
-          repository: Adyen/adyen-magento2-dev
-          ref: "main"
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
-          path: Developer
-
-      - name: Make the folder for dev module
-        run: docker exec -u www-data magento2-hyva-container mkdir -p /var/www/html/app/code/Adyen
-
-      - name: Copy dev module into Docker container
-        run: docker cp ./Developer magento2-hyva-container:/var/www/html/app/code/Adyen
-
-      - name: Change ownership of developer module folder
-        run: docker exec magento2-hyva-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
-
-      - name: Enable developer module
-        run: docker exec -u www-data magento2-hyva-container make dev-module
       - name: Switch to production mode
         run: docker exec -u www-data magento2-hyva-container make production
 

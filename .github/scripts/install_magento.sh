@@ -156,11 +156,14 @@ EOF
   php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
   bin/magento setup:upgrade
 
-#	# Set up SSH config for gitlab.hyva.io
-#  echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
-#  echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
-#  echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
-#  chmod 600 /root/.ssh/config
+  # Set up SSH config for gitlab.hyva.io
+  echo "$SSH_PRIVATE_KEY" >> /root/.ssh/hyva_id_rsa
+  chmod 600 /root/.ssh/hyva_id_rsa
+  ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
+  echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
+  echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
+  echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
+  chmod 600 /root/.ssh/config
 
   # Configure composer
   echo "Configuring Composer with additional repositories"
