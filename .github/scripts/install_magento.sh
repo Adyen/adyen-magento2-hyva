@@ -187,6 +187,8 @@ fi
 #	/tmp/enable_debugging.sh
 #fi
 
+chown -R www-data:www-data /var/www
+
 service php${PHP_VERSION}-fpm restart
 #service nginx restart
 
