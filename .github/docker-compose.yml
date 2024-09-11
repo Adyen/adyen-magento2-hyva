@@ -7,7 +7,7 @@ services:
       args:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
-        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
+#        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
 #    image: ecommerce-plugins.local/magento2-hyva-dev:latest
     container_name: magento2-hyva-container
     networks:
@@ -31,6 +31,7 @@ services:
       PHP_VERSION:
       MAGENTO_VERSION:
       DEPLOY_SAMPLEDATA: 1
+      SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}
     depends_on:
       - db
       - elastic
