@@ -186,3 +186,10 @@ fi
 #	echo "Configuring Xdebug"
 #	/tmp/enable_debugging.sh
 #fi
+
+service php${PHP_VERSION}-fpm restart
+#service nginx restart
+
+/etc/init.d/cron start
+
+exec apache2-foreground

@@ -1,11 +1,11 @@
 # Set up SSH config for gitlab.hyva.io
-echo "${SSH_PRIVATE_KEY}" >> /root/.ssh/hyva_id_rsa
-chmod 600 /root/.ssh/hyva_id_rsa
-ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
-echo "Host gitlab.hyva.io" >> /root/.ssh/config
-echo "  StrictHostKeyChecking no" >> /root/.ssh/config
-echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config
-chmod 600 /root/.ssh/config
+echo "${SSH_PRIVATE_KEY}" >> ~/.ssh/hyva_id_rsa
+chmod 600 ~/.ssh/hyva_id_rsa
+ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+echo "Host gitlab.hyva.io" >> ~/.ssh/config
+echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> ~/.ssh/config
+chmod 600 ~/.ssh/config
 
 # Configure composer
 echo "Configuring Composer with additional repositories"
@@ -23,12 +23,5 @@ composer require adyen/module-hyva-checkout:dev-develop
 bin/magento module:enable --all
 bin/magento setup:upgrade
 bin/magento setup:di:compile
-#bin/magento setup:static-content:deploy -f
+bin/magento setup:static-content:deploy -f
 bin/magento cache:clean
-
-service php${PHP_VERSION}-fpm restart
-#service nginx restart
-
-/etc/init.d/cron start
-
-exec apache2-foreground

@@ -11,11 +11,11 @@ sys-check: n98-magerun2.phar
 magento:
 	sed '/exec /d' /tmp/install_magento.sh | bash
 
-# Plugin install
-install:
-	sed '/exec /d' /tmp/install_hyva.sh | bash
+hyya: install-hyva configure flush
 
-install-everything: magento install
+# Hyva install
+install-hyva:
+	sed '/exec /d' /tmp/install_hyva.sh | bash
 
 # Install developer module
 dev-module:
@@ -53,9 +53,6 @@ configure: n98-magerun2.phar
 # Clear cache
 flush:
 	bin/magento cache:flush
-
-# Full plugin setup
-plugin: configure flush
 
 # Setup permissions
 fs:
