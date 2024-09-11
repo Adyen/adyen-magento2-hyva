@@ -15,6 +15,7 @@ magento:
 install:
 	sed '/exec /d' /tmp/install_hyva.sh | bash
 
+install-everything: magento install
 
 # Install developer module
 dev-module:
