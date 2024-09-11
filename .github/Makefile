@@ -13,16 +13,6 @@ magento:
 
 # Plugin install
 install:
-
-	# Set up SSH config for gitlab.hyva.io
-	echo "$SSH_PRIVATE_KEY" >> /root/.ssh/hyva_id_rsa
-	chmod 600 /root/.ssh/hyva_id_rsa
-	ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
-	echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
-	echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
-	echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
-	chmod 600 /root/.ssh/config
-
 	# Configure composer
 	echo "Configuring Composer with additional repositories"
 	composer config repositories.hyva-themes/hyva-checkout git git@gitlab.hyva.io:hyva-checkout/checkout.git

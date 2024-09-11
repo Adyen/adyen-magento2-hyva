@@ -37,7 +37,16 @@ jobs:
         run: docker exec magento2-hyva-container make sys-check
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-hyva-container make plugin
+        run: | 
+          docker exec -u www-data magento2-hyva-container make plugin
+          # Set up SSH config for gitlab.hyva.io
+          echo "$SSH_PRIVATE_KEY" >> /root/.ssh/hyva_id_rsa
+          chmod 600 /root/.ssh/hyva_id_rsa
+          ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
+          echo "Host gitlab.hyva.io" >> /root/.ssh/config && \
+          echo "  StrictHostKeyChecking no" >> /root/.ssh/config && \
+          echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config && \
+          chmod 600 /root/.ssh/config
 
       - name: Kill Cron Jobs
         run: docker exec magento2-hyva-container /etc/init.d/cron stop
