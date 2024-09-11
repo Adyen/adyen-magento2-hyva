@@ -27,6 +27,9 @@ jobs:
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run web make magento
 
+      - name: Install hyva
+        run: docker exec magento2-hyva-container make install
+
       - name: Start web server in background
         run: docker compose -f .github/docker-compose.yml up -d web
 
@@ -37,9 +40,7 @@ jobs:
         run: docker exec magento2-hyva-container make sys-check
 
       - name: Install plugin
-        run: |
-          docker exec -u www-data magento2-hyva-container ls -la
-          docker exec -u www-data magento2-hyva-container make plugin
+        run: docker exec magento2-hyva-container make plugin
 
       - name: Kill Cron Jobs
         run: docker exec magento2-hyva-container /etc/init.d/cron stop

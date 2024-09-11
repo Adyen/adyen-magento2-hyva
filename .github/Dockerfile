@@ -48,6 +48,7 @@ RUN a2ensite default-ssl.conf #can be removed if not needed
 WORKDIR /var/www/html
 COPY config/php.ini /usr/local/etc/php/
 COPY scripts/install_magento.sh /tmp/install_magento.sh
+COPY scripts/install_hyva.sh /tmp/install_hyva.sh
 
 RUN if [ -x "$(command -v apache2-foreground)" ]; then a2enmod rewrite; fi
 
@@ -55,17 +56,18 @@ ARG MAGENTO_VERSION
 ADD "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/magento.tar.gz
 ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO_VERSION}.tar.gz" /tmp/sample-data.tar.gz
 
-ARG SSH_PRIVATE_KEY
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
-RUN chmod 600 ~/.ssh/hyva_id_rsa
-RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
-
-RUN echo "Host gitlab.hyva.io" >> /root/.ssh/config
-RUN echo "  StrictHostKeyChecking no" >> /root/.ssh/config
-RUN echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config
-RUN chmod 600 /root/.ssh/config
+#ARG SSH_PRIVATE_KEY
+#RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+#RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/hyva_id_rsa
+#RUN chmod 600 /root/.ssh/hyva_id_rsa
+#RUN ssh-keyscan gitlab.hyva.io >> /root/.ssh/known_hosts
+#
+#RUN echo "Host gitlab.hyva.io" >> /root/.ssh/config
+#RUN echo "  StrictHostKeyChecking no" >> /root/.ssh/config
+#RUN echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> /root/.ssh/config
+#RUN chmod 600 /root/.ssh/config
 
 RUN chmod +x /tmp/install_magento.sh
+RUN chmod +x /tmp/install_hyva.sh
 
 CMD ["bash", "/tmp/install_magento.sh"]
