@@ -13,6 +13,8 @@ magento:
 
 # Plugin install
 install:
+	ls -la
+
 	# Configure composer
 	echo "Configuring Composer with additional repositories"
 	composer config repositories.hyva-themes/hyva-checkout git git@gitlab.hyva.io:hyva-checkout/checkout.git
@@ -23,6 +25,7 @@ install:
 
 	# Install Hyva compatibility module
 	echo "Installing Hyva compatibility module"
+	# TODO: Update the branch to current branch
 	composer require adyen/module-hyva-checkout:dev-develop
 
 	bin/magento module:enable --all
