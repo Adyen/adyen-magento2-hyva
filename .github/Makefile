@@ -11,7 +11,7 @@ sys-check: n98-magerun2.phar
 magento:
 	sed '/exec /d' /tmp/install_magento.sh | bash
 
-hyya: install-hyva configure flush
+hyva: install-hyva configure flush
 
 # Hyva install
 install-hyva:
