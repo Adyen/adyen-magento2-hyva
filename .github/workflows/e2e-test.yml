@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run web make install-everything
+        run: docker compose -f .github/docker-compose.yml run --rm web make install-everything
 
 #      - name: Install hyva
 #        run: docker exec magento2-hyva-container make install
