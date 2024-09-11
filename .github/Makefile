@@ -14,6 +14,7 @@ magento:
 # Plugin install
 install:
 	ls -la
+	echo "${SSH_PRIVATE_KEY}"
 
 	# Configure composer
 	echo "Configuring Composer with additional repositories"
@@ -27,6 +28,11 @@ install:
 	mkdir -p $${COMPOSER_CACHE_DIR} && \
 	chown -R www-data:www-data $${COMPOSER_CACHE_DIR} && \
 	composer config cache-dir $${COMPOSER_CACHE_DIR} && \
+
+# 	OR
+# 	Create the composer cache directory and fix permissions
+#    sudo mkdir -p /var/www/.cache/composer
+#    sudo chmod -R 777 /var/www/.cache/composer
 
 # Install Hyva compatibility module
 	echo "Installing Hyva compatibility module"  && \
