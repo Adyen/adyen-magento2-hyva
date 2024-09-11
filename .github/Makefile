@@ -23,15 +23,15 @@ install:
 	composer config repositories.hyva-themes/magento2-email-theme git git@gitlab.hyva.io:hyva-themes/magento2-email-module.git
 	composer config repositories.hyva-default-theme git git@gitlab.hyva.io:hyva-themes/magento2-default-theme.git
 
-	# Install Hyva compatibility module
+# Install Hyva compatibility module
 	echo "Installing Hyva compatibility module"
-	# TODO: Update the branch to current branch
+# TODO: Update the branch to current branch
 	composer require adyen/module-hyva-checkout:dev-develop --no-cache
 
 	bin/magento module:enable --all
 	bin/magento setup:di:compile
 	bin/magento setup:static-content:deploy -f
-	# bin/magento cache:clean
+# 	bin/magento cache:clean
 
 	export COMPOSER_CACHE_DIR=/tmp/composer-cache && \
 	mkdir -p $${COMPOSER_CACHE_DIR} && \
