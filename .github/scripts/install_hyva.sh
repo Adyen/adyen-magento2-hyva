@@ -20,14 +20,10 @@ echo "Installing Hyva compatibility module"
 # composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 composer require adyen/module-hyva-checkout:dev-develop
 
-rm -rf generated/metadata
-rm -rf generated/code
-rm -rf pub/static/adminhtml/*
-rm -rf pub/static/frontend/*
-
 bin/magento module:enable --all
+bin/magento setup:upgrade
 bin/magento setup:di:compile
-bin/magento setup:static-content:deploy -f
+#bin/magento setup:static-content:deploy -f
 bin/magento cache:clean
 
 service php${PHP_VERSION}-fpm restart
