@@ -71,7 +71,6 @@ ADD "https://github.com/magento/magento2-sample-data/archive/refs/tags/${MAGENTO
 RUN chmod +x /tmp/install_magento.sh
 RUN chmod +x /tmp/install_hyva.sh
 
-RUN mkdir -p /var/www/.ssh
-RUN chown -R www-data:www-data /var/www/.ssh
+RUN chown www-data:www-data /var/www
 
 CMD ["bash", "/tmp/install_magento.sh"]
