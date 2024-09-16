@@ -1,5 +1,6 @@
 # Set up SSH config for gitlab.hyva.io
-#mkdir -p ~/.ssh
+ls -lad ~/
+mkdir -p ~/.ssh
 echo "${SSH_PRIVATE_KEY}" >> ~/.ssh/hyva_id_rsa
 chmod 600 ~/.ssh/hyva_id_rsa
 ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
