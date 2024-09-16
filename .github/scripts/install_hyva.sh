@@ -1,12 +1,10 @@
 # Set up SSH config for gitlab.hyva.io
-ls -lad ~/
-mkdir -p ~/.ssh
 echo "${SSH_PRIVATE_KEY}" >> ~/.ssh/hyva_id_rsa
 chmod 600 ~/.ssh/hyva_id_rsa
 ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
 echo "Host gitlab.hyva.io" >> ~/.ssh/config
 echo "  StrictHostKeyChecking no" >> ~/.ssh/config
-echo "  IdentityFile /root/.ssh/hyva_id_rsa" >> ~/.ssh/config
+echo "  IdentityFile /var/www/.ssh/hyva_id_rsa" >> ~/.ssh/config
 chmod 600 ~/.ssh/config
 
 # Configure composer
