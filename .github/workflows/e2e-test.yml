@@ -39,9 +39,6 @@ jobs:
       - name: Check install
         run: docker exec magento2-hyva-container make sys-check
 
-      - name: Install plugin
-        run: docker exec magento2-hyva-container make plugin
-
       - name: Kill Cron Jobs
         run: docker exec magento2-hyva-container /etc/init.d/cron stop
 
