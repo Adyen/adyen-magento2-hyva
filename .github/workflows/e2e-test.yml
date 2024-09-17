@@ -50,8 +50,7 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          ls -l .github/scripts && \ 
-          chmod +x .github/scripts/e2e.sh && \ 
+#          chmod +x .github/scripts/e2e.sh && \
           docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: ECP-9328
