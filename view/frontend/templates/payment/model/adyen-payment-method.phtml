@@ -314,6 +314,7 @@ $billingAddress = $block->getQuoteBillingAddress();
             let self = this;
             try {
                 self.checkoutComponent = checkoutComponent;
+
                 const paymentMethodActionComponent = checkoutComponent.create(
                     paymentMethodType,
                     configuration
