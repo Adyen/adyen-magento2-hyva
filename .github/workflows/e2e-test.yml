@@ -32,17 +32,14 @@ jobs:
             echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
           fi
 
-      - name: Set branch name
-        run: echo ${BRANCH_NAME}
-#
-#      - name: Install Magento
-#        run: docker compose -f .github/docker-compose.yml run --rm web make magento
-#
-#      - name: Start web server in background
-#        run: docker compose -f .github/docker-compose.yml up -d web
-#
-#      - name: Install hyva
-#        run: docker exec -u www-data magento2-hyva-container make hyva
+      - name: Install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker compose -f .github/docker-compose.yml up -d web
+
+      - name: Install hyva
+        run: docker exec -u www-data magento2-hyva-container make hyva
 #
 #      - name: Setup permissions
 #        run: docker exec magento2-hyva-container make fs

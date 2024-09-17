@@ -18,8 +18,9 @@ composer config repositories.hyva-default-theme git git@gitlab.hyva.io:hyva-them
 # Install Hyva compatibility module
 echo "Installing Hyva compatibility module"
 # TODO: update the branch from develop to current branch
-composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-#composer require adyen/module-hyva-checkout:dev-develop
+#composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
+composer require adyen/module-hyva-checkout:dev-${BRANCH_NAME}
+
 
 bin/magento module:enable --all
 bin/magento setup:upgrade
