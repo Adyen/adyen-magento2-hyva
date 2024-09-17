@@ -273,7 +273,8 @@ $billingAddress = $block->getQuoteBillingAddress();
             let configuration = {
                 ...paymentMethod,
                 showPayButton: showPayButton,
-                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id
+                countryCode: formattedShippingAddress.country_id ? formattedShippingAddress.country_id : formattedBillingAddress.country_id.constructor,
+                data: {}
             };
 
             if (!!paymentMethodsExtraInfo[paymentMethod.type].configuration) {
@@ -313,7 +314,6 @@ $billingAddress = $block->getQuoteBillingAddress();
             let self = this;
             try {
                 self.checkoutComponent = checkoutComponent;
-
                 const paymentMethodActionComponent = checkoutComponent.create(
                     paymentMethodType,
                     configuration

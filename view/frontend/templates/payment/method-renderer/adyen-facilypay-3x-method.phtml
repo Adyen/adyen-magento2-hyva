@@ -15,6 +15,10 @@ use Magento\Framework\View\Element\Template;
 
     <script>
         class facilypay3xComponentHandler extends componentHandler {
+            constructor(paymentMethodCode, wire, elementLabel) {
+                super(paymentMethodCode, wire, elementLabel);
+            }
+
             buildConfiguration(paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
 
@@ -27,6 +31,7 @@ use Magento\Framework\View\Element\Template;
                 const billingAddress = this.wire.get('billingAddress');
                 const quoteData = this.wire.get('quoteData');
                 const customerData = this.wire.get('customerData');
+
 
                 if (customerData) {
                     const parsedCustomerData = JSON.parse(customerData);
@@ -48,7 +53,7 @@ use Magento\Framework\View\Element\Template;
                 }
 
                 if (formattedShippingAddress) {
-                    baseComponentConfiguration.deliveryAddress = {
+                    baseComponentConfiguration.data.deliveryAddress = {
                         city: formattedShippingAddress.city,
                         country: formattedShippingAddress.country,
                         houseNumberOrName: formattedShippingAddress.houseNumber,
@@ -58,14 +63,14 @@ use Magento\Framework\View\Element\Template;
                 }
 
                 if (formattedBillingAddress) {
-                    baseComponentConfiguration.personalDetails = {
+                    baseComponentConfiguration.data.personalDetails = {
                         firstName: formattedBillingAddress.firstName,
                         lastName: formattedBillingAddress.lastName,
                         telephoneNumber: formattedBillingAddress.telephone,
                         shopperEmail: email,
                         dateOfBirth: shopperDateOfBirth,
                     };
-                    baseComponentConfiguration.billingAddress = {
+                    baseComponentConfiguration.data.billingAddress = {
                         city: formattedBillingAddress.city,
                         country: formattedBillingAddress.country,
                         houseNumberOrName: formattedBillingAddress.houseNumber,
@@ -75,20 +80,6 @@ use Magento\Framework\View\Element\Template;
                 }
 
                 return baseComponentConfiguration;
-            }
-
-            getFormattedAddress(address) {
-                if (!address) return null;
-                return {
-                    city: address.city,
-                    country: address.countryId,
-                    houseNumber: address.street && address.street[1] ? address.street[1] : '',
-                    postalCode: address.postcode,
-                    street: address.street && address.street[0] ? address.street[0] : '',
-                    firstName: address.firstname,
-                    lastName: address.lastname,
-                    telephone: address.telephone
-                };
             }
         }
 
@@ -139,7 +130,7 @@ use Magento\Framework\View\Element\Template;
                             showPrimaryButton();
                         }
                     }).catch(() => {
-                    console.log(`Error occurred during ${methodCode} component load`);
+                    console.error(`Error occurred during ${methodCode} component load`);
                 });
             } catch (e) {
                 console.error('Error in init function:', e);
