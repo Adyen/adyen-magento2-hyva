@@ -45,20 +45,11 @@ jobs:
       - name: Switch to production mode
         run: docker exec -u www-data magento2-hyva-container make production
 
-#      - name: Setup permissions
-#        run: docker exec magento2-hyva-container make fs
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: List files in .github/scripts
-        run: ls -l .github/scripts
-
-      - name: Make script executable
-        run: chmod +x .github/scripts/e2e.sh
-
       - name: Run E2E tests
-        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh
+        run: |
+          chmod +x .github/scripts/e2e.sh && \
+          docker compose -f .github/docker-compose.e2e.yml run --rm --entrypoint sh playwright -c "ls -l /e2e.sh"
+#        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: ECP-9328
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
