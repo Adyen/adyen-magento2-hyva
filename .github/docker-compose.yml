@@ -30,6 +30,7 @@ services:
       MAGENTO_VERSION:
       DEPLOY_SAMPLEDATA: 1
       SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}
+      BRANCH_NAME: ${BRANCH_NAME}
     depends_on:
       - db
       - elastic
