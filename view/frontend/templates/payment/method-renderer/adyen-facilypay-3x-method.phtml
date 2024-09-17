@@ -52,6 +52,8 @@ use Magento\Framework\View\Element\Template;
                     formattedBillingAddress = this.getFormattedAddress(JSON.parse(billingAddress));
                 }
 
+                baseComponentConfiguration.data = {};
+
                 if (formattedShippingAddress) {
                     baseComponentConfiguration.data.deliveryAddress = {
                         city: formattedShippingAddress.city,

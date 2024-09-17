@@ -268,7 +268,6 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $this->quoteData = json_encode($quoteData);
         } catch (\Exception $e) {
             $this->logger->error('Could not process quote data: ' . $e->getMessage());
-            $this->quoteData = '{}';
         }
     }
 
@@ -281,12 +280,9 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
                     'shopper_date_of_birth' => $customer->getDob()
                 ];
                 $this->customerData = json_encode($customerData);
-            } else {
-                $this->customerData = '{}';
             }
         } catch (\Exception $e) {
             $this->logger->error('Could not process customer data: ' . $e->getMessage());
-            $this->customerData = '{}';
         }
     }
 }
