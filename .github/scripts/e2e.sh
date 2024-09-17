@@ -10,16 +10,5 @@ rm -rf package-lock.json
 npm i
 npx playwright install
 
-option="$1"
-  
-  # Run the desired group of tests
-case $option in
-"standard")
-echo "Running Standard Set of E2E Tests."
-npm run test:ci:magento
-;;
-"all")
-echo "Running All Magento E2E Tests"
-npm run test:ci:magento:all
-;;
-esac
+echo "Running Standard Set of HYVA E2E Tests."
+npm run test:ci:hyva
