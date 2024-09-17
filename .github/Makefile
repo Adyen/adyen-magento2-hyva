@@ -68,6 +68,6 @@ production:
 	bin/magento deploy:mode:set production
 
 MAGENTO_ROOT=/var/www/html
-GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
-GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
-GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
+#GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
+#GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
+#GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl

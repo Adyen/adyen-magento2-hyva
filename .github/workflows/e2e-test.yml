@@ -31,7 +31,7 @@ jobs:
         run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Install hyva
-        run: docker exec -u www-data magento2-hyva-container make hyva
+        run: docker exec -u www-data -v ${{ github.workspace }}:/data/extensions/workdir magento2-hyva-container make hyva
 
       - name: Setup permissions
         run: docker exec magento2-hyva-container make fs
