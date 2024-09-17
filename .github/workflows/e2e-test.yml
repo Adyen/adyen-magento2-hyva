@@ -31,6 +31,9 @@ jobs:
           else
             echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
           fi
+
+      - name: Set branch name
+        run: echo ${BRANCH_NAME}
 #
 #      - name: Install Magento
 #        run: docker compose -f .github/docker-compose.yml run --rm web make magento
