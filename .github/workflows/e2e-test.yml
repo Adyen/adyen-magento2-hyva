@@ -40,36 +40,36 @@ jobs:
 
       - name: Install hyva
         run: docker exec -u www-data magento2-hyva-container make hyva
-#
-#      - name: Setup permissions
-#        run: docker exec magento2-hyva-container make fs
-#
-#      - name: Check install
-#        run: docker exec magento2-hyva-container make sys-check
-#
-#      - name: Kill Cron Jobs
-#        run: docker exec magento2-hyva-container /etc/init.d/cron stop
-#
-#      - name: Switch to production mode
-#        run: docker exec -u www-data magento2-hyva-container make production
-#
-#      - name: Run E2E tests
-#        run: |
-#          chmod +x .github/scripts/e2e.sh && \
-#          docker compose -f .github/docker-compose.e2e.yml run --rm playwright /scripts/e2e.sh
-#        env:
-#          INTEGRATION_TESTS_BRANCH: ECP-9328
-#          MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-#          MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
-#          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
-#          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
-#          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
-#          WEBHOOK_USERNAME: admin
-#          WEBHOOK_PASSWORD: 1234
-#
-#      - name: Archive test result artifacts
-#        if: always()
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: html-report
-#          path: test-report
+
+      - name: Setup permissions
+        run: docker exec magento2-hyva-container make fs
+
+      - name: Check install
+        run: docker exec magento2-hyva-container make sys-check
+
+      - name: Kill Cron Jobs
+        run: docker exec magento2-hyva-container /etc/init.d/cron stop
+
+      - name: Switch to production mode
+        run: docker exec -u www-data magento2-hyva-container make production
+
+      - name: Run E2E tests
+        run: |
+          chmod +x .github/scripts/e2e.sh && \
+          docker compose -f .github/docker-compose.e2e.yml run --rm playwright /scripts/e2e.sh
+        env:
+          INTEGRATION_TESTS_BRANCH: ECP-9328
+          MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+          MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
+          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
+          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
+          WEBHOOK_USERNAME: admin
+          WEBHOOK_PASSWORD: 1234
+
+      - name: Archive test result artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-report
+          path: test-report
