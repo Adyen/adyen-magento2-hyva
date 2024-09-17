@@ -53,31 +53,6 @@ if [ "$USE_ELASTICSEARCH" == '1' ] && [ "$ELASTICSEARCH_SERVER" != "<will be def
 	echo "Elasticsearch server $ELASTICSEARCH_SERVER is available."
 fi
 
-# Install Magento
-#if [[ -e /tmp/magento.tar.gz ]]; then
-#	mv /tmp/magento.tar.gz /var/www/html
-#else
-#	echo "Magento 2 tar is already moved to /var/www/html"
-#fi
-#
-#if [[ -e /tmp/sample-data.tar.gz ]]; then
-#	mv /tmp/sample-data.tar.gz /var/www
-#else
-#	echo "Magento 2 sample data tar is already moved to /var/www"
-#fi
-#
-#if [[ -e /var/www/html/pub/index.php ]]; then
-#	echo "Already extracted Magento"
-#else
-#	tar -xf magento.tar.gz --strip-components 1
-#	rm magento.tar.gz
-#fi
-#
-#if [[ -d /var/www/html/vendor/magento ]]; then
-#	echo "Magento is already installed."
-#else
-#	composer install -n
-
 if [[ -e /var/www/html/composer.lock ]]; then
 	echo "Magento 2 is already installed."
 else
@@ -182,15 +157,9 @@ else
 	echo "ServerName is added to Apache config."
 fi
 
-#if [[ -e /tmp/enable_debugging.sh ]]; then
-#	echo "Configuring Xdebug"
-#	/tmp/enable_debugging.sh
-#fi
-
 chown -R www-data:www-data /var/www
 
 service php${PHP_VERSION}-fpm restart
-#service nginx restart
 
 /etc/init.d/cron start
 

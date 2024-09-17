@@ -53,7 +53,6 @@ jobs:
           chmod +x .github/scripts/e2e.sh && \ 
           docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh
         env:
-#          TODO: update the branch to develop or hyva-develop
           INTEGRATION_TESTS_BRANCH: ECP-9328
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
