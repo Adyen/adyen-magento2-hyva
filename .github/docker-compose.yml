@@ -7,8 +7,6 @@ services:
       args:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
-#        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
-#    image: ecommerce-plugins.local/magento2-hyva-dev:latest
     container_name: magento2-hyva-container
     networks:
       backend:
@@ -36,7 +34,6 @@ services:
       - db
       - elastic
     volumes:
-      - ssh:/root/.ssh
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
@@ -65,6 +62,5 @@ services:
 networks:
   backend:
 volumes:
-  ssh:
   magento:
   composer:
