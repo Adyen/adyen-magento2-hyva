@@ -1,6 +1,6 @@
 name: Magento-Hyva E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
-on: [pull_request]
+on: [pull_request, workflow_dispatch, push]
 
 jobs:
   build:
