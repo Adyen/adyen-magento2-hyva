@@ -23,7 +23,7 @@ services:
       - WEBHOOK_USERNAME
       - WEBHOOK_PASSWORD
     volumes:
-      - ./scripts/e2e.sh:/e2e.sh
+      - ./scripts:/scripts
       - ../test-report:/tmp/test-report
 networks:
   backend:
