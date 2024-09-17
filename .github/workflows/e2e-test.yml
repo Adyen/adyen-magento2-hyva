@@ -1,6 +1,6 @@
 name: Magento-Hyva E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
-on: [pull_request, workflow_dispatch, push]
+on: [pull_request, workflow_dispatch]
 
 jobs:
   build:
@@ -48,8 +48,7 @@ jobs:
       - name: Run E2E tests
         run: |
           chmod +x .github/scripts/e2e.sh && \
-          docker compose -f .github/docker-compose.e2e.yml run --rm --entrypoint sh playwright -c "ls -l /e2e.sh"
-#        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright e2e.sh
+          docker compose -f .github/docker-compose.e2e.yml run --rm --entrypoint sh playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: ECP-9328
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
