@@ -67,6 +67,9 @@ jobs:
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
 
+      - name: List all active docker containers
+        run: docker ps
+
       - name: Archive test result artifacts
         if: always()
         uses: actions/upload-artifact@v3
