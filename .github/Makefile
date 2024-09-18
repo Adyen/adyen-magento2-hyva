@@ -50,6 +50,7 @@ configure: n98-magerun2.phar
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	echo "configuration step ended"
+
 # Clear cache
 flush:
 	bin/magento cache:flush
