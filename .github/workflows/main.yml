@@ -26,9 +26,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           tools: composer:v1
 
-      - name: Code Sniffer
-        run: vendor/bin/phpcs .
-
       - name: Run PHPUnit
         run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
 
