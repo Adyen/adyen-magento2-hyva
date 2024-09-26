@@ -26,9 +26,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           tools: composer:v1
 
-      - name: Fix code coverage paths
-        run: sed -i "s;`pwd`/;;g" build/*.xml
-
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
