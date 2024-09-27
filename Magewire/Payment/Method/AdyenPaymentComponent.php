@@ -17,8 +17,10 @@ use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationInterface;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
+use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magewirephp\Magewire\Component;
 use Psr\Log\LoggerInterface;
 
@@ -47,6 +49,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     protected StateData $stateData;
     protected PaymentMethods $paymentMethods;
     protected PaymentInformationManagementInterface $paymentInformationManagement;
+    protected GuestPaymentInformationManagementInterface $guestPaymentInformationManagement;
+    protected QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId;
     protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus;
     protected AdyenPaymentsDetailsInterface $adyenPaymentsDetails;
     protected CustomerGroupHandler $customerGroupHandler;
@@ -63,6 +67,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         $this->stateData = $context->getStateData();
         $this->paymentMethods = $context->getPaymentMethods();
         $this->paymentInformationManagement = $context->getPaymentInformationManagement();
+        $this->guestPaymentInformationManagement = $context->getGuestPaymentInformationManagement();
+        $this->quoteIdToMaskedQuoteId = $this->context->getQuoteIdToMaskedQuoteId();
         $this->adyenOrderPaymentStatus = $context->getAdyenOrderPaymentStatus();
         $this->adyenPaymentsDetails = $context->getAdyenPaymentsDetails();
         $this->customerGroupHandler = $context->getCustomerGroupHandler();
@@ -98,10 +104,21 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $stateDataReceived = $this->collectValidatedStateData($data);
             //Temporary (per request) storage of state data
             $this->stateData->setStateData($stateDataReceived, (int) $quoteId);
-            $orderId = $this->paymentInformationManagement->savePaymentInformationAndPlaceOrder(
-                $quoteId,
-                $payment
-            );
+
+            if ($this->userIsGuest()) {
+                $email = $this->session->getQuote()->getCustomerEmail();
+                $maskedQuoteId = $this->quoteIdToMaskedQuoteId->execute((int) $quoteId);
+                $orderId = $this->guestPaymentInformationManagement->savePaymentInformationAndPlaceOrder(
+                    $maskedQuoteId,
+                    $email,
+                    $payment
+                );
+            } else {
+                $orderId = $this->paymentInformationManagement->savePaymentInformationAndPlaceOrder(
+                    $quoteId,
+                    $payment
+                );
+            }
             $this->paymentStatus = $this->adyenOrderPaymentStatus->getOrderPaymentStatus(strval($orderId));
         } catch (\Exception $exception) {
             $this->paymentStatus = json_encode(['isRefused' => true]);
