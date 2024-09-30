@@ -22,7 +22,7 @@ jobs:
       SSH_PRIVATE_KEY: ${{secrets.GITLAB_SSH_KEY}}
       DEPLOY_SAMPLEDATA: 1
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set branch name
         run: |
@@ -52,6 +52,11 @@ jobs:
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-hyva-container make production
+
+      - name: Check enabled magento theme
+        run: |
+          docker exec -u www-data magento2-hyva-container cd var/www/html 
+          bin/magento theme:show
 
       - name: Run E2E tests
         run: |
