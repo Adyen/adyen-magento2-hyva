@@ -55,7 +55,7 @@ jobs:
 
       - name: Check enabled Magento theme
         run: |
-          docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento theme:show"
+          docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show | grep 'hyva_themes_checkout/general/checkout'"
 
       - name: Run E2E tests
         run: |
