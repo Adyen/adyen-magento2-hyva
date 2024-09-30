@@ -58,12 +58,12 @@ jobs:
           chmod +x .github/scripts/e2e.sh && \
           docker compose -f .github/docker-compose.e2e.yml run --rm playwright /scripts/e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: hyva-develop
+          INTEGRATION_TESTS_BRANCH: ECP-9478
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
-#          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
-#          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
+          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
+          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
 
