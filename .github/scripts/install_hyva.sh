@@ -22,6 +22,7 @@ echo "dev-${BRANCH_NAME}"
 composer require adyen/module-hyva-checkout:dev-${BRANCH_NAME}
 bin/magento config:set dev/template/minify_html 0
 bin/magento config:set hyva-default-theme/general/enable 1 --lock-config
+bin/magento config:set design/theme/theme_id 5
 bin/magento module:enable --all
 bin/magento setup:upgrade
 bin/magento setup:di:compile
