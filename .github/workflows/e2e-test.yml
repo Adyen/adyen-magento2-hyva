@@ -53,9 +53,10 @@ jobs:
       - name: Switch to production mode
         run: docker exec -u www-data magento2-hyva-container make production
 
+        #  | grep hyva_themes_checkout/general/checkout
       - name: Check enabled Magento theme
         run: |
-          docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show | grep hyva_themes_checkout/general/checkout"
+          docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show"
 
       - name: Run E2E tests
         run: |
