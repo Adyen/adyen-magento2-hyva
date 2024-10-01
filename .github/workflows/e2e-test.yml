@@ -54,7 +54,7 @@ jobs:
         run: docker exec -u www-data magento2-hyva-container make production
 
       - name: Set HYVA as theme and default checkout
-        run: docker exec -i mariadb make set_hyva_checkout
+        run: docker exec -i mariadb make checkout
 
       - name: Refresh Setup
         run:
