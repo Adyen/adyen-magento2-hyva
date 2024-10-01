@@ -60,7 +60,7 @@ jobs:
 
       - name: Check HYVA Checkout module status
         run: |
-          docker exec -u www-data magento2-hyva-container bash bin/magento module:status Hyva_Checkout
+          docker exec -u www-data magento2-hyva-container bin/magento module:status hyva_checkout
 
       - name: Check DB for enabled Checkout Module
         run: |
