@@ -55,7 +55,6 @@ jobs:
 
       - name: List Installed Themes
         run: |
-          docker exec -i mariadb mysql -umagento -pmagento magento -e 'SHOW TABLES;'
           docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT theme_id, theme_title, code FROM m2_theme;"
 
       - name: Check enabled Magento theme
