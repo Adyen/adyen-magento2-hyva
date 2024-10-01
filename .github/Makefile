@@ -49,7 +49,6 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
-#	bin/magento config:set dev/template/minify_html 0
 	echo "configuration step ended"
 
 # Clear cache
@@ -68,6 +67,10 @@ fs:
 # Production mode
 production:
 	bin/magento deploy:mode:set production
+
+set_hyva_checkout:
+	mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
+	mysql -umagento -pmagento magento -e "INSERT INTO m2_core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'hyva_themes_checkout/general/checkout', 'default');"
 
 MAGENTO_ROOT=/var/www/html
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
