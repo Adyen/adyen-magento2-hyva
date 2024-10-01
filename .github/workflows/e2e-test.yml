@@ -54,11 +54,9 @@ jobs:
         run: docker exec -u www-data magento2-hyva-container make production
 
       - name: Set HYVA as theme and default checkout
-        run: docker exec -i mariadb make checkout
-
-      - name: Refresh Setup
-        run:
-          docker exec -u www-data magento2-hyva-container bin/magento setup:static-content:deploy -f
+        run: |
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "INSERT INTO m2_core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'hyva_themes_checkout/general/checkout', 'default');"
 
       - name: Run E2E tests
         run: |

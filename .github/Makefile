@@ -68,12 +68,6 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
-checkout: set-hyva-theme flush
-
-set-hyva-theme:
-	mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
-	mysql -umagento -pmagento magento -e "INSERT INTO m2_core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'hyva_themes_checkout/general/checkout', 'default');"
-
 MAGENTO_ROOT=/var/www/html
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
 GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
