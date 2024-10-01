@@ -24,7 +24,14 @@ bin/magento config:set dev/template/minify_html 0
 bin/magento config:set hyva-default-theme/general/enable 1 --lock-config
 bin/magento config:set design/theme/theme_id 5
 bin/magento module:enable --all
+
+rm -rf generated/metadata
+rm -rf generated/code
+rm -rf pub/static/adminhtml/*
+rm -rf pub/static/frontend/*
+
 bin/magento setup:upgrade
 bin/magento setup:di:compile
 bin/magento setup:static-content:deploy -f
-bin/magento cache:clean
+bin/magento cache:flush
+
