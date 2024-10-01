@@ -68,7 +68,9 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
-set_hyva_checkout:
+set_hyva_checkout: set-config-db flush
+
+set-config-db:
 	mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
 	mysql -umagento -pmagento magento -e "INSERT INTO m2_core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'hyva_themes_checkout/general/checkout', 'default');"
 

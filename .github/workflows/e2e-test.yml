@@ -54,11 +54,10 @@ jobs:
         run: docker exec -u www-data magento2-hyva-container make production
 
       - name: Set HYVA as theme and default checkout
-        run: docker exec -i mariadb mysql -umagento -pmagento magento -e make set_hyva_checkout
+        run: docker exec -i mariadb make set_hyva_checkout
 
-      - name: Check DB for enabled Checkout Module
-        run: |
-          docker exec -u www-data magento2-hyva-container make flush
+      - name: Refresh Setup
+        run:
           docker exec -u www-data magento2-hyva-container bin/magento setup:static-content:deploy -f
 
       - name: Run E2E tests
