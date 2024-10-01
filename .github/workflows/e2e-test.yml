@@ -53,24 +53,20 @@ jobs:
       - name: Switch to production mode
         run: docker exec -u www-data magento2-hyva-container make production
 
-      - name: List Installed Themes
-        run: |
-          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT theme_id, theme_title, code FROM m2_theme;"
-
-      - name: Show Core-Config-Data
-        run: |
-          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data WHERE path = 'design/theme/theme_id';"
-
       - name: Set the theme value in Config table
         run: |
           docker exec -i mariadb mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
           docker exec -u www-data magento2-hyva-container bin/magento cache:flush
 
-      - name: Refresh the Setup
+      - name: Check HYVA Checkout module status
         run: |
-           docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show | grep design/theme/theme_id"
+          docker exec -u www-data magento2-hyva-container bash bin/magento module:status Hyva_Checkout
 
-      - name: Check enabled Magento theme
+      - name: Check DB for enabled Checkout Module
+        run: |
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data WHERE path LIKE 'checkout/options/';"
+
+      - name: Refresh the Setup
         run: |
           docker exec -u www-data magento2-hyva-container make refresh
 
