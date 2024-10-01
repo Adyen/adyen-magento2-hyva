@@ -11,7 +11,7 @@ sys-check: n98-magerun2.phar
 magento:
 	sed '/exec /d' /tmp/install_magento.sh | bash
 
-hyva: install-hyva configure flush
+hyva: install-hyva refresh configure flush
 
 # Hyva install
 install-hyva:
@@ -72,7 +72,18 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
+refresh:
+	rm -rf generated/metadata
+	rm -rf generated/code
+	rm -rf pub/static/adminhtml/*
+	rm -rf pub/static/frontend/*
+
+	bin/magento setup:up
+	bin/magento setup:di:compile
+	bin/magento setup:static-content:deploy -f
+	bin/magento cache:flush
+
 MAGENTO_ROOT=/var/www/html
-#GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
-#GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
-#GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
+GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
+GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
+GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
