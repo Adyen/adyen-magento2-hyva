@@ -57,9 +57,13 @@ jobs:
         run: |
           docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT theme_id, theme_title, code FROM m2_theme;"
 
+      - name: Show Core-Config-Data
+        run: |
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data WHERE path = 'design/theme/theme_id';"
+
       - name: Check enabled Magento theme
         run: |
-           docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show"
+           docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show | grep design/theme/theme_id"
 
       - name: Run E2E tests
         run: |
