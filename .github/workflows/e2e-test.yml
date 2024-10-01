@@ -61,6 +61,11 @@ jobs:
         run: |
           docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data WHERE path = 'design/theme/theme_id';"
 
+      - name: Set the theme value in Config table
+        run: |
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "UPDATE core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
+          docker exec -u www-data magento2-hyva-container bin/magento cache:flush
+
       - name: Check enabled Magento theme
         run: |
            docker exec -u www-data magento2-hyva-container bash -c "cd /var/www/html && bin/magento config:show | grep design/theme/theme_id"
