@@ -55,7 +55,7 @@ jobs:
 
       - name: List Installed Themes
         run: |
-          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM core_config_data;"
+          docker exec -i mariadb mysql -umagento -pmagento magento -e 'SHOW TABLES;'
 
       - name: Check enabled Magento theme
         run: |
