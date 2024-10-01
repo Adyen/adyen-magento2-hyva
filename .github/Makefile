@@ -51,8 +51,8 @@ configure: n98-magerun2.phar
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 
 	bin/magento config:set dev/template/minify_html 0
-    bin/magento config:set hyva-default-theme/general/enable 1 --lock-config
-    bin/magento config:set design/theme/theme_id 5
+	bin/magento config:set hyva-default-theme/general/enable 1 --lock-config
+	bin/magento config:set design/theme/theme_id 5
 
 	echo "configuration step ended"
 
