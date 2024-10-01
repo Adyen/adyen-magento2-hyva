@@ -68,6 +68,17 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
+refresh:
+	rm -rf generated/metadata
+	rm -rf generated/code
+	rm -rf pub/static/adminhtml/*
+	rm -rf pub/static/frontend/*
+
+	bin/magento setup:upgrade
+	bin/magento setup:di:compile
+	bin/magento setup:static-content:deploy -f
+	bin/magento cache:flush
+
 MAGENTO_ROOT=/var/www/html
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
 GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
