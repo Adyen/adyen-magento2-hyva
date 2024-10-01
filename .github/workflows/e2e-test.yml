@@ -56,6 +56,7 @@ jobs:
       - name: List Installed Themes
         run: |
           docker exec -i mariadb mysql -umagento -pmagento magento -e 'SHOW TABLES;'
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT theme_id, theme_title, code FROM m2_theme;"
 
       - name: Check enabled Magento theme
         run: |
@@ -66,7 +67,7 @@ jobs:
           chmod +x .github/scripts/e2e.sh && \
           docker compose -f .github/docker-compose.e2e.yml run --rm playwright /scripts/e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: ECP-9478
+          INTEGRATION_TESTS_BRANCH: hyva-develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
