@@ -60,15 +60,11 @@ jobs:
 
       - name: Check HYVA Checkout module status
         run: |
-          docker exec -u www-data magento2-hyva-container bin/magento module:status hyva_checkout
+          docker exec -u www-data magento2-hyva-container bin/magento module:status
 
       - name: Check DB for enabled Checkout Module
         run: |
-          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data WHERE path LIKE 'checkout/options/';"
-
-      - name: Refresh the Setup
-        run: |
-          docker exec -u www-data magento2-hyva-container make refresh
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "SELECT * FROM m2_core_config_data;"
 
       - name: Run E2E tests
         run: |

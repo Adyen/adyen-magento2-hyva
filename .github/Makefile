@@ -11,7 +11,7 @@ sys-check: n98-magerun2.phar
 magento:
 	sed '/exec /d' /tmp/install_magento.sh | bash
 
-hyva: install-hyva refresh configure flush
+hyva: install-hyva configure flush
 
 # Hyva install
 install-hyva:
@@ -49,10 +49,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
-
-	bin/magento config:set dev/template/minify_html 0
-#	bin/magento config:set design/theme/theme_id 5
-
+#	bin/magento config:set dev/template/minify_html 0
 	echo "configuration step ended"
 
 # Clear cache
@@ -71,17 +68,6 @@ fs:
 # Production mode
 production:
 	bin/magento deploy:mode:set production
-
-refresh:
-	rm -rf generated/metadata
-	rm -rf generated/code
-	rm -rf pub/static/adminhtml/*
-	rm -rf pub/static/frontend/*
-
-	bin/magento setup:up
-	bin/magento setup:di:compile
-	bin/magento setup:static-content:deploy -f
-	bin/magento cache:flush
 
 MAGENTO_ROOT=/var/www/html
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
