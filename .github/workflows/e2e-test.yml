@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: check
+        run:
+          echo "$ADYEN_CLIENT_KEY"
+          echo "ADYEN_MERCHANT"
+          echo "ADYEN_API_KEY"
       - name: Set Branch Name
         run: |
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
