@@ -70,6 +70,11 @@ production:
 	bin/magento deploy:mode:set production
 
 refresh:
+	rm -rf generated/metadata
+	rm -rf generated/code
+	rm -rf pub/static/adminhtml/*
+	rm -rf pub/static/frontend/*
+
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
 	bin/magento setup:static-content:deploy -f
