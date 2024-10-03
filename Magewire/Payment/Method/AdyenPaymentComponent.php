@@ -42,6 +42,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     public ?string $paymentDetails = null;
     public ?string $billingAddress = null;
     public ?string $shippingAddress = null;
+    public ?string $quoteData = null;
+    public ?string $customerData = null;
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
     protected Configuration $configuration;
@@ -155,6 +157,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         $this->processRequiresShipping();
         $this->processPaymentResponse();
         $this->processQuoteAddresses();
+        $this->processQuoteData();
+        $this->processCustomerData();
     }
 
     /**
@@ -269,5 +273,33 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
         }
 
         return $filteredAddress;
+    }
+
+    private function processQuoteData(): void
+    {
+        try {
+            $quote = $this->session->getQuote();
+            $quoteData = [
+                'shopper_email' => $quote->getCustomerEmail(),
+            ];
+            $this->quoteData = json_encode($quoteData);
+        } catch (\Exception $e) {
+            $this->logger->error('Could not process quote data: ' . $e->getMessage());
+        }
+    }
+
+    private function processCustomerData(): void
+    {
+        try {
+            $customer = $this->session->getQuote()->getCustomer();
+            if ($customer && $customer->getId()) {
+                $customerData = [
+                    'shopper_date_of_birth' => $customer->getDob()
+                ];
+                $this->customerData = json_encode($customerData);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Could not process customer data: ' . $e->getMessage());
+        }
     }
 }
