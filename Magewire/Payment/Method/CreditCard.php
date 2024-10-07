@@ -9,7 +9,7 @@ use Adyen\Hyva\Model\CreditCard\BrandsManager;
 use Adyen\Hyva\Model\CreditCard\InstallmentsManager;
 use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
-use Magento\Checkout\Model\Session as SessionCheckout;
+
 class CreditCard extends AdyenPaymentComponent
 {
     const METHOD_CC = 'adyen_cc';
@@ -18,9 +18,7 @@ class CreditCard extends AdyenPaymentComponent
     public function __construct(
         private readonly Context $context,
         private readonly BrandsManager $brandsManager,
-        private readonly InstallmentsManager $installmentsManager,
-        private readonly SessionCheckout $sessionCheckout
-
+        private readonly InstallmentsManager $installmentsManager
     ) {
         parent::__construct($this->context);
     }
@@ -38,10 +36,8 @@ class CreditCard extends AdyenPaymentComponent
      */
     public function evaluateCompletion(EvaluationResultFactory $resultFactory): EvaluationResult
     {
-        $payment = $this->sessionCheckout->getQuote()->getPayment();
-        return $payment->getMethod() === 'adyen_cc' && !$payment->getAdditionalData()
-            ? $resultFactory->createBlocking()
-            : $resultFactory->createSuccess();
+        return $resultFactory->createSuccess();
+
     }
 
     public function refreshProperties(): void
