@@ -1,0 +1,86 @@
+name: Magento-Hyva E2E Pipeline
+run-name: Adyen Magento 2 Payment Plugin E2E tests
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    runs-on:
+      group: larger-runners
+      labels: ubuntu-latest-8-cores
+    timeout-minutes: 25
+    env:
+      PHP_VERSION: "8.1"
+      MAGENTO_VERSION: "2.4.5"
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      SSH_PRIVATE_KEY: ${{secrets.GITLAB_SSH_KEY}}
+      DEPLOY_SAMPLEDATA: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Branch Name
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            echo "BRANCH_NAME=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          fi
+
+      - name: Install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker compose -f .github/docker-compose.yml up -d web
+
+      - name: Install Hyva
+        run: docker exec -u www-data magento2-hyva-container make hyva
+
+      - name: Set HYVA as theme and default checkout
+        run: |
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "UPDATE m2_core_config_data SET value = '5' WHERE path = 'design/theme/theme_id' AND scope = 'default';"
+          docker exec -i mariadb mysql -umagento -pmagento magento -e "INSERT INTO m2_core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'hyva_themes_checkout/general/checkout', 'default');"
+
+      - name: Refresh Setup
+        run: docker exec magento2-hyva-container make refresh
+
+      - name: Setup Permissions
+        run: docker exec magento2-hyva-container make fs
+
+      - name: Check Install
+        run: docker exec magento2-hyva-container make sys-check
+
+      - name: Kill Cron Jobs
+        run: docker exec magento2-hyva-container /etc/init.d/cron stop
+
+      - name: Switch to Production Mode
+        run: docker exec -u www-data magento2-hyva-container make production
+
+      - name: Run E2E Tests
+        run: |
+          chmod +x .github/scripts/e2e.sh && \
+          docker compose -f .github/docker-compose.e2e.yml run --rm playwright /scripts/e2e.sh
+        env:
+          INTEGRATION_TESTS_BRANCH: hyva-develop
+          MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+          MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
+          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
+          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
+          WEBHOOK_USERNAME: admin
+          WEBHOOK_PASSWORD: 1234
+
+      - name: List all active docker containers
+        run: docker ps
+
+      - name: Archive test result artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: test-report
