@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Adyen\Hyva\Model;
 
 use Exception;
-use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Psr\Log\LoggerInterface;
@@ -16,8 +15,8 @@ class Configuration
 
     public function __construct(
         CompositeConfigProvider $configProvider,
-        DataObjectFactory $dataObjectFactory,
-        LoggerInterface $logger
+        DataObjectFactory       $dataObjectFactory,
+        LoggerInterface         $logger
     ) {
         try {
             if (isset($configProvider->getConfig()['payment'])) {
