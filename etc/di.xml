@@ -42,4 +42,21 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Adyen\Hyva\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="ccform" xsi:type="object">Magento\Payment\Model\CcGenericConfigProvider</item>
+                <item name="cc_card_config_provider" xsi:type="object">Magento\Payment\Model\CcConfigProvider</item>
+                <item name="tax_config_provider" xsi:type="object">Magento\Tax\Model\TaxConfigProvider</item>
+                <item name="vault_config_provider" xsi:type="object">Magento\Vault\Model\Ui\VaultConfigProvider</item>
+                <item name="vault_cards_config_provider" xsi:type="object">Magento\Vault\Model\Ui\TokensConfigProvider</item>
+                <item name="adyen_generic_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider</item>
+                <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider</item>
+                <item name="adyen_pm_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPmConfigProvider</item>
+                <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
+                <item name="adyen_giftcard_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
