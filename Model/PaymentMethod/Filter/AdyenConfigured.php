@@ -74,7 +74,7 @@ class AdyenConfigured implements FilterInterface
     private function collectMethodCodeWithoutPrefix($methodCode): string
     {
         if ($methodCode == CreditCard::METHOD_CC) {
-            return 'card';
+            return 'scheme';
         }
 
         return substr(
