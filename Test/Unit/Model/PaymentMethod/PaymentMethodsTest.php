@@ -86,11 +86,11 @@ class PaymentMethodsTest extends \PHPUnit\Framework\TestCase
                 'paymentMethodsResponse' => [
                     'paymentMethodsResponse' => [
                         'paymentMethods' => [
-                            'card' => [
+                            [
                                 'type' => 'scheme',
                                 'brands' => ['mc', 'visa'],
                             ],
-                            'somethings_else' => [
+                            [
                                 'type' => 'something_else',
                                 'brands' => [],
                             ],

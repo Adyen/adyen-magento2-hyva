@@ -74,11 +74,11 @@ class BrandsManagerTest extends \PHPUnit\Framework\TestCase
                 'paymentMethodsResponse' => [
                     'paymentMethodsResponse' => [
                         'paymentMethods' => [
-                            'card' => [
+                            [
                                 'type' => 'scheme',
                                 'brands' => ['mc', 'visa'],
                             ],
-                            'somethings_irrelevant' => [
+                            [
                                 'type' => 'somethings_irrelevant',
                                 'brands' => [],
                             ],
