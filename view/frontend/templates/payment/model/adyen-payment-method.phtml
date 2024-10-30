@@ -342,6 +342,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
 
         placeOrder(data, publicHash = null) {
+            window.dispatchEvent(new Event('magewire:loader:start'));
             let self = this;
             let wire = self.wire;
 
@@ -355,6 +356,8 @@ $billingAddress = $block->getQuoteBillingAddress();
                     self.handleAdyenResult(paymentStatus);
                 }).catch(() => {
                     console.log('Error occurred during order placement')
+                }).finish(() =>  {
+                    window.dispatchEvent(new Event('magewire:loader:done')
                 });
         }
 
