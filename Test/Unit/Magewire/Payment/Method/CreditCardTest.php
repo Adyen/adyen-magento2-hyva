@@ -244,11 +244,10 @@ class CreditCardTest extends \PHPUnit\Framework\TestCase
 
     private function setRefreshPropertiesCommonExpectations($quoteId)
     {
-        $this->session->expects($this->exactly(2))
-            ->method('getQuote')
+        $this->session->method('getQuote')
             ->willReturn($this->quote);
 
-        $this->quote->expects($this->once())
+        $this->quote->expects($this->exactly(2))
             ->method('getShippingAddress');
 
         $this->session->expects($this->once())
