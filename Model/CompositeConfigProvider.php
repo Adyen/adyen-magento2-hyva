@@ -7,20 +7,24 @@ namespace Adyen\Hyva\Model;
 use Magento\Checkout\Model\ConfigProviderInterface;
 class CompositeConfigProvider implements ConfigProviderInterface
 {
-    private $configProviders;
-
+    /**
+     * @param array $configProviders
+     */
     public function __construct(
-        array $configProviders
-    ) {
-        $this->configProviders = $configProviders;
-    }
+        private readonly array $configProviders
+    ) { }
 
-    public function getConfig()
+    /**
+     * @return array
+     */
+    public function getConfig(): array
     {
         $config = [];
+
         foreach ($this->configProviders as $configProvider) {
             $config = array_merge_recursive($config, $configProvider->getConfig());
         }
+
         return $config;
     }
 }
