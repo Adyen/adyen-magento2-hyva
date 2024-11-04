@@ -26,7 +26,7 @@ $billingAddress = $block->getQuoteBillingAddress();
                 <div id="adyen-popup"></div>
             </div>
         END_OF_CONTENT;
-        $modalViewModel->createModal()
+        echo $modalViewModel->createModal()
                        ->withDialogRefName('adyenPopup')
                        ->removeDialogClass('p-10')
                        ->addDialogClass('p-4')
@@ -65,7 +65,7 @@ $billingAddress = $block->getQuoteBillingAddress();
 
     window.addEventListener('checkout:payment:method-activate', event => {
         try {
-            const availableMethods = <?= $escaper->escapeHtml($availableMethods) ?>;
+            const availableMethods = <?= /* @noEscape */ $availableMethods ?>;
             const activeMethodCode = event.detail.method;
             window.adyenActiveMethodCode = activeMethodCode;
 
@@ -129,7 +129,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
 
         getCcCodeByAltCode(altCode) {
-            let ccTypes = <?= $escaper->escapeHtml($block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt')) ?>[this.getPaymentMethodCode()];
+            let ccTypes = <?= /* @noEscape */ $block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt') ?>[this.getPaymentMethodCode()];
 
             if (ccTypes.hasOwnProperty(altCode)) {
                 return ccTypes[altCode];
@@ -269,8 +269,8 @@ $billingAddress = $block->getQuoteBillingAddress();
 
         buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
             let showPayButton = false;
-            let formattedShippingAddress = <?= $escaper->escapeHtml($shippingAddress) ?>;
-            let formattedBillingAddress = <?= $escaper->escapeHtml($billingAddress) ?>;
+            let formattedShippingAddress = <?= /* @noEscape */ $shippingAddress ?>;
+            let formattedBillingAddress = <?= /* @noEscape */ $billingAddress ?>;
 
             let configuration = {
                 ...paymentMethod,
