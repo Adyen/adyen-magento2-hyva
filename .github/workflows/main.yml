@@ -34,17 +34,16 @@ jobs:
           composer config repositories.hyva-default-theme git git@gitlab.hyva.io:hyva-themes/magento2-default-theme.git
 
       - name: Configure SSH access to Hyvä Gitlab
-        run: |
-          mkdir ~/.ssh
-          echo "${HYVA_GITLAB_SSH_KEY}" >> ~/.ssh/hyva_id_rsa
-          chmod 600 ~/.ssh/hyva_id_rsa
-          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
-          echo "Host gitlab.hyva.io" >> ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
-          echo "  IdentityFile /var/www/.ssh/hyva_id_rsa" >> ~/.ssh/config
-          chmod 600 ~/.ssh/config
         env:
-          HYVA_GITLAB_SSH_KEY: ${{secrets.GITLAB_SSH_KEY}}
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          HYVA_GITLAB_SSH_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+          echo "${HYVA_GITLAB_SSH_KEY}" > ~/.ssh/hyva_id_rsa
+          chmod 600 ~/.ssh/hyva_id_rsa
+          ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null	
+          ssh-add ~/.ssh/hyva_id_rsa
 
       - name: Install the plugin
         run: |
@@ -52,6 +51,7 @@ jobs:
           composer install --prefer-dist
         env:
           CI: true
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
           MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
