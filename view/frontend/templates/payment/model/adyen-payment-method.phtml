@@ -19,17 +19,19 @@ $billingAddress = $block->getQuoteBillingAddress();
 
 ?>
 <div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
-    <?= $modalViewModel->createModal()
+    <?php
+        $endOfContent = <<<END_OF_CONTENT
+            <div class="relative">
+                {$block->getBlockHtml('block-loader')}
+                <div id="adyen-popup"></div>
+            </div>
+        END_OF_CONTENT;
+        $modalViewModel->createModal()
                        ->withDialogRefName('adyenPopup')
                        ->removeDialogClass('p-10')
                        ->addDialogClass('p-4')
-                       ->withContent(<<<END_OF_CONTENT
-                        <div class="relative">
-                            {$escaper->escapeHtml($block->getBlockHtml('block-loader'))}
-                            <div id="adyen-popup"></div>
-                        </div>
-                        END_OF_CONTENT
-                       ) ?>
+                       ->withContent($escaper->escapeHtml($endOfContent))
+    ?>
 </div>
 
 <script>
