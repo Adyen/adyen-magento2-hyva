@@ -16,5 +16,11 @@
         "psr-4": {
             "Adyen\\Hyva\\": ""
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    ]
 }
