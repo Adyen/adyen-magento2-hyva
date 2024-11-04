@@ -3,13 +3,13 @@
 namespace Adyen\Hyva\Test\Unit\Model;
 
 use Adyen\Hyva\Model\Configuration;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Framework\DataObjectFactory;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
-class ConfigurationTest extends TestCase
+class ConfigurationTest extends AbstractAdyenTestCase
 {
     private Configuration $configuration;
     private CompositeConfigProvider|MockObject $configProvider;
@@ -26,12 +26,8 @@ class ConfigurationTest extends TestCase
                 ]
         ];
 
-        $this->configProvider = $this->getMockBuilder(CompositeConfigProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->dataObjectFactory = $this->getMockBuilder(DataObjectFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->configProvider = $this->createGeneratedMock(CompositeConfigProvider::class, ['create']);
+        $this->dataObjectFactory = $this->createGeneratedMock(DataObjectFactory::class, ['create']);
         $this->logger = $this->getMockBuilder(LoggerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
