@@ -26,7 +26,9 @@ class ConfigurationTest extends AbstractAdyenTestCase
                 ]
         ];
 
-        $this->configProvider = $this->createGeneratedMock(CompositeConfigProvider::class, ['create']);
+        $this->configProvider = $this->getMockBuilder(CompositeConfigProvider::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->dataObjectFactory = $this->createGeneratedMock(DataObjectFactory::class, ['create']);
         $this->logger = $this->getMockBuilder(LoggerInterface::class)
             ->disableOriginalConstructor()
