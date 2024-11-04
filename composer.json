@@ -22,5 +22,10 @@
             "type": "composer",
             "url": "https://repo.magento.com/"
         }
-    ]
+    ],
+    "config": {
+        "allow-plugins": {
+            "magento/composer-dependency-version-audit-plugin": true
+        }
+    }
 }
