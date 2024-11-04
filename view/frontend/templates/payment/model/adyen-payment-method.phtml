@@ -26,11 +26,11 @@ $billingAddress = $block->getQuoteBillingAddress();
                 <div id="adyen-popup"></div>
             </div>
         END_OF_CONTENT;
-        echo $modalViewModel->createModal()
+        /* @noEscape */ echo $modalViewModel->createModal()
                        ->withDialogRefName('adyenPopup')
                        ->removeDialogClass('p-10')
                        ->addDialogClass('p-4')
-                       ->withContent($escaper->escapeHtml($endOfContent))
+                       ->withContent($endOfContent)
     ?>
 </div>
 
