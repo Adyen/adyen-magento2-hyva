@@ -35,6 +35,7 @@ jobs:
 
       - name: Configure SSH access to Hyvä Gitlab
         run: |
+          mkdir ~/.ssh
           echo "${HYVA_GITLAB_SSH_KEY}" >> ~/.ssh/hyva_id_rsa
           chmod 600 ~/.ssh/hyva_id_rsa
           ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
