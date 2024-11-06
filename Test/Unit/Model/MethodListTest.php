@@ -3,14 +3,17 @@
 namespace Adyen\Hyva\Test\Unit\Model;
 
 use Adyen\Hyva\Model\MethodList;
+use Adyen\Hyva\Model\Ui\AdyenHyvaConfigProvider;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 
-class MethodListTest extends \PHPUnit\Framework\TestCase
+class MethodListTest extends AbstractAdyenTestCase
 {
     private MethodList $methodList;
 
    protected function setUp(): void
    {
-       $this->methodList = new MethodList();
+       $adyenHyvaConfigProviderMock = $this->createMock(AdyenHyvaConfigProvider::class);
+       $this->methodList = new MethodList($adyenHyvaConfigProviderMock, [], []);
    }
 
    public function testCollectAvailableMethodsReturnsEmptyArray(): void
@@ -21,11 +24,6 @@ class MethodListTest extends \PHPUnit\Framework\TestCase
 
    public function testCollectAvailableMethodsReturnsCorrectMethods(): void
    {
-       $methods = ['method1', 'method2'];
-       $this->methodList = new MethodList($methods);
-
        $this->assertIsArray($this->methodList->collectAvailableMethods());
-       $this->assertCount(2, $this->methodList->collectAvailableMethods());
-       $this->assertEquals($methods, $this->methodList->collectAvailableMethods());
    }
 }

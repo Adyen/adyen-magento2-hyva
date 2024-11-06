@@ -19,17 +19,19 @@ $billingAddress = $block->getQuoteBillingAddress();
 
 ?>
 <div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
-    <?= $modalViewModel->createModal()
+    <?php
+        $endOfContent = <<<END_OF_CONTENT
+            <div class="relative">
+                {$block->getBlockHtml('block-loader')}
+                <div id="adyen-popup"></div>
+            </div>
+        END_OF_CONTENT;
+        /* @noEscape */ echo $modalViewModel->createModal()
                        ->withDialogRefName('adyenPopup')
                        ->removeDialogClass('p-10')
                        ->addDialogClass('p-4')
-                       ->withContent(<<<END_OF_CONTENT
-                        <div class="relative">
-                            {$block->getBlockHtml('block-loader')}
-                            <div id="adyen-popup"></div>
-                        </div>
-                        END_OF_CONTENT
-                       ) ?>
+                       ->withContent($endOfContent)
+    ?>
 </div>
 
 <script>
@@ -63,7 +65,7 @@ $billingAddress = $block->getQuoteBillingAddress();
 
     window.addEventListener('checkout:payment:method-activate', event => {
         try {
-            const availableMethods = <?= $availableMethods ?>;
+            const availableMethods = <?= /* @noEscape */ $availableMethods ?>;
             const activeMethodCode = event.detail.method;
             window.adyenActiveMethodCode = activeMethodCode;
 
@@ -127,7 +129,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
 
         getCcCodeByAltCode(altCode) {
-            let ccTypes = <?= $block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt') ?>[this.getPaymentMethodCode()];
+            let ccTypes = <?= /* @noEscape */ $block->getConfiguration()->getJsonValue('ccform/availableTypesByAlt') ?>[this.getPaymentMethodCode()];
 
             if (ccTypes.hasOwnProperty(altCode)) {
                 return ccTypes[altCode];
@@ -267,8 +269,8 @@ $billingAddress = $block->getQuoteBillingAddress();
 
         buildConfiguration(paymentMethod, paymentMethodsExtraInfo = {}) {
             let showPayButton = false;
-            let formattedShippingAddress = <?= $shippingAddress ?>;
-            let formattedBillingAddress = <?= $billingAddress ?>;
+            let formattedShippingAddress = <?= /* @noEscape */ $shippingAddress ?>;
+            let formattedBillingAddress = <?= /* @noEscape */ $billingAddress ?>;
 
             let configuration = {
                 ...paymentMethod,
@@ -362,7 +364,7 @@ $billingAddress = $block->getQuoteBillingAddress();
             let self = this;
 
             if (responseJSON.isRefused) {
-                self.renderMessage("<?= __("The Payment is Refused") ?>");
+                self.renderMessage("<?= $escaper->escapeHtml(__("The Payment is Refused")) ?>");
                 setTimeout(() => {
                     self.clearMessage();
                 }, 4000);
@@ -457,7 +459,7 @@ $billingAddress = $block->getQuoteBillingAddress();
             let street = '';
             let houseNumber = '';
 
-            let getHouseNumberStreetLineConfig = "<?= $houseNumberStreetLine ?>";
+            let getHouseNumberStreetLineConfig = "<?= $escaper->escapeHtml($houseNumberStreetLine) ?>";
 
             city = address.city;
             country = address.country_id;
