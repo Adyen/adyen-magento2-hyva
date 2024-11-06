@@ -354,10 +354,10 @@ $billingAddress = $block->getQuoteBillingAddress();
                 .then(() => {
                     let paymentStatus = JSON.parse(wire.get('paymentStatus'));
                     self.handleAdyenResult(paymentStatus);
-                }).catch(() => {
-                    console.log('Error occurred during order placement')
-                }).finish(() =>  {
                     window.dispatchEvent(new Event('magewire:loader:done'));
+                }).catch(() => {
+                    window.dispatchEvent(new Event('magewire:loader:done'));
+                    console.log('Error occurred during order placement');
                 });
         }
 
