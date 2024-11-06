@@ -357,7 +357,7 @@ $billingAddress = $block->getQuoteBillingAddress();
                 }).catch(() => {
                     console.log('Error occurred during order placement')
                 }).finish(() =>  {
-                    window.dispatchEvent(new Event('magewire:loader:done')
+                    window.dispatchEvent(new Event('magewire:loader:done'));
                 });
         }
 
