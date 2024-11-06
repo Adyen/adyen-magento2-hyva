@@ -15,7 +15,7 @@ jobs:
         php-version: [8.2,8.3]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -23,7 +23,46 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:v1
+          tools: composer:v2
+
+      - name: Define Hyvä Checkout repositories
+        run: |
+          composer config repositories.hyva-themes/hyva-checkout git git@gitlab.hyva.io:hyva-checkout/checkout.git
+          composer config repositories.hyva-themes/magento2-theme-module git git@gitlab.hyva.io:hyva-themes/magento2-theme-module.git
+          composer config repositories.hyva-themes/magento2-reset-theme git git@gitlab.hyva.io:hyva-themes/magento2-reset-theme.git
+          composer config repositories.hyva-themes/magento2-email-theme git git@gitlab.hyva.io:hyva-themes/magento2-email-module.git
+          composer config repositories.hyva-default-theme git git@gitlab.hyva.io:hyva-themes/magento2-default-theme.git
+
+      - name: Configure SSH access to Hyvä Gitlab
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          HYVA_GITLAB_SSH_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
+          echo "${HYVA_GITLAB_SSH_KEY}" > ~/.ssh/hyva_id_rsa
+          chmod 600 ~/.ssh/hyva_id_rsa
+          ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null	
+          ssh-add ~/.ssh/hyva_id_rsa
+
+      - name: Install the plugin
+        run: |
+          echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+          composer install --prefer-dist
+        env:
+          CI: true
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+
+      - name: Code Sniffer
+        run: vendor/bin/phpcs .
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
+
+      - name: Fix code coverage paths
+        run: sed -i "s;`pwd`/;;g" build/*.xml
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
