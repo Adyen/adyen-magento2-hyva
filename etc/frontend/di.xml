@@ -7,4 +7,8 @@
     <type name="Hyva\Checkout\Model\Magewire\Component\Resolver\Checkout">
         <plugin name="adyen.hyva.resolver.checkout" type="Adyen\Hyva\Plugin\HyvaCheckout\Model\Magewire\Component\Resolver\Checkout" />
     </type>
+    <type name="Hyva\Checkout\ViewModel\Checkout\Payment\MethodList">
+        <plugin name="sorting_payment_method"
+                type="Adyen\Hyva\Plugin\ViewModel\Checkout\Payment\MethodList" sortOrder="10" />
+    </type>
 </config>
