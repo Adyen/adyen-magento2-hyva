@@ -13,6 +13,7 @@ use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
@@ -20,10 +21,9 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class CreditCardTest extends TestCase
+class CreditCardTest extends AbstractAdyenTestCase
 {
     private MockObject $payment;
     private MockObject $quote;
@@ -165,6 +165,59 @@ class CreditCardTest extends TestCase
         $this->paymentInformationManagement->expects($this->once())
             ->method('savePaymentInformationAndPlaceOrder')
             ->with($quoteId, $this->payment)
+            ->willReturn($orderId);
+
+        $this->adyenOrderPaymentStatus->expects($this->once())
+            ->method('getOrderPaymentStatus')
+            ->with($orderId)
+            ->willReturn($paymentStatus);
+
+        $this->creditCard->placeOrder($data);
+
+        $this->assertEquals($paymentStatus, $this->creditCard->paymentStatus);
+    }
+
+    public function testPlaceOrderGuest()
+    {
+        $data = ['stateData' => []];
+        $paymentStatus = 'success';
+        $quoteId = '111';
+        $orderId = '123';
+        $email = 'mock@mockcompany.com';
+        $maskedQuoteId = 'XYZ...123';
+
+        $this->customerGroupHandler->expects($this->once())
+            ->method('userIsGuest')
+            ->willReturn(true);
+
+        // Use local `quote` mock with additional methods
+        $this->quote = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getCustomerEmail', 'getPayment'])
+            ->getMock();
+
+        $this->quote->method('getCustomerEmail')->willReturn($email);
+        $this->quote->method('getPayment')->willReturn($this->payment);
+
+        $this->session->method('getQuote')->willReturn($this->quote);
+
+        $this->quoteIdToMaskedQuoteIdMock->method('execute')->willReturn($maskedQuoteId);
+
+        $this->session->expects($this->once())
+            ->method('getQuoteId')
+            ->willReturn($quoteId);
+
+        $this->session->expects($this->exactly(2))
+            ->method('getQuote')
+            ->willReturn($this->quote);
+
+        $this->quote->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($this->payment);
+
+        $this->guestPaymentInformationManagement->expects($this->once())
+            ->method('savePaymentInformationAndPlaceOrder')
+            ->with($maskedQuoteId, $email, $this->payment)
             ->willReturn($orderId);
 
         $this->adyenOrderPaymentStatus->expects($this->once())
