@@ -9,9 +9,11 @@ use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\ObjectManager\ContextInterface;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Psr\Log\LoggerInterface;
 
 class Context implements ContextInterface
@@ -23,6 +25,8 @@ class Context implements ContextInterface
         private readonly StateData $stateData,
         private readonly PaymentMethods $paymentMethods,
         private readonly PaymentInformationManagementInterface $paymentInformationManagement,
+        private readonly GuestPaymentInformationManagementInterface $guestPaymentInformationManagement,
+        private readonly QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId,
         private readonly AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus,
         private readonly AdyenPaymentsDetailsInterface $adyenPaymentsDetails,
         private readonly CustomerGroupHandler $customerGroupHandler,
@@ -76,6 +80,22 @@ class Context implements ContextInterface
     public function getPaymentInformationManagement(): PaymentInformationManagementInterface
     {
         return $this->paymentInformationManagement;
+    }
+
+    /**
+     * @return PaymentInformationManagementInterface
+     */
+    public function getGuestPaymentInformationManagement(): GuestPaymentInformationManagementInterface
+    {
+        return $this->guestPaymentInformationManagement;
+    }
+
+    /**
+     * @return QuoteIdToMaskedQuoteIdInterface
+     */
+    public function getQuoteIdToMaskedQuoteId(): QuoteIdToMaskedQuoteIdInterface
+    {
+        return $this->quoteIdToMaskedQuoteId;
     }
 
     /**

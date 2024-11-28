@@ -11,7 +11,7 @@ use Magento\Framework\View\Element\Template;
 
 <div>
 
-    <div id="<?= $magewire->getContainerName() ?>ActionContainer" wire:ignore></div>
+    <div id="<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer" wire:ignore></div>
 
     <script>
         class facilypay3xComponentHandler extends componentHandler {
@@ -116,10 +116,10 @@ use Magento\Framework\View\Element\Template;
                         let methodHandler = new facilypay3xComponentHandler(
                             methodCode,
                             wire,
-                            '<?= $magewire->getContainerName() ?>ActionContainer'
+                            '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
                         );
                         window.AdyenPaymentHandler = methodHandler;
-                        if (methodCode !== '<?= $magewire->getMethodCode() ?>') {
+                        if (methodCode !== '<?= $escaper->escapeHtml($magewire->getMethodCode()) ?>') {
                             methodHandler.renderMethodUnavailableMessage();
                             return;
                         }
@@ -128,7 +128,11 @@ use Magento\Framework\View\Element\Template;
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
-                            methodHandler.activatePaymentMethod(methodCode, paymentMethods, '<?= $magewire->getContainerName() ?>ActionContainer');
+                            methodHandler.activatePaymentMethod(
+                                methodCode,
+                                paymentMethods,
+                                '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
+                            );
                             showPrimaryButton();
                         }
                     }).catch(() => {

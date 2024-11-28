@@ -2,19 +2,19 @@
 
 namespace Adyen\Hyva\Test\Unit\Model;
 
+use Adyen\Hyva\Model\CompositeConfigProvider;
 use Adyen\Hyva\Model\Configuration;
-use Magento\Checkout\Model\CompositeConfigProvider;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\DataObjectFactory;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
-class ConfigurationTest extends TestCase
+class ConfigurationTest extends AbstractAdyenTestCase
 {
-    private Configuration $configuration;
-    private CompositeConfigProvider|MockObject $configProvider;
-    private DataObjectFactory|MockObject $dataObjectFactory;
-    private LoggerInterface|MockObject $logger;
+    protected Configuration $configuration;
+    protected CompositeConfigProvider|MockObject $configProvider;
+    protected DataObjectFactory|MockObject $dataObjectFactory;
+    protected LoggerInterface|MockObject $logger;
 
     protected function setUp(): void
     {
@@ -26,15 +26,9 @@ class ConfigurationTest extends TestCase
                 ]
         ];
 
-        $this->configProvider = $this->getMockBuilder(CompositeConfigProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->dataObjectFactory = $this->getMockBuilder(DataObjectFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->configProvider = $this->createMock(CompositeConfigProvider::class);
+        $this->dataObjectFactory = $this->createGeneratedMock(DataObjectFactory::class, ['create']);
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->configProvider->expects($this->exactly(2))
             ->method('getConfig')
@@ -76,6 +70,7 @@ class ConfigurationTest extends TestCase
         $jsonValue = $this->configuration->getJsonValue('nonexistent/path');
         $this->assertSame('null', $jsonValue);
     }
+
     public function testIsCCEnableStoreDetails(): void
     {
         $result = $this->configuration->isCCEnableStoreDetails(false);
