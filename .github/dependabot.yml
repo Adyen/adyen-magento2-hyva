@@ -8,7 +8,7 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
-    target-branch: "main"
+    target-branch: "develop"
 
   - package-ecosystem: "docker"
     directory: "/"
@@ -17,4 +17,4 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
-    target-branch: "main"
+    target-branch: "develop"
