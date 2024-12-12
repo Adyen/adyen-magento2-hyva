@@ -51,7 +51,7 @@ use Magento\Framework\View\Element\Template;
                         }
 
                         if (wire.get('requiresShipping')) {
-                            googlePayHandler.renderMessage('Please select shipping method.');
+                            googlePayHandler.renderMessage("<?= __('Please select shipping method.') ?>");
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);

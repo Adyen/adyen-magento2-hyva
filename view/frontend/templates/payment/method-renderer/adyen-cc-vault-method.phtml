@@ -49,7 +49,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                             }
 
                             if (wire.get('requiresShipping')) {
-                                creditCardHandler.renderMessage('Please select shipping method.');
+                                creditCardHandler.renderMessage("<?= __('Please select shipping method.') ?>");
                             } else {
                                 let rawResponse = wire.get('paymentResponse');
                                 let paymentMethods = JSON.parse(rawResponse);

@@ -435,7 +435,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
 
         renderMethodUnavailableMessage() {
-            this.renderMessage('We are sorry, this method is temporarily unavailable');
+            this.renderMessage("<?= __('We are sorry, this method is temporarily unavailable') ?>");
         }
 
         renderMessage(message) {
