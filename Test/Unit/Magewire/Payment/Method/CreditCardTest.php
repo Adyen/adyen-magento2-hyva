@@ -17,7 +17,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Quote\Api\Data\PaymentExtension;
+use Magento\Quote\Api\Data\PaymentExtensionInterface;
 use Magento\Quote\Api\Data\PaymentExtensionFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
@@ -101,9 +101,10 @@ class CreditCardTest extends AbstractAdyenTestCase
             PaymentExtensionFactory::class,
             ['create']
         );
-        $this->paymentExtensionMock = $this->getMockBuilder(PaymentExtension::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->paymentExtensionMock = $this->createGeneratedMock(
+            PaymentExtensionInterface::class,
+            ['setAgreementIds']
+        );
 
         $this->context = new Context(
             $this->checkoutStateDataValidator,
