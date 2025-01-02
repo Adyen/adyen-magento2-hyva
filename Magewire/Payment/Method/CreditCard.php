@@ -9,6 +9,7 @@ use Adyen\Hyva\Model\CreditCard\BrandsManager;
 use Adyen\Hyva\Model\CreditCard\InstallmentsManager;
 use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
+use Magento\Quote\Api\Data\PaymentExtensionFactory;
 
 class CreditCard extends AdyenPaymentComponent
 {
@@ -18,9 +19,13 @@ class CreditCard extends AdyenPaymentComponent
     public function __construct(
         private readonly Context $context,
         private readonly BrandsManager $brandsManager,
-        private readonly InstallmentsManager $installmentsManager
+        private readonly InstallmentsManager $installmentsManager,
+        private readonly PaymentExtensionFactory $paymentExtensionFactory
     ) {
-        parent::__construct($this->context);
+        parent::__construct(
+            $this->context,
+            $this->paymentExtensionFactory
+        );
     }
 
     /**

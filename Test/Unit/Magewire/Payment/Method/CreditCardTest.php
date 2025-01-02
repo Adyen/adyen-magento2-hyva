@@ -17,6 +17,8 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Quote\Api\Data\PaymentExtension;
+use Magento\Quote\Api\Data\PaymentExtensionFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Sales\Model\Order;
@@ -43,6 +45,8 @@ class CreditCardTest extends AbstractAdyenTestCase
     private MockObject $brandsManager;
     private MockObject $installmentsManager;
     private MockObject $quoteIdToMaskedQuoteIdMock;
+    private MockObject $paymentExtensionFactoryMock;
+    private MockObject $paymentExtensionMock;
 
     private CreditCard $creditCard;
 
@@ -93,6 +97,13 @@ class CreditCardTest extends AbstractAdyenTestCase
         $this->quoteIdToMaskedQuoteIdMock = $this->getMockBuilder(QuoteIdToMaskedQuoteIdInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->paymentExtensionFactoryMock = $this->createGeneratedMock(
+            PaymentExtensionFactory::class,
+            ['create']
+        );
+        $this->paymentExtensionMock = $this->getMockBuilder(PaymentExtension::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->context = new Context(
             $this->checkoutStateDataValidator,
@@ -120,7 +131,8 @@ class CreditCardTest extends AbstractAdyenTestCase
         $this->creditCard = new CreditCard(
             $this->context,
             $this->brandsManager,
-            $this->installmentsManager
+            $this->installmentsManager,
+            $this->paymentExtensionFactoryMock
         );
     }
 
@@ -155,7 +167,12 @@ class CreditCardTest extends AbstractAdyenTestCase
 
     public function testPlaceOrder()
     {
-        $data = ['stateData' => []];
+        $data = [
+            'stateData' => [],
+            'extension_attributes' => [
+                'agreement_ids' => ['1', '2']
+            ]
+        ];
         $paymentStatus = 'success';
         $quoteId = '111';
         $orderId = '123';
@@ -264,6 +281,10 @@ class CreditCardTest extends AbstractAdyenTestCase
         $this->quote->expects($this->once())
             ->method('getPayment')
             ->willReturn($this->payment);
+
+        $this->paymentExtensionFactoryMock
+            ->method('create')
+            ->willReturn($this->paymentExtensionMock);
     }
 
     public function testEvaluateCompletion()

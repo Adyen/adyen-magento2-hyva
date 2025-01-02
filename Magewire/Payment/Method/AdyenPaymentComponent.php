@@ -20,6 +20,7 @@ use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
 use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Quote\Api\Data\PaymentExtensionFactory;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magewirephp\Magewire\Component;
 use Psr\Log\LoggerInterface;
@@ -61,7 +62,8 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
     const FRONTENDTYPE_HYVA = 'hyva';
 
     public function __construct(
-        private readonly Context $context
+        private readonly Context $context,
+        private readonly PaymentExtensionFactory $paymentExtensionFactory
     ) {
         $this->checkoutStateDataValidator = $context->getCheckoutStateDataValidator();
         $this->configuration = $context->getConfiguration();
@@ -103,6 +105,14 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $quoteId = $this->session->getQuoteId();
             $payment = $this->session->getQuote()->getPayment();
             $payment->setAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE, self::FRONTENDTYPE_HYVA);
+
+            if (!empty($data['extension_attributes']['agreement_ids'])) {
+                $paymentExtension = $this->paymentExtensionFactory->create();
+                $paymentExtension->setAgreementIds($data['extension_attributes']['agreement_ids']);
+
+                $payment->setExtensionAttributes($paymentExtension);
+            }
+
             $stateDataReceived = $this->collectValidatedStateData($data);
             //Temporary (per request) storage of state data
             $this->stateData->setStateData($stateDataReceived, (int) $quoteId);
