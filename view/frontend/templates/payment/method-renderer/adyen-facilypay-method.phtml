@@ -7,9 +7,6 @@ use Magento\Framework\View\Element\Template;
 /** @var Template $block */
 /** @var Escaper $escaper */
 
-/**
- * @deprecated This file will be removed on V2. Use `adyen-facilypay-method.phtml` instead.
- */
 ?>
 
 <div>
@@ -17,7 +14,7 @@ use Magento\Framework\View\Element\Template;
     <div id="<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer" wire:ignore></div>
 
     <script>
-        class facilypay3xComponentHandler extends componentHandler {
+        class facilypayComponentHandler extends componentHandler {
             constructor(paymentMethodCode, wire, elementLabel) {
                 super(paymentMethodCode, wire, elementLabel);
             }
@@ -118,7 +115,7 @@ use Magento\Framework\View\Element\Template;
 
                 wire.refreshProperties()
                     .then(() => {
-                        let methodHandler = new facilypay3xComponentHandler(
+                        let methodHandler = new facilypayComponentHandler(
                             methodCode,
                             wire,
                             '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
