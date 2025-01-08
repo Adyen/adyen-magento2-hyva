@@ -11,7 +11,7 @@ use Magento\Framework\View\Element\Template;
 ?>
 
 <div>
-    <div id="<?= $magewire->getContainerName() ?>ActionContainer" wire:ignore></div>
+    <div id="<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer" wire:ignore></div>
 
     <script>
         class amazonPayComponentHandler extends componentHandler {
@@ -89,7 +89,7 @@ use Magento\Framework\View\Element\Template;
 
             mountComponent(checkoutComponent, paymentMethodType, configuration, result = undefined) {
                 let self = this;
-                const containerId = "<?= $magewire->getContainerName() ?>ActionContainer";
+                const containerId = "<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer";
 
                 let url = new URL(location.href);
                 // Handles the redirect back to checkout page with amazonSessionKey in url
@@ -148,7 +148,7 @@ use Magento\Framework\View\Element\Template;
                 let self = this;
 
                 if (responseJSON.isRefused) {
-                    let message = "<?= __("The Payment is Refused") ?>";
+                    let message = "<?= $escaper->escapeHtml(__("The Payment is Refused")) ?>";
 
                     this.amazonPayStatus = false;
 
@@ -181,7 +181,7 @@ use Magento\Framework\View\Element\Template;
                         let amazonPayHandler = new amazonPayComponentHandler(
                             methodCode,
                             wire,
-                            '<?= $magewire->getContainerName() ?>ActionContainer'
+                            '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
                         );
 
                         window.AdyenPaymentHandler = amazonPayHandler;

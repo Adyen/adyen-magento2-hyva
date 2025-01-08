@@ -70,7 +70,7 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                                             hyvaCheckout.navigation.enableButtonPlaceOrder();
                                         }
                                     },
-                                    installmentOptions: <?= $magewire->getFormattedInstallments() ?>,
+                                    installmentOptions: <?= $escaper->escapeHtml($magewire->getFormattedInstallments()) ?>,
                                     showInstallmentAmounts: true,
                                     onBrand: function (state) {
                                         creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode('<?= $escaper->escapeJs($storedCard->getType()) ?>'));
