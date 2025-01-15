@@ -2,6 +2,7 @@ name: Main CI workflow
 
 on:
   pull_request:
+  pull_request_target:
   workflow_dispatch:
 
 jobs:
@@ -42,7 +43,7 @@ jobs:
           ssh-keyscan gitlab.hyva.io >> ~/.ssh/known_hosts
           echo "${HYVA_GITLAB_SSH_KEY}" > ~/.ssh/hyva_id_rsa
           chmod 600 ~/.ssh/hyva_id_rsa
-          ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null	
+          ssh-agent -a ${SSH_AUTH_SOCK} > /dev/null
           ssh-add ~/.ssh/hyva_id_rsa
 
       - name: Install the plugin
