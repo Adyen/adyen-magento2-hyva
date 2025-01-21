@@ -14,7 +14,7 @@ This module depends on:
 The dependencies may be obtained like for example
 
 ```
-    "adyen/module-payment": "^9.6.1",
+    "adyen/module-payment": "^9.13.0",
     "hyva-themes/magento2-default-theme": "^1.3",
     "hyva-themes/magento2-hyva-checkout": "^1.1",
 ```
