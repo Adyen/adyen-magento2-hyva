@@ -45,7 +45,7 @@ class AdyenConfiguredTest extends TestCase
         ];
 
         $paymentMethods = [
-            'card' => [],
+            'scheme' => [],
             'googlepay' => [],
             'bmcm' => []
         ];
