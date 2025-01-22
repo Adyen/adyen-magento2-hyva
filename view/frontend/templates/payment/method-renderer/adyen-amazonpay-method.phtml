@@ -130,11 +130,18 @@ use Magento\Framework\View\Element\Template;
             placeOrder(data, publicHash = null, amazonPayComponent) {
                 let self = this;
                 let wire = self.wire;
+                let extensionAttributes = {};
+                const termsAndConditionIds = Object.keys(Magewire.find('checkout.terms-conditions').get('termAcceptance'));
+
+                if (termsAndConditionIds.length > 0) {
+                    extensionAttributes.agreement_ids = termsAndConditionIds;
+                }
 
                 wire.placeOrder({
                     stateData: data,
                     ccType: this.getCreditCardType(),
-                    publicHash: publicHash
+                    publicHash: publicHash,
+                    extension_attributes: extensionAttributes
                 })
                     .then(() => {
                         let paymentStatus = JSON.parse(wire.get('paymentStatus'));
