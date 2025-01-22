@@ -11,7 +11,7 @@ use Adyen\Hyva\Model\Customer\CustomerGroupHandler;
 use Adyen\Hyva\Model\PaymentMethod\PaymentMethods;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
@@ -104,7 +104,11 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
             $this->handleSessionVariables($data);
             $quoteId = $this->session->getQuoteId();
             $payment = $this->session->getQuote()->getPayment();
-            $payment->setAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE, self::FRONTENDTYPE_HYVA);
+            
+            $payment->setAdditionalInformation(
+                HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY,
+                self::FRONTENDTYPE_HYVA
+            );
 
             if (!empty($data['extension_attributes']['agreement_ids'])) {
                 $paymentExtension = $this->paymentExtensionFactory->create();
@@ -112,7 +116,7 @@ abstract class AdyenPaymentComponent extends Component implements EvaluationInte
 
                 $payment->setExtensionAttributes($paymentExtension);
             }
-
+            
             $stateDataReceived = $this->collectValidatedStateData($data);
             //Temporary (per request) storage of state data
             $this->stateData->setStateData($stateDataReceived, (int) $quoteId);
