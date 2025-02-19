@@ -10,6 +10,7 @@ use Adyen\Hyva\Model\CreditCard\InstallmentsManager;
 use Exception;
 use Hyva\Checkout\Model\Magewire\Component\Evaluation\EvaluationResult;
 use Hyva\Checkout\Model\Magewire\Component\EvaluationResultFactory;
+use Magento\Quote\Api\Data\PaymentExtensionFactory;
 
 class StoredCards extends AdyenPaymentComponent
 {
@@ -18,9 +19,13 @@ class StoredCards extends AdyenPaymentComponent
     public function __construct(
         private readonly Context $context,
         private readonly InstallmentsManager $installmentsManager,
+        private readonly PaymentExtensionFactory $paymentExtensionFactory
 
     ) {
-        parent::__construct($this->context);
+        parent::__construct(
+            $this->context,
+            $this->paymentExtensionFactory
+        );
     }
 
     /**
