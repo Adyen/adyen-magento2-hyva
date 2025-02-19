@@ -348,10 +348,13 @@ $billingAddress = $block->getQuoteBillingAddress();
             let self = this;
             let wire = self.wire;
             let extensionAttributes = {};
-            const termsAndConditionIds = Object.keys(Magewire.find('checkout.terms-conditions').get('termAcceptance'));
 
-            if (termsAndConditionIds.length > 0) {
-                extensionAttributes.agreement_ids = termsAndConditionIds;
+            if (document.querySelectorAll('[wire\\:id="checkout.terms-conditions"]').length) {
+                const termsAndConditionIds = Object.keys(Magewire.find('checkout.terms-conditions').get('termAcceptance'));
+
+                if (termsAndConditionIds.length > 0) {
+                    extensionAttributes.agreement_ids = termsAndConditionIds;
+                }
             }
 
             wire.placeOrder({
