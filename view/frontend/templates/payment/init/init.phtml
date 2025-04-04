@@ -2,9 +2,11 @@
 
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
 
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
+use Hyva\Theme\ViewModel\HyvaCsp;
 
 ?>
 
@@ -29,5 +31,6 @@ use Magento\Framework\View\Element\Template;
         };
     })(window);
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <?php echo $block->getChildHtml('checkout.payment.method.model.common'); ?>

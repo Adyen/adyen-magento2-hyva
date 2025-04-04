@@ -1,0 +1,100 @@
+<?php
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+?>
+
+<script>
+    class applePayComponentHandler extends componentHandler {
+        buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+            let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+            baseComponentConfiguration.showPayButton = true;
+            baseComponentConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
+            baseComponentConfiguration.code = "adyen_applepay";
+
+            return baseComponentConfiguration
+        }
+    }
+
+    function adyenApplepayComponent() {
+        return {
+            init() {
+                // the event listener is created too late so that the first click is not listened
+                // so I need to handle only the first click in a specific manner
+                if (!window.loadedAdyenApplepayInitially) {
+                    window.loadedAdyenApplepayInitially = true;
+                    this.initAppleAdyen('adyen_applepay');
+                }
+
+                window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+                    unmountAdyenComponent();
+                    await this.initAppleAdyen(event.detail.method);
+                });
+
+                window.addEventListener('checkout:payment:method-activate', async (event) => {
+                    await this.initAppleAdyen(event.detail.method);
+                });
+            },
+
+            async initAppleAdyen(methodCode) {
+                try {
+                    let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+                    wire.refreshProperties()
+                        .then(() => {
+                            let applePayHandler = new applePayComponentHandler(
+                                methodCode,
+                                wire,
+                                'ApplePayActionContainer'
+                            );
+
+                            window.AdyenPaymentHandler = applePayHandler;
+
+                            if (methodCode !== 'adyen_applepay') {
+                                applePayHandler.renderMethodUnavailableMessage();
+                                return;
+                            }
+
+                            if (wire.get('requiresShipping')) {
+                                applePayHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                            } else {
+                                let rawResponse = wire.get('paymentResponse');
+                                let paymentMethods = JSON.parse(rawResponse);
+                                applePayHandler.activatePaymentMethod(methodCode, paymentMethods);
+                                hidePrimaryButton();
+                            }
+                        }).catch(() => {
+                        console.log('Error occurred during Applepay component load')
+                    });
+                } catch (e) {
+                }
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('adyenApplepayComponent', adyenApplepayComponent);
+    }, { once: true });
+
+    window.addEventListener('checkout:init:evaluation', event => {
+        hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
+            let isValid;
+
+            if (!window.AdyenPaymentHandler.actionComponent.isValid) {
+                window.AdyenPaymentHandler.actionComponent.showValidation();
+                isValid = false;
+            } else {
+                isValid = true;
+            }
+
+            return isValid;
+        })
+    })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

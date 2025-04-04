@@ -17,5 +17,20 @@
                 </block>
             </block>
         </referenceContainer>
+
+        <referenceContainer name="hyva.checkout.init-payment.after">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="adyen_cc_component"
+                   template="Adyen_Hyva::payment/components/adyen-cc-component.phtml"
+                   before="-"/>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="adyen_default_component"
+                   template="Adyen_Hyva::payment/components/adyen-default-component.phtml"
+                   before="-"/>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="adyen_applepay_component"
+                   template="Adyen_Hyva::payment/components/adyen-applepay-component.phtml"
+                   before="-"/>
+        </referenceContainer>
     </body>
 </page>

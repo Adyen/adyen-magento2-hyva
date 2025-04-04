@@ -2,78 +2,15 @@
 
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
 use Magento\Framework\Escaper;
-use Magento\Framework\View\Element\Template;
 
 /** @var AbstractPaymentMethodWire $magewire  */
-/** @var Template $block */
 /** @var Escaper $escaper */
 
 ?>
 
-<div>
+<div
+        x-data="adyenDefaultComponent"
+        data-container-name="<?= $magewire->getContainerName() ?>"
+        data-method-code="<?= $magewire->getMethodCode() ?>">
     <div id="<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer" wire:ignore></div>
-
-    <script>
-        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-            unmountAdyenComponent();
-            await init(event.detail.method);
-        });
-
-        window.addEventListener('checkout:payment:method-activate', async (event) => {
-            await init(event.detail.method);
-        });
-
-        window.addEventListener('checkout:init:evaluation', event => {
-            hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
-                let isValid;
-
-                if (!window.AdyenPaymentHandler.actionComponent.isValid) {
-                    window.AdyenPaymentHandler.actionComponent.showValidation();
-                    isValid = false;
-                } else {
-                    isValid = true;
-                }
-
-                return isValid;
-            })
-        })
-
-        async function init(methodCode) {
-            try {
-                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
-
-                wire.refreshProperties()
-                    .then(() => {
-                        let methodHandler = new componentHandler(
-                            methodCode,
-                            wire,
-                            '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
-                        );
-
-                        window.AdyenPaymentHandler = methodHandler;
-
-                        if (methodCode !== '<?= $escaper->escapeHtml($magewire->getMethodCode()) ?>') {
-                            methodHandler.renderMethodUnavailableMessage();
-                            return;
-                        }
-
-                        if (wire.get('requiresShipping')) {
-                            methodHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
-                        } else {
-                            let rawResponse = wire.get('paymentResponse');
-                            let paymentMethods = JSON.parse(rawResponse);
-                            methodHandler.activatePaymentMethod(
-                                methodCode,
-                                paymentMethods,
-                                '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
-                            );
-                            showPrimaryButton();
-                        }
-                }).catch(() => {
-                    console.log(`Error occurred during ${methodCode} component load`)
-                });
-            } catch (e) {
-            }
-        }
-    </script>
 </div>
