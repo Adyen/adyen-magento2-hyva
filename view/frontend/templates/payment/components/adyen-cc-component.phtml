@@ -1,0 +1,98 @@
+<?php
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+?>
+
+<script>
+    function adyenCcComponent() {
+        return {
+            init() {
+                // the event listener is created too late so that the first click is not listened
+                // so I need to handle only the first click in a specific manner
+                if (!window.loadedAdyenCcInitially) {
+                    window.loadedAdyenCcInitially = true;
+                    this.initCcAdyen('adyen_cc');
+                }
+
+                window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+                    unmountAdyenComponent();
+                    await this.initCcAdyen(event.detail.method);
+                });
+
+                window.addEventListener('checkout:payment:method-activate', async (event) => {
+                    await this.initCcAdyen(event.detail.method);
+                });
+            },
+
+            async initCcAdyen(methodCode) {
+                try {
+                    const wire = Magewire.find('checkout.payment.methods.' + methodCode);
+                    wire.refreshProperties()
+                        .then(() => {
+                            let creditCardHandler = new componentHandler(
+                                methodCode,
+                                wire,
+                                'CreditCardActionContainer'
+                            );
+
+                            window.AdyenPaymentHandler = creditCardHandler;
+
+                            if (methodCode !== 'adyen_cc') {
+                                creditCardHandler.renderMethodUnavailableMessage();
+                                return;
+                            }
+
+                            if (wire.get('requiresShipping')) {
+                                creditCardHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                            } else {
+                                let rawResponse = wire.get('paymentResponse');
+                                let paymentMethods = JSON.parse(rawResponse);
+                                let configuration = {
+                                    enableStoreDetails: this.$root.dataset.enableStoreDetails,
+                                    brands: JSON.parse(wire.get('cardBrands')),
+                                    hasHolderName: this.$root.dataset.hasHolderName,
+                                    holderNameRequired: this.$root.dataset.holderNameRequired,
+                                    installmentOptions: this.$root.dataset.installments,
+                                    showInstallmentAmounts: true,
+                                    paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
+                                    onChange: function(state, component) {
+                                        if (!state.isValid) {
+                                            hyvaCheckout.navigation.disableButtonPlaceOrder();
+                                        } else {
+                                            creditCardHandler.clearMessage();
+                                            hyvaCheckout.navigation.enableButtonPlaceOrder();
+                                        }
+                                    },
+                                    onBrand: function(state) {
+                                        creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
+                                    },
+                                    name: this.$root.dataset.method,
+                                    type: "card",
+                                    code: methodCode
+                                };
+
+                                creditCardHandler.activateCcMethod(methodCode, configuration, paymentMethods);
+                                showPrimaryButton();
+                            }
+                        }).catch(() => {
+                        console.log('Error occurred during CC component load')
+                    });
+                } catch (e) {
+                    return null;
+                }
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('adyenCcComponent', adyenCcComponent);
+    }, { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -4,11 +4,13 @@ use Magento\Framework\Escaper;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\Modal;
 use Adyen\Hyva\Block\PaymentMethod;
+use Hyva\Theme\ViewModel\HyvaCsp;
 
 /** @var Escaper $escaper */
 /** @var ViewModelRegistry $viewModels */
 /** @var Modal $modalViewModel */
 /** @var PaymentMethod $block */
+/** @var HyvaCsp $hyvaCsp */
 
 $modalViewModel = $viewModels->require(Modal::class);
 $availableMethods = json_encode(array_keys($block->getAvailableMethods()));
@@ -18,7 +20,7 @@ $shippingAddress = $block->getQuoteShippingAddress();
 $billingAddress = $block->getQuoteBillingAddress();
 
 ?>
-<div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
+<div x-data="adyenModalComponent" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
     <?php
         $endOfContent = <<<END_OF_CONTENT
             <div class="relative">
@@ -33,6 +35,22 @@ $billingAddress = $block->getQuoteBillingAddress();
                        ->withContent($endOfContent)
     ?>
 </div>
+
+<script>
+    function adyenModalComponent() {
+        return {
+            ...hyva.modal(),
+            isLoading: false
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('adyenModalComponent', adyenModalComponent),
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <script>
     function unmountAdyenComponent() {
@@ -79,6 +97,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     })
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <script>
     class componentHandler {
