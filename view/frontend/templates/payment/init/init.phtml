@@ -29,5 +29,6 @@ use Magento\Framework\View\Element\Template;
         };
     })(window);
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <?php echo $block->getChildHtml('checkout.payment.method.model.common'); ?>

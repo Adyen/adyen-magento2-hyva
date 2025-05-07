@@ -13,72 +13,11 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
 <div>
     <div id="CreditCardActionContainer" wire:ignore class="w-full max-w-md"></div>
 
-    <script>
-        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-            unmountAdyenComponent();
-            await init(event.detail.method);
-        });
-
-        window.addEventListener('checkout:payment:method-activate', async (event) => {
-            await init(event.detail.method);
-        });
-
-        async function init(methodCode) {
-            try {
-                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
-                wire.refreshProperties()
-                    .then(() => {
-                        let creditCardHandler = new componentHandler(
-                            methodCode,
-                            wire,
-                            'CreditCardActionContainer'
-                        );
-
-                        window.AdyenPaymentHandler = creditCardHandler;
-
-                        if (methodCode !== 'adyen_cc') {
-                            creditCardHandler.renderMethodUnavailableMessage();
-                            return;
-                        }
-
-                        if (wire.get('requiresShipping')) {
-                            creditCardHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
-                        } else {
-                            let rawResponse = wire.get('paymentResponse');
-                            let paymentMethods = JSON.parse(rawResponse);
-                            let configuration = {
-                                enableStoreDetails: '<?= $escaper->escapeJs($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest()))?>',
-                                brands: JSON.parse(wire.get('cardBrands')),
-                                hasHolderName: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>',
-                                holderNameRequired: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>',
-                                installmentOptions: <?= /* @noEscape */ $magewire->getFormattedInstallments() ?>,
-                                showInstallmentAmounts: true,
-                                paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
-                                onChange: function(state, component) {
-                                    if (!state.isValid) {
-                                        hyvaCheckout.navigation.disableButtonPlaceOrder();
-                                    } else {
-                                        creditCardHandler.clearMessage();
-                                        hyvaCheckout.navigation.enableButtonPlaceOrder();
-                                    }
-                                },
-                                onBrand: function(state) {
-                                    creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
-                                },
-                                name: '<?= $escaper->escapeJs($magewire->getConfiguration()->getValue('adyenCc/title')) ?>',
-                                type: "card",
-                                code: methodCode
-                            };
-
-                            creditCardHandler.activateCcMethod(methodCode, configuration, paymentMethods);
-                            showPrimaryButton();
-                        }
-                    }).catch(() => {
-                        console.log('Error occurred during CC component load')
-                    });
-            } catch (e) {
-                return null;
-            }
-        }
-    </script>
+    <div x-data="adyenPaymentMethodRendererAdyenCcMethod"
+         data-enable-store-details="<?= $escaper->escapeHtmlAttr($magewire->getConfiguration()->isCCEnableStoreDetails($magewire->userIsGuest())) ?>"
+         data-has-holder-name="<?= $escaper->escapeHtmlAttr($magewire->getConfiguration()->getValue('adyen/hasHolderName')) ?>"
+         data-holder-name-required="<?= $escaper->escapeHtmlAttr($magewire->getConfiguration()->getValue('adyen/holderNameRequired')) ?>"
+         data-formatted-installments-json="<?= $escaper->escapeHtmlAttr($magewire->getFormattedInstallments()) ?>"
+         data-title="<?= $escaper->escapeHtmlAttr($magewire->getConfiguration()->getValue('adyenCc/title')) ?>"
+    ></div>
 </div>
