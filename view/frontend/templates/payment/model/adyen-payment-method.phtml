@@ -42,7 +42,7 @@ $billingAddress = $block->getQuoteBillingAddress();
     function adyenHyvaPaymentModal() {
         return Object.assign(
             hyva.modal(),
-            ,{
+            {
                 isLoading: false
                 loadingEvent() {
                     this.isLoading = this.$event.detail
