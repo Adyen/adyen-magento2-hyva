@@ -63,7 +63,7 @@ class MethodList extends Component implements EvaluationInterface
             $this->cartRepository->save($quote);
 
             $this->dispatchBrowserEvent('checkout:payment:method-activate', ['method' => $value]);
-            $this->emit('payment_method_selected');
+            $this->emit('payment_method_selected', ['method' => $value]);
         } catch (LocalizedException $exception) {
             $this->dispatchErrorMessage('Something went wrong while saving your payment preferences.');
         }
