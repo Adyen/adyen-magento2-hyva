@@ -83,6 +83,10 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     }
 
+    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+        unmountAdyenComponent();
+    });
+
     window.addEventListener('checkout:payment:method-activate', event => {
         try {
             const availableMethods = <?= /* @noEscape */ $availableMethods ?>;
