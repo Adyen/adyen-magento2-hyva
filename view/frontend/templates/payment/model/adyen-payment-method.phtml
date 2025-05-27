@@ -43,7 +43,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         return Object.assign(
             hyva.modal(),
             {
-                isLoading: false
+                isLoading: false,
                 loadingEvent() {
                     this.isLoading = this.$event.detail
                 },
