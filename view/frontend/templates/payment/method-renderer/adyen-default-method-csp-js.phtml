@@ -20,35 +20,28 @@ use Magento\Framework\View\Element\Template;
 
 ?>
 <script>
+window.addEventListener('checkout:init:evaluation', event => {
+    hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
+        let isValid;
+
+        if (!window.AdyenPaymentHandler.actionComponent.isValid) {
+            window.AdyenPaymentHandler.actionComponent.showValidation();
+            isValid = false;
+        } else {
+            isValid = true;
+        }
+
+        return isValid;
+    })
+})
+
 function adyenPaymentMethodRendererAdyenDefaultMethod() {
 
-    const dataset = this.$el.dataset;
+    const dataset = this.$el.dataset,
+          methodCode = dataset.methodCode;
 
-    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-        unmountAdyenComponent();
-        await init(event.detail.method);
-    });
+    async function init() {
 
-    window.addEventListener('checkout:payment:method-activate', async (event) => {
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:init:evaluation', event => {
-        hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
-            let isValid;
-
-            if (!window.AdyenPaymentHandler.actionComponent.isValid) {
-                window.AdyenPaymentHandler.actionComponent.showValidation();
-                isValid = false;
-            } else {
-                isValid = true;
-            }
-
-            return isValid;
-        })
-    })
-
-    async function init(methodCode) {
         try {
             let wire = Magewire.find('checkout.payment.methods.' + methodCode);
 
@@ -61,11 +54,6 @@ function adyenPaymentMethodRendererAdyenDefaultMethod() {
                     );
 
                     window.AdyenPaymentHandler = methodHandler;
-
-                    if (methodCode !== dataset.methodCode) {
-                        methodHandler.renderMethodUnavailableMessage();
-                        return;
-                    }
 
                     if (wire.get('requiresShipping')) {
                         methodHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -83,10 +71,13 @@ function adyenPaymentMethodRendererAdyenDefaultMethod() {
                 console.log(`Error occurred during ${methodCode} component load`)
             });
         } catch (e) {
+            console.log(`Wire error occurred during ${methodCode} component initialization`)
         }
     }
 
-    return {}
+    return {
+        init
+    };
 }
 window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenDefaultMethod', adyenPaymentMethodRendererAdyenDefaultMethod), {once: true});
 </script>
