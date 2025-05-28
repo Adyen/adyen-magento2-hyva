@@ -21,19 +21,10 @@ use Magento\Framework\View\Element\Template;
 ?>
 <script>
 function adyenPaymentMethodRendererAdyenCcMethod() {
+    const dataset = this.$el.dataset,
+          methodCode = 'adyen_cc';
 
-    const dataset = this.$el.dataset;
-
-    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-        unmountAdyenComponent();
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:payment:method-activate', async (event) => {
-        await init(event.detail.method);
-    });
-
-    async function init(methodCode) {
+    async function init() {
         try {
             let wire = Magewire.find('checkout.payment.methods.' + methodCode);
             wire.refreshProperties()
@@ -45,11 +36,6 @@ function adyenPaymentMethodRendererAdyenCcMethod() {
                     );
 
                     window.AdyenPaymentHandler = creditCardHandler;
-
-                    if (methodCode !== 'adyen_cc') {
-                        creditCardHandler.renderMethodUnavailableMessage();
-                        return;
-                    }
 
                     if (wire.get('requiresShipping')) {
                         creditCardHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -91,7 +77,9 @@ function adyenPaymentMethodRendererAdyenCcMethod() {
         }
     }
 
-    return {};
+    return {
+        init
+    }
 }
 window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenCcMethod', adyenPaymentMethodRendererAdyenCcMethod), {once: true});
 </script>
