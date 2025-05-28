@@ -22,36 +22,21 @@ use Magento\Framework\View\Element\Template;
 <script>
 function adyenPaymentMethodRendererAdyenCcVaultMethod() {
 
-    const dataset = this.$el.dataset;
+    const dataset = this.$el.dataset,
+        methodCode = dataset.methodCode;
 
-    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-        unmountAdyenComponent();
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:payment:method-activate', async (event) => {
-        await init(event.detail.method);
-    });
-
-    async function init(cardLayoutId) {
+    async function init() {
         try {
-            let wire = Magewire.find(cardLayoutId);
+            let wire = Magewire.find('checkout.payment.methods.' + methodCode);
             wire.refreshProperties()
                 .then(() => {
-                    let magewireMethodCode = dataset.methodCode;
-
                     let creditCardHandler = new componentHandler(
-                        magewireMethodCode,
+                        methodCode,
                         wire,
-                        cardLayoutId + '_ActionContainer'
+                        methodCode + '_ActionContainer'
                     );
 
                     window.AdyenPaymentHandler = creditCardHandler;
-
-                    if (magewireMethodCode !== 'adyen_cc') {
-                        creditCardHandler.renderMethodUnavailableMessage();
-                        return;
-                    }
 
                     if (wire.get('requiresShipping')) {
                         creditCardHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -82,7 +67,7 @@ function adyenPaymentMethodRendererAdyenCcVaultMethod() {
                             }
                         }
 
-                        creditCardHandler.activateVaultMethod(cardLayoutId, creditCardConfiguration, paymentMethods);
+                        creditCardHandler.activateVaultMethod(methodCode, creditCardConfiguration, paymentMethods);
                         showPrimaryButton();
                     }
                 }).catch(() => {
@@ -92,7 +77,9 @@ function adyenPaymentMethodRendererAdyenCcVaultMethod() {
         }
     }
 
-    return {};
+    return {
+        init
+    };
 }
 window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenCcVaultMethod', adyenPaymentMethodRendererAdyenCcVaultMethod), {once: true});
 </script>
