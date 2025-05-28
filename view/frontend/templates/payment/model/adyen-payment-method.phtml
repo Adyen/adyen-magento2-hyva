@@ -87,6 +87,19 @@ $billingAddress = $block->getQuoteBillingAddress();
         unmountAdyenComponent();
     });
 
+    window.addEventListener('checkout:init:evaluation', () => {
+        hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', () => {
+            let isValid = true;
+
+            if (window.AdyenPaymentHandler?.actionComponent && ! window.AdyenPaymentHandler.actionComponent.isValid) {
+                window.AdyenPaymentHandler.actionComponent.showValidation();
+                isValid = false;
+            }
+
+            return isValid;
+        })
+    })
+
     window.addEventListener('checkout:payment:method-activate', event => {
         try {
             const availableMethods = <?= /* @noEscape */ $availableMethods ?>;
