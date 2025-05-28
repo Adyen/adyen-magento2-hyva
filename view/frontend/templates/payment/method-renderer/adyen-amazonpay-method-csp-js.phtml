@@ -22,7 +22,8 @@ use Magento\Framework\View\Element\Template;
 <script>
 function adyenPaymentMethodRendererAdyenAmazonpayMethod() {
 
-    const dataset = this.$el.dataset;
+    const dataset = this.$el.dataset,
+        methodCode = 'adyen_amazonpay';
 
     class amazonPayComponentHandler extends componentHandler {
         constructor(paymentMethodCode, wire, elementLabel) {
@@ -184,16 +185,7 @@ function adyenPaymentMethodRendererAdyenAmazonpayMethod() {
         }
     }
 
-    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-        unmountAdyenComponent();
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:payment:method-activate', async (event) => {
-        await init(event.detail.method);
-    });
-
-    async function init(methodCode) {
+    async function init() {
         try {
             let wire = Magewire.find('checkout.payment.methods.' + methodCode);
             wire.refreshProperties()
@@ -205,11 +197,6 @@ function adyenPaymentMethodRendererAdyenAmazonpayMethod() {
                     );
 
                     window.AdyenPaymentHandler = amazonPayHandler;
-
-                    if (methodCode !== 'adyen_amazonpay') {
-                        amazonPayHandler.renderMethodUnavailableMessage();
-                        return;
-                    }
 
                     if (wire.get('requiresShipping')) {
                         amazonPayHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -226,7 +213,9 @@ function adyenPaymentMethodRendererAdyenAmazonpayMethod() {
         }
     }
 
-    return {};
+    return {
+        init
+    };
 }
 window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenAmazonpayMethod', adyenPaymentMethodRendererAdyenAmazonpayMethod), {once: true});
 </script>

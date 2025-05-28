@@ -22,6 +22,7 @@ use Magento\Framework\View\Element\Template;
 ?>
 <script>
     function adyenPaymentMethodRendererAdyenAppleypayMethod() {
+        const methodCode = 'adyen_applepay';
 
         class applePayComponentHandler extends componentHandler {
             buildConfiguration(paymentMethod, paymentMethodsExtraInfo) {
@@ -29,22 +30,17 @@ use Magento\Framework\View\Element\Template;
 
                 baseComponentConfiguration.showPayButton = true;
                 baseComponentConfiguration.totalPriceLabel = baseComponentConfiguration.configuration.merchantName;
-                baseComponentConfiguration.code = "adyen_applepay";
+                baseComponentConfiguration.code = methodCode;
 
                 return baseComponentConfiguration
             }
         }
 
-        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-            unmountAdyenComponent();
-            await init(event.detail.method);
-        });
-
         window.addEventListener('checkout:payment:method-activate', async (event) => {
             await init(event.detail.method);
         });
 
-        async function init(methodCode) {
+        async function init() {
             try {
                 let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
@@ -56,11 +52,6 @@ use Magento\Framework\View\Element\Template;
                         );
 
                         window.AdyenPaymentHandler = applePayHandler;
-
-                        if (methodCode !== 'adyen_applepay') {
-                            applePayHandler.renderMethodUnavailableMessage();
-                            return;
-                        }
 
                         if (wire.get('requiresShipping')) {
                             applePayHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -75,6 +66,10 @@ use Magento\Framework\View\Element\Template;
                 });
             } catch (e) {
             }
+        }
+
+        return {
+            init
         }
     }
 

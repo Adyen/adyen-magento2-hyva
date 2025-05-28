@@ -22,7 +22,8 @@ use Magento\Framework\View\Element\Template;
 <script>
 function adyenPaymentMethodRendererAdyenFacilypayMethod() {
 
-    const dataset = this.$el.dataset;
+    const dataset = this.$el.dataset,
+          methodCode = dataset.methodCode;
 
     class facilypayComponentHandler extends componentHandler {
         constructor(paymentMethodCode, wire, elementLabel) {
@@ -94,29 +95,7 @@ function adyenPaymentMethodRendererAdyenFacilypayMethod() {
         }
     }
 
-    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-        unmountAdyenComponent();
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:payment:method-activate', async (event) => {
-        await init(event.detail.method);
-    });
-
-    window.addEventListener('checkout:init:evaluation', event => {
-        hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
-            let isValid;
-            if (!window.AdyenPaymentHandler.actionComponent.isValid) {
-                window.AdyenPaymentHandler.actionComponent.showValidation();
-                isValid = false;
-            } else {
-                isValid = true;
-            }
-            return isValid;
-        });
-    });
-
-    async function init(methodCode) {
+    async function init() {
         try {
             let wire = Magewire.find('checkout.payment.methods.' + methodCode);
 
@@ -127,11 +106,9 @@ function adyenPaymentMethodRendererAdyenFacilypayMethod() {
                         wire,
                         dataset.containerName + 'ActionContainer'
                     );
+
                     window.AdyenPaymentHandler = methodHandler;
-                    if (methodCode !== dataset.methodCode) {
-                        methodHandler.renderMethodUnavailableMessage();
-                        return;
-                    }
+
                     if (wire.get('requiresShipping')) {
                         methodHandler.renderMessage('Please select shipping method.');
                     } else {
@@ -152,7 +129,9 @@ function adyenPaymentMethodRendererAdyenFacilypayMethod() {
         }
     }
 
-    return {}
+    return {
+        init
+    }
 }
 window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenFacilypayMethod', adyenPaymentMethodRendererAdyenFacilypayMethod), {once: true});
 </script>

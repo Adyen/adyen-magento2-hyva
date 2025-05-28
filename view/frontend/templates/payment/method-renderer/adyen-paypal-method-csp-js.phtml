@@ -22,6 +22,8 @@ use Magento\Framework\View\Element\Template;
 ?>
 <script>
     function adyenPaymentMethodRendererAdyenPaypalMethod() {
+        const methodCode = 'adyen_paypal';
+
         class paypalComponentHandler extends componentHandler {
             buildConfiguration(paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
@@ -31,16 +33,7 @@ use Magento\Framework\View\Element\Template;
             }
         }
 
-        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-            unmountAdyenComponent();
-            await init(event.detail.method);
-        });
-
-        window.addEventListener('checkout:payment:method-activate', async (event) => {
-            await init(event.detail.method);
-        });
-
-        async function init(methodCode) {
+        async function init() {
             try {
                 let wire = Magewire.find('checkout.payment.methods.' + methodCode);
                 wire.refreshProperties()
@@ -52,11 +45,6 @@ use Magento\Framework\View\Element\Template;
                         );
 
                         window.AdyenPaymentHandler = paypalHandler;
-
-                        if (methodCode !== 'adyen_paypal') {
-                            paypalHandler.renderMethodUnavailableMessage();
-                            return;
-                        }
 
                         if (wire.get('requiresShipping')) {
                             paypalHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
@@ -73,7 +61,9 @@ use Magento\Framework\View\Element\Template;
             }
         }
 
-        return {}
+        return {
+            init
+        }
     }
 
     window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenPaypalMethod', adyenPaymentMethodRendererAdyenPaypalMethod), {once: true});

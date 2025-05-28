@@ -20,21 +20,6 @@ use Magento\Framework\View\Element\Template;
 
 ?>
 <script>
-window.addEventListener('checkout:init:evaluation', event => {
-    hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', (element, component) => {
-        let isValid;
-
-        if (!window.AdyenPaymentHandler.actionComponent.isValid) {
-            window.AdyenPaymentHandler.actionComponent.showValidation();
-            isValid = false;
-        } else {
-            isValid = true;
-        }
-
-        return isValid;
-    })
-})
-
 function adyenPaymentMethodRendererAdyenDefaultMethod() {
 
     const dataset = this.$el.dataset,
