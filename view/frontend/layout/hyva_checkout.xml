@@ -12,9 +12,6 @@
 >
     <body>
         <referenceContainer name="magewire.plugin.scripts">
-            <block name="checkout.payment.method-list"
-                   template="Adyen_Hyva::checkout/payment/method-list-csp-js.phtml"
-            />
             <block name="payment.method-renderer.adyen-affirm-method"
                    template="Adyen_Hyva::payment/method-renderer/adyen-affirm-method-csp-js.phtml"
             />

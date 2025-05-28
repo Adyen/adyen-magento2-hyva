@@ -23,9 +23,6 @@ $methods = $viewModel->getList();
     <?php if ($methods): ?>
         <ol id="payment-method-list"
             class="space-y-4"
-
-            x-data="adyenPaymentMethodRegisterEvent"
-            data-method="<?= $escaper->escapeHtmlAttr($magewire->method) ?>"
         >
             <?= $block->getChildHtml('adyen_vault_stored_cards');?>
             <?php foreach ($methods as $method): ?>
