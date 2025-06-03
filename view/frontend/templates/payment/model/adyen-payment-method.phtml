@@ -18,7 +18,7 @@ $shippingAddress = $block->getQuoteShippingAddress();
 $billingAddress = $block->getQuoteBillingAddress();
 
 ?>
-<div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
+<div x-data="adyenHyvaPaymentModal" @adyen-modal-hide.window="hide" @adyen-loading.window="loadingEvent">
     <?php
         $endOfContent = <<<END_OF_CONTENT
             <div class="relative">
@@ -33,7 +33,21 @@ $billingAddress = $block->getQuoteBillingAddress();
                        ->withContent($endOfContent)
     ?>
 </div>
-
+<script>
+    function adyenHyvaPaymentModal() {
+        return Object.assign(
+            hyva.modal(),
+            {
+                isLoading: false,
+                loadingEvent() {
+                    this.isLoading = this.$event.detail
+                },
+            }
+        )
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('adyenHyvaPaymentModal', adyenHyvaPaymentModal), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
 <script>
     function unmountAdyenComponent() {
         let AdyenPaymentHandler = window.AdyenPaymentHandler;
@@ -79,7 +93,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     })
 </script>
-
+<?php $hyvaCsp->registerInlineScript() ?>
 <script>
     class componentHandler {
         constructor(
@@ -502,7 +516,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     }
 </script>
-
+<?php $hyvaCsp->registerInlineScript() ?>
 <?php
     foreach ($block->getChildNames() as $childBlockName) {
         echo $block->getLayout()->getBlock($childBlockName)->toHtml();

@@ -3,11 +3,12 @@
 /** @var AbstractPaymentMethodWire $magewire */
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
 
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
-
+use Hyva\Theme\ViewModel\HyvaCsp;
 ?>
 
 <div>
@@ -68,4 +69,5 @@ use Magento\Framework\View\Element\Template;
             }
         }
     </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
 </div>

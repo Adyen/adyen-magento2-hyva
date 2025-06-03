@@ -1,12 +1,14 @@
 <?php
 /** @var StoredCards $magewire */
 /** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
 
 use Magento\Framework\Escaper;
 use Adyen\Hyva\Api\Data\StoredCreditCardInterface;
 use Adyen\Hyva\Api\ProcessingMetadataInterface;
 use Adyen\Hyva\Magewire\Payment\Method\StoredCards;
 use Magewirephp\Magewire\Component;
+use Hyva\Theme\ViewModel\HyvaCsp;
 
 /** @var Component $magewire */
 $magewire = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_MAGEWIRE);
@@ -87,5 +89,6 @@ $storedCard = $this->getData(ProcessingMetadataInterface::BLOCK_PROPERTY_STORED_
                 }
             }
         </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
     <?php endif; ?>
 </div>

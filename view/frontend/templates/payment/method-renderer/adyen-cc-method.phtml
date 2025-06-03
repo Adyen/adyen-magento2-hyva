@@ -3,11 +3,12 @@
 /** @var CreditCard $magewire */
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
 
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
-
+use Hyva\Theme\ViewModel\HyvaCsp;
 ?>
 
 <div>
@@ -81,4 +82,5 @@ use Adyen\Hyva\Magewire\Payment\Method\CreditCard;
             }
         }
     </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
 </div>

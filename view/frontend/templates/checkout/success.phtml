@@ -3,9 +3,11 @@
 /** @var MagewireSuccess $magewire */
 /** @var Escaper $escaper */
 /** @var Success $block */
+/** @var HyvaCsp $hyvaCsp */
 
 use Adyen\Payment\Block\Checkout\Success;
-use \Adyen\Hyva\Magewire\Checkout\Success as MagewireSuccess;
+use Adyen\Hyva\Magewire\Checkout\Success as MagewireSuccess;
+use Hyva\Theme\ViewModel\HyvaCsp;
 use Magento\Framework\Escaper;
 
 ?>
@@ -85,5 +87,6 @@ use Magento\Framework\Escaper;
                 }
             })();
         </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
     <?php endif; ?>
 </div>
