@@ -15,7 +15,7 @@ jobs:
       attestations: write
     env:
       PHP_VERSION: "8.1"
-      MAGENTO_VERSION: "2.4.5"
+      MAGENTO_VERSION: "2.4.5-p12"
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
