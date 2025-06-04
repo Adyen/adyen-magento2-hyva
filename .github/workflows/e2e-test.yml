@@ -10,6 +10,9 @@ jobs:
       group: larger-runners
       labels: ubuntu-latest-8-cores
     timeout-minutes: 25
+    permissions:
+      contents: read
+      attestations: write
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
