@@ -361,11 +361,21 @@ $billingAddress = $block->getQuoteBillingAddress();
             window.dispatchEvent(new Event('magewire:loader:start'));
             let self = this;
             let wire = self.wire;
+            let extensionAttributes = {};
+
+            if (document.querySelectorAll('[wire\\:id="checkout.terms-conditions"]').length) {
+                const termsAndConditionIds = Object.keys(Magewire.find('checkout.terms-conditions').get('termAcceptance'));
+
+                if (termsAndConditionIds.length > 0) {
+                    extensionAttributes.agreement_ids = termsAndConditionIds;
+                }
+            }
 
             wire.placeOrder({
                 stateData: data,
                 ccType: this.getCreditCardType(),
-                publicHash: publicHash
+                publicHash: publicHash,
+                extension_attributes: extensionAttributes
             })
                 .then(() => {
                     let paymentStatus = JSON.parse(wire.get('paymentStatus'));
@@ -449,7 +459,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
 
         renderMethodUnavailableMessage() {
-            this.renderMessage('We are sorry, this method is temporarily unavailable');
+            this.renderMessage("<?= $escaper->escapeJs(__('We are sorry, this method is temporarily unavailable')) ?>");
         }
 
         renderMessage(message) {

@@ -1,6 +1,6 @@
 name: Magento-Hyva E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
-on: [pull_request, workflow_dispatch]
+on: [pull_request, pull_request_target, workflow_dispatch]
 
 jobs:
   build:
@@ -10,6 +10,9 @@ jobs:
       group: larger-runners
       labels: ubuntu-latest-8-cores
     timeout-minutes: 25
+    permissions:
+      contents: read
+      attestations: write
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
@@ -23,6 +26,9 @@ jobs:
       DEPLOY_SAMPLEDATA: 1
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
 
       - name: Set Branch Name
         run: |

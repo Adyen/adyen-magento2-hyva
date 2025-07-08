@@ -2,15 +2,11 @@
 use Adyen\Hyva\Magewire\Payment\Method\AbstractPaymentMethodWire;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
-use Hyva\Theme\ViewModel\HyvaCsp;
 
 /** @var AbstractPaymentMethodWire $magewire  */
 /** @var Template $block */
 /** @var Escaper $escaper */
-/** @var HyvaCsp $hyvaCsp */
-/**
- * @deprecated This file will be removed on V2. Use `adyen-facilypay-method.phtml` instead.
- */
+
 ?>
 
 <div>
@@ -18,7 +14,7 @@ use Hyva\Theme\ViewModel\HyvaCsp;
     <div id="<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer" wire:ignore></div>
 
     <script>
-        class facilypay3xComponentHandler extends componentHandler {
+        class facilypayComponentHandler extends componentHandler {
             constructor(paymentMethodCode, wire, elementLabel) {
                 super(paymentMethodCode, wire, elementLabel);
             }
@@ -117,7 +113,7 @@ use Hyva\Theme\ViewModel\HyvaCsp;
 
                 wire.refreshProperties()
                     .then(() => {
-                        let methodHandler = new facilypay3xComponentHandler(
+                        let methodHandler = new facilypayComponentHandler(
                             methodCode,
                             wire,
                             '<?= $escaper->escapeHtml($magewire->getContainerName()) ?>ActionContainer'
@@ -128,7 +124,7 @@ use Hyva\Theme\ViewModel\HyvaCsp;
                             return;
                         }
                         if (wire.get('requiresShipping')) {
-                            methodHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                            methodHandler.renderMessage('Please select shipping method.');
                         } else {
                             let rawResponse = wire.get('paymentResponse');
                             let paymentMethods = JSON.parse(rawResponse);
@@ -147,5 +143,4 @@ use Hyva\Theme\ViewModel\HyvaCsp;
             }
         }
     </script>
-    <?php $hyvaCsp->registerInlineScript() ?>
 </div>
