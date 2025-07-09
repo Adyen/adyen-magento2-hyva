@@ -21,15 +21,9 @@ $methods = $viewModel->getList();
 ?>
 <div id="payment-methods">
     <?php if ($methods): ?>
-        <script>
-            window.addEventListener('checkout:step:loaded', () => {
-                if('<?= $escaper->escapeJs($magewire->method) ?>' && document.getElementById('payment-method-list')) {
-                    window.dispatchEvent(new CustomEvent('checkout:payment:method-activate', { detail: { method: '<?= $escaper->escapeJs($magewire->method) ?>'} }))
-                }
-            }, { once: true })
-        </script>
-
-        <ol id="payment-method-list" class="space-y-4">
+        <ol id="payment-method-list"
+            class="space-y-4"
+        >
             <?= $block->getChildHtml('adyen_vault_stored_cards');?>
             <?php foreach ($methods as $method): ?>
                 <?php $methodCodeAttr = $method->getCode() ?>

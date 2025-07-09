@@ -13,55 +13,5 @@ use Magento\Framework\View\Element\Template;
 <div>
     <div id="GooglePayActionContainer" wire:ignore></div>
 
-    <script>
-        class googlePayComponentHandler extends componentHandler {
-            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
-                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
-                baseComponentConfiguration.showPayButton = true;
-
-                return baseComponentConfiguration;
-            }
-        }
-
-        window.addEventListener('checkout:payment:method-list-boot', async (event) => {
-            unmountAdyenComponent();
-            await init(event.detail.method);
-        });
-
-        window.addEventListener('checkout:payment:method-activate', async (event) => {
-            await init(event.detail.method);
-        });
-
-        async function init(methodCode) {
-            try {
-                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
-                wire.refreshProperties()
-                    .then(() => {
-                        let googlePayHandler = new googlePayComponentHandler(
-                            methodCode,
-                            wire,
-                            'GooglePayActionContainer'
-                        );
-
-                        window.AdyenPaymentHandler = googlePayHandler;
-
-                        if (methodCode !== 'adyen_googlepay') {
-                            googlePayHandler.renderMethodUnavailableMessage();
-                            return;
-                        }
-
-                        if (wire.get('requiresShipping')) {
-                            googlePayHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
-                        } else {
-                            let rawResponse = wire.get('paymentResponse');
-                            let paymentMethods = JSON.parse(rawResponse);
-                            googlePayHandler.activatePaymentMethod(methodCode, paymentMethods);
-                            hidePrimaryButton();
-                        }
-                    })
-                    .catch(() => {});
-            } catch (e) {
-            }
-        }
-    </script>
+    <div x-data="adyenPaymentMethodRendererAdyenGooglepayMethod"></div>
 </div>

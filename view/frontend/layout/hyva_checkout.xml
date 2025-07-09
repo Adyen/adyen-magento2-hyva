@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2022-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"
+>
+    <body>
+        <referenceContainer name="magewire.plugin.scripts">
+            <block name="payment.method-renderer.adyen-affirm-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-affirm-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-amazonpay-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-amazonpay-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-applepay-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-applepay-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-cashapp-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-cashapp-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-cc-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-cc-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-cc-vault-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-cc-vault-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-default-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-default-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-facilypay-3x-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-facilypay-3x-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-facilypay-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-facilypay-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-googlepay-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-googlepay-method-csp-js.phtml"
+            />
+            <block name="payment.method-renderer.adyen-paypal-method"
+                   template="Adyen_Hyva::payment/method-renderer/adyen-paypal-method-csp-js.phtml"
+            />
+        </referenceContainer>
+    </body>
+</page>
