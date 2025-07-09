@@ -2,6 +2,7 @@
 
 use Magento\Framework\Escaper;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\Modal;
 use Adyen\Hyva\Block\PaymentMethod;
 
@@ -9,6 +10,7 @@ use Adyen\Hyva\Block\PaymentMethod;
 /** @var ViewModelRegistry $viewModels */
 /** @var Modal $modalViewModel */
 /** @var PaymentMethod $block */
+/** @var HyvaCsp $hyvaCsp */
 
 $modalViewModel = $viewModels->require(Modal::class);
 $availableMethods = json_encode(array_keys($block->getAvailableMethods()));
@@ -18,21 +20,39 @@ $shippingAddress = $block->getQuoteShippingAddress();
 $billingAddress = $block->getQuoteBillingAddress();
 
 ?>
-<div x-data="{...hyva.modal(), isLoading: false}" @adyen-modal-hide.window="hide()" @adyen-loading.window="isLoading = $event.detail">
+<div x-data="adyenHyvaPaymentModal"
+     @adyen-modal-hide.window="hide"
+     @adyen-loading.window="loadingEvent">
     <?php
-        $endOfContent = <<<END_OF_CONTENT
+    $endOfContent = <<<END_OF_CONTENT
             <div class="relative">
                 {$block->getBlockHtml('block-loader')}
                 <div id="adyen-popup"></div>
             </div>
         END_OF_CONTENT;
-        /* @noEscape */ echo $modalViewModel->createModal()
-                       ->withDialogRefName('adyenPopup')
-                       ->removeDialogClass('p-10')
-                       ->addDialogClass('p-4')
-                       ->withContent($endOfContent)
+    /* @noEscape */ echo $modalViewModel->createModal()
+        ->withDialogRefName('adyenPopup')
+        ->removeDialogClass('p-10')
+        ->addDialogClass('p-4')
+        ->withContent($endOfContent)
     ?>
 </div>
+
+<script>
+    function adyenHyvaPaymentModal() {
+        return Object.assign(
+            hyva.modal(),
+            {
+                isLoading: false,
+                loadingEvent() {
+                    this.isLoading = this.$event.detail
+                },
+            }
+        )
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('adyenHyvaPaymentModal', adyenHyvaPaymentModal), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <script>
     function unmountAdyenComponent() {
@@ -63,6 +83,23 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     }
 
+    window.addEventListener('checkout:payment:method-list-boot', async (event) => {
+        unmountAdyenComponent();
+    });
+
+    window.addEventListener('checkout:init:evaluation', () => {
+        hyvaCheckout.evaluation.registerValidator('validate-adyen-component-state', () => {
+            let isValid = true;
+
+            if (window.AdyenPaymentHandler?.actionComponent && ! window.AdyenPaymentHandler.actionComponent.isValid) {
+                window.AdyenPaymentHandler.actionComponent.showValidation();
+                isValid = false;
+            }
+
+            return isValid;
+        })
+    })
+
     window.addEventListener('checkout:payment:method-activate', event => {
         try {
             const availableMethods = <?= /* @noEscape */ $availableMethods ?>;
@@ -79,6 +116,7 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     })
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <script>
     class componentHandler {
@@ -368,9 +406,9 @@ $billingAddress = $block->getQuoteBillingAddress();
                     self.handleAdyenResult(paymentStatus);
                     window.dispatchEvent(new Event('magewire:loader:done'));
                 }).catch(() => {
-                    window.dispatchEvent(new Event('magewire:loader:done'));
-                    console.log('Error occurred during order placement');
-                });
+                window.dispatchEvent(new Event('magewire:loader:done'));
+                console.log('Error occurred during order placement');
+            });
         }
 
         handleAdyenResult(responseJSON) {
@@ -440,8 +478,8 @@ $billingAddress = $block->getQuoteBillingAddress();
                     self.handleAdyenResult(paymentDetails);
                     window.dispatchEvent(new CustomEvent('adyen-loading', {detail: false}))
                 }).catch(() => {
-                    console.log('Error occurred during order placement')
-                });
+                console.log('Error occurred during order placement')
+            });
         }
 
         renderMethodUnavailableMessage() {
@@ -512,9 +550,9 @@ $billingAddress = $block->getQuoteBillingAddress();
         }
     }
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
 
 <?php
-    foreach ($block->getChildNames() as $childBlockName) {
-        echo $block->getLayout()->getBlock($childBlockName)->toHtml();
-    }
-?>
+foreach ($block->getChildNames() as $childBlockName) {
+    echo $block->getLayout()->getBlock($childBlockName)->toHtml();
+}

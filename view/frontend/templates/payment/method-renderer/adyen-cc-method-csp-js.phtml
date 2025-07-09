@@ -1,0 +1,86 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2020-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+?>
+<script>
+function adyenPaymentMethodRendererAdyenCcMethod() {
+    const dataset = this.$el.dataset,
+          methodCode = 'adyen_cc';
+
+    async function init() {
+        try {
+            let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+            wire.refreshProperties()
+                .then(() => {
+                    let creditCardHandler = new componentHandler(
+                        methodCode,
+                        wire,
+                        'CreditCardActionContainer'
+                    );
+
+                    window.AdyenPaymentHandler = creditCardHandler;
+
+                    if (wire.get('requiresShipping')) {
+                        creditCardHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                    } else {
+                        let rawResponse = wire.get('paymentResponse');
+                        let paymentMethods = JSON.parse(rawResponse);
+                        let configuration = {
+                            enableStoreDetails: dataset.enableStoreDetails,
+                            brands: JSON.parse(wire.get('cardBrands')),
+                            hasHolderName: dataset.hasHolderName,
+                            holderNameRequired: dataset.holderNameRequired,
+                            installmentOptions: JSON.parse(dataset.formattedInstallmentsJson),
+                            showInstallmentAmounts: true,
+                            paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
+                            onChange: function(state, component) {
+                                if (!state.isValid) {
+                                    hyvaCheckout.navigation.disableButtonPlaceOrder();
+                                } else {
+                                    creditCardHandler.clearMessage();
+                                    hyvaCheckout.navigation.enableButtonPlaceOrder();
+                                }
+                            },
+                            onBrand: function(state) {
+                                creditCardHandler.setCreditCardType(creditCardHandler.getCcCodeByAltCode(state.brand));
+                            },
+                            name: dataset.title,
+                            type: "card",
+                            code: methodCode
+                        };
+
+                        creditCardHandler.activateCcMethod(methodCode, configuration, paymentMethods);
+                        showPrimaryButton();
+                    }
+                }).catch(() => {
+                console.log('Error occurred during CC component load')
+            });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    return {
+        init
+    }
+}
+window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenCcMethod', adyenPaymentMethodRendererAdyenCcMethod), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

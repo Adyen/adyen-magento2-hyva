@@ -1,0 +1,79 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2020-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+?>
+<script>
+function adyenPaymentMethodRendererAdyenAffirmMethod() {
+    const dataset = this.$el.dataset,
+          methodCode = dataset.methodCode;
+
+    class cashappComponentHandler extends componentHandler {
+        buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+            let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+            baseComponentConfiguration.visibility = {
+                personalDetails: "hidden",
+                billingAddress: "hidden",
+                deliveryAddress: "hidden"
+            }
+
+            return baseComponentConfiguration;
+        }
+    }
+
+    async function init() {
+        try {
+            let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+
+            wire.refreshProperties()
+                .then(() => {
+                    let methodHandler = new cashappComponentHandler(
+                        methodCode,
+                        wire,
+                        dataset.containerName + 'ActionContainer'
+                    );
+
+                    window.AdyenPaymentHandler = methodHandler;
+
+                    if (wire.get('requiresShipping')) {
+                        methodHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                    } else {
+                        let rawResponse = wire.get('paymentResponse');
+                        let paymentMethods = JSON.parse(rawResponse);
+                        methodHandler.activatePaymentMethod(
+                            methodCode,
+                            paymentMethods,
+                            dataset.containerName + 'ActionContainer'
+                        );
+                        showPrimaryButton();
+                    }
+                }).catch(() => {
+                console.log(`Error occurred during ${methodCode} component load`)
+            });
+        } catch (e) {
+        }
+    }
+
+    return {
+        init
+    }
+}
+window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenAffirmMethod', adyenPaymentMethodRendererAdyenAffirmMethod), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

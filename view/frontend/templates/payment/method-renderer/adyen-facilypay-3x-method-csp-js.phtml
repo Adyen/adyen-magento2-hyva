@@ -1,0 +1,137 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2020-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+?>
+<script>
+function adyenPaymentMethodRendererAdyenFacilypay3xMethod() {
+
+    const dataset = this.$el.dataset,
+          methodCode = dataset.methodCode;
+
+    class facilypay3xComponentHandler extends componentHandler {
+        constructor(paymentMethodCode, wire, elementLabel) {
+            super(paymentMethodCode, wire, elementLabel);
+        }
+
+        buildConfiguration(paymentMethod, paymentMethodsExtraInfo) {
+            let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+
+            let formattedShippingAddress = {};
+            let formattedBillingAddress = {};
+            let shopperDateOfBirth = '';
+            let email = '';
+
+            const shippingAddress = this.wire.get('shippingAddress');
+            const billingAddress = this.wire.get('billingAddress');
+            const quoteData = this.wire.get('quoteData');
+            const customerData = this.wire.get('customerData');
+
+            if (customerData) {
+                const parsedCustomerData = JSON.parse(customerData);
+                shopperDateOfBirth = parsedCustomerData.shopper_date_of_birth || '';
+                email = parsedCustomerData.email || '';
+            }
+
+            if (!email && quoteData) {
+                const parsedQuoteData = JSON.parse(quoteData);
+                email = parsedQuoteData.shopper_email || '';
+            }
+
+            if (shippingAddress) {
+                formattedShippingAddress = this.getFormattedAddress(JSON.parse(shippingAddress));
+            }
+
+            if (billingAddress) {
+                formattedBillingAddress = this.getFormattedAddress(JSON.parse(billingAddress));
+            }
+
+            baseComponentConfiguration.data = {};
+
+            if (formattedShippingAddress) {
+                baseComponentConfiguration.data.deliveryAddress = {
+                    city: formattedShippingAddress.city,
+                    country: formattedShippingAddress.country,
+                    houseNumberOrName: formattedShippingAddress.houseNumber,
+                    postalCode: formattedShippingAddress.postalCode,
+                    street: formattedShippingAddress.street
+                };
+            }
+
+            if (formattedBillingAddress) {
+                baseComponentConfiguration.data.personalDetails = {
+                    firstName: formattedBillingAddress.firstName,
+                    lastName: formattedBillingAddress.lastName,
+                    telephoneNumber: formattedBillingAddress.telephone,
+                    shopperEmail: email,
+                    dateOfBirth: shopperDateOfBirth,
+                };
+                baseComponentConfiguration.data.billingAddress = {
+                    city: formattedBillingAddress.city,
+                    country: formattedBillingAddress.country,
+                    houseNumberOrName: formattedBillingAddress.houseNumber,
+                    postalCode: formattedBillingAddress.postalCode,
+                    street: formattedBillingAddress.street,
+                };
+            }
+
+            return baseComponentConfiguration;
+        }
+    }
+
+    async function init() {
+        try {
+            let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+
+            wire.refreshProperties()
+                .then(() => {
+                    let methodHandler = new facilypay3xComponentHandler(
+                        methodCode,
+                        wire,
+                        dataset.containerName + 'ActionContainer'
+                    );
+                    window.AdyenPaymentHandler = methodHandler;
+
+                    if (wire.get('requiresShipping')) {
+                        methodHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                    } else {
+                        let rawResponse = wire.get('paymentResponse');
+                        let paymentMethods = JSON.parse(rawResponse);
+                        methodHandler.activatePaymentMethod(
+                            methodCode,
+                            paymentMethods,
+                            dataset.containerName + 'ActionContainer'
+                        );
+                        showPrimaryButton();
+                    }
+                }).catch(() => {
+                console.error(`Error occurred during ${methodCode} component load`);
+            });
+        } catch (e) {
+            console.error('Error in init function:', e);
+        }
+    }
+
+    return {
+        init
+    }
+}
+window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenFacilypay3xMethod', adyenPaymentMethodRendererAdyenFacilypay3xMethod), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
