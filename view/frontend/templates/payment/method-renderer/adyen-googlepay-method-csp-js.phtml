@@ -1,0 +1,70 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2020-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** Generated with hyva-csp-helper.php */
+?>
+<script>
+    function adyenPaymentMethodRendererAdyenGooglepayMethod() {
+
+        const methodCode = 'adyen_googlepay';
+
+        class googlePayComponentHandler extends componentHandler {
+            buildConfiguration (paymentMethod, paymentMethodsExtraInfo) {
+                let baseComponentConfiguration = super.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+                baseComponentConfiguration.showPayButton = true;
+
+                return baseComponentConfiguration;
+            }
+        }
+
+        async function init() {
+            try {
+                let wire = Magewire.find('checkout.payment.methods.' + methodCode);
+                wire.refreshProperties()
+                    .then(() => {
+                        let googlePayHandler = new googlePayComponentHandler(
+                            methodCode,
+                            wire,
+                            'GooglePayActionContainer'
+                        );
+
+                        window.AdyenPaymentHandler = googlePayHandler;
+
+                        if (wire.get('requiresShipping')) {
+                            googlePayHandler.renderMessage("<?= $escaper->escapeJs(__('Please select shipping method.')) ?>");
+                        } else {
+                            let rawResponse = wire.get('paymentResponse');
+                            let paymentMethods = JSON.parse(rawResponse);
+                            googlePayHandler.activatePaymentMethod(methodCode, paymentMethods);
+                            hidePrimaryButton();
+                        }
+                    })
+                    .catch(() => {});
+            } catch (e) {
+            }
+        }
+
+        return {
+            init
+        }
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('adyenPaymentMethodRendererAdyenGooglepayMethod', adyenPaymentMethodRendererAdyenGooglepayMethod), {once: true});
+    </script>
+<?php $hyvaCsp->registerInlineScript() ?>
