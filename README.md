@@ -1,3 +1,5 @@
+> ## ⚠️ **Attention:**
+> ## This integration is no longer officially supported and will not get new updates.
 # Adyen Payment - Integration with Hyva Checkout
 
 This module supports Adyen payments via the Hyva Checkout implementation for Magento 2.
